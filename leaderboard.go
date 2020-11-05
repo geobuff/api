@@ -46,6 +46,7 @@ func GetEntry(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(writer, "%v\n", err)
 	case nil:
+		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entry)
 	default:
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -97,9 +98,11 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 	switch err = row.Scan(&id); err {
 	case sql.ErrNoRows:
 		entriesDto := EntriesDto{entries, false}
+		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entriesDto)
 	case nil:
 		entriesDto := EntriesDto{entries, true}
+		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entriesDto)
 	default:
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -134,6 +137,7 @@ func CreateEntry(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(http.StatusCreated)
 	newEntry.ID = id
 	json.NewEncoder(writer).Encode(newEntry)
@@ -173,6 +177,7 @@ func UpdateEntry(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(writer, "%v\n", err)
 	case nil:
+		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entry)
 	default:
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -198,6 +203,7 @@ func DeleteEntry(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(writer, "%v\n", err)
 	case nil:
+		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entry)
 	default:
 		writer.WriteHeader(http.StatusInternalServerError)
