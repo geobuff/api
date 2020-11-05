@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/geobuff/geobuff-api/auth"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -21,14 +22,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 	fmt.Println("Successfully connected to database!")
 
-	router := mux.NewRouter().StrictSlash(true)
+	jwtMiddleware := auth.GetJwtMiddleware()
+	router := mux.NewRouter()
 
 	router.HandleFunc("/api/leaderboard", GetEntries).Methods("GET")
 	router.HandleFunc("/api/leaderboard/{id}", GetEntry).Methods("GET")
-	router.HandleFunc("/api/leaderboard", CreateEntry).Methods("POST")
+	router.Handle("/api/leaderboard", jwtMiddleware.Handler(CreateEntry)).Methods("POST")
 	router.HandleFunc("/api/leaderboard/{id}", UpdateEntry).Methods("PUT")
 	router.HandleFunc("/api/leaderboard/{id}", DeleteEntry).Methods("DELETE")
 	router.HandleFunc("/api/countries", GetCountries).Methods("GET")
