@@ -265,5 +265,6 @@ var codes = map[string]string{
 
 // GetCodes gets the map of country name to ISO-3166 code.
 func GetCodes(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(codes)
 }
