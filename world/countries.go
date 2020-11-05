@@ -1,4 +1,4 @@
-package main
+package world
 
 import (
 	"encoding/json"
