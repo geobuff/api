@@ -1,4 +1,4 @@
-package main
+package world
 
 import (
 	"database/sql"
@@ -111,7 +111,7 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 }
 
 // CreateEntry creates a new leaderboard entry.
-func CreateEntry(writer http.ResponseWriter, request *http.Request) {
+var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
@@ -141,10 +141,10 @@ func CreateEntry(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusCreated)
 	newEntry.ID = id
 	json.NewEncoder(writer).Encode(newEntry)
-}
+})
 
 // UpdateEntry updates an existing leaderboard entry.
-func UpdateEntry(writer http.ResponseWriter, request *http.Request) {
+var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
@@ -183,10 +183,10 @@ func UpdateEntry(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(writer, "%v\n", err)
 	}
-}
+})
 
 // DeleteEntry deletes an existing leaderboard entry.
-func DeleteEntry(writer http.ResponseWriter, request *http.Request) {
+var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
@@ -209,4 +209,4 @@ func DeleteEntry(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(writer, "%v\n", err)
 	}
-}
+})

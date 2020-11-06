@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/geobuff/geobuff-api/auth"
 	"github.com/geobuff/geobuff-api/database"
+	"github.com/geobuff/geobuff-api/isocodes"
+	"github.com/geobuff/geobuff-api/world"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
@@ -21,21 +24,24 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 	fmt.Println("Successfully connected to database!")
 
-	router := mux.NewRouter().StrictSlash(true)
+	jwtMiddleware := auth.GetJwtMiddleware()
+	router := mux.NewRouter()
 
-	router.HandleFunc("/api/leaderboard", GetEntries).Methods("GET")
-	router.HandleFunc("/api/leaderboard/{id}", GetEntry).Methods("GET")
-	router.HandleFunc("/api/leaderboard", CreateEntry).Methods("POST")
-	router.HandleFunc("/api/leaderboard/{id}", UpdateEntry).Methods("PUT")
-	router.HandleFunc("/api/leaderboard/{id}", DeleteEntry).Methods("DELETE")
-	router.HandleFunc("/api/countries", GetCountries).Methods("GET")
-	router.HandleFunc("/api/countries/alternatives", GetAlternativeNamings).Methods("GET")
-	router.HandleFunc("/api/countries/prefixes", GetPrefixes).Methods("GET")
-	router.HandleFunc("/api/countries/map", GetCountriesMap).Methods("GET")
-	router.HandleFunc("/api/codes", GetCodes).Methods("GET")
+	// World endpoints.
+	router.HandleFunc("/api/world/countries", world.GetCountries).Methods("GET")
+	router.HandleFunc("/api/world/countries/alternatives", world.GetAlternativeNamings).Methods("GET")
+	router.HandleFunc("/api/world/countries/prefixes", world.GetPrefixes).Methods("GET")
+	router.HandleFunc("/api/world/countries/map", world.GetCountriesMap).Methods("GET")
+	router.HandleFunc("/api/world/leaderboard", world.GetEntries).Methods("GET")
+	router.HandleFunc("/api/world/leaderboard/{id}", world.GetEntry).Methods("GET")
+	router.Handle("/api/world/leaderboard", jwtMiddleware.Handler(world.CreateEntry)).Methods("POST")
+	router.Handle("/api/world/leaderboard/{id}", jwtMiddleware.Handler(world.UpdateEntry)).Methods("PUT")
+	router.Handle("/api/world/leaderboard/{id}", jwtMiddleware.Handler(world.DeleteEntry)).Methods("DELETE")
+
+	// ISO-code endpoints.
+	router.HandleFunc("/api/isocodes", isocodes.GetCodes).Methods("GET")
 
 	handler := cors.Default().Handler(router)
 	http.ListenAndServe(":8080", handler)
