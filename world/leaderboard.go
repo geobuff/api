@@ -37,7 +37,7 @@ func GetEntry(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	statement := "SELECT * FROM leaderboard WHERE id = $1;"
+	statement := "SELECT * FROM world_leaderboard WHERE id = $1;"
 	row := database.DBConnection.QueryRow(statement, id)
 
 	var entry Entry
@@ -63,7 +63,7 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	rows, err := database.DBConnection.Query("SELECT * FROM leaderboard ORDER BY countries DESC, time LIMIT $1 OFFSET $2;", 10, strconv.Itoa(page*10))
+	rows, err := database.DBConnection.Query("SELECT * FROM world_leaderboard ORDER BY countries DESC, time LIMIT $1 OFFSET $2;", 10, strconv.Itoa(page*10))
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(writer, "%v\n", err)
@@ -91,7 +91,7 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	statement := "SELECT id FROM leaderboard ORDER BY countries DESC, time LIMIT $1 OFFSET $2;"
+	statement := "SELECT id FROM world_leaderboard ORDER BY countries DESC, time LIMIT $1 OFFSET $2;"
 	row := database.DBConnection.QueryRow(statement, 1, strconv.Itoa((page+1)*10))
 
 	var id int
@@ -127,7 +127,7 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	statement := "INSERT INTO leaderboard (name, country, countries, time) VALUES ($1, $2, $3, $4) RETURNING id;"
+	statement := "INSERT INTO world_leaderboard (name, country, countries, time) VALUES ($1, $2, $3, $4) RETURNING id;"
 
 	var id int
 	err = database.DBConnection.QueryRow(statement, newEntry.Name, newEntry.Country, newEntry.Countries, newEntry.Time).Scan(&id)
@@ -167,7 +167,7 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	statement := "UPDATE leaderboard set name = $2, country = $3, countries = $4, time = $5 where id = $1 RETURNING *;"
+	statement := "UPDATE world_leaderboard set name = $2, country = $3, countries = $4, time = $5 where id = $1 RETURNING *;"
 
 	row := database.DBConnection.QueryRow(statement, id, updatedEntry.Name, updatedEntry.Country, updatedEntry.Countries, updatedEntry.Time)
 
@@ -194,7 +194,7 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	statement := "DELETE FROM leaderboard WHERE id = $1 RETURNING *;"
+	statement := "DELETE FROM world_leaderboard WHERE id = $1 RETURNING *;"
 	row := database.DBConnection.QueryRow(statement, id)
 
 	var entry Entry
