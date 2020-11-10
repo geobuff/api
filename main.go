@@ -43,6 +43,12 @@ func main() {
 	// ISO-code endpoints.
 	router.HandleFunc("/api/isocodes", isocodes.GetCodes).Methods("GET")
 
-	handler := cors.Default().Handler(router)
+	corsOptions := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:3000"},
+		AllowedMethods: []string{"GET", "POST"},
+		Debug:          true,
+	})
+
+	handler := corsOptions.Handler(router)
 	http.ListenAndServe(":8080", handler)
 }
