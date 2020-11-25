@@ -8,8 +8,10 @@ import (
 	"github.com/geobuff/geobuff-api/auth"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/geobuff/geobuff-api/isocodes"
+	"github.com/geobuff/geobuff-api/users"
 	"github.com/geobuff/geobuff-api/world"
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 	"github.com/rs/cors"
 )
 
@@ -28,6 +30,12 @@ func main() {
 
 	jwtMiddleware := auth.GetJwtMiddleware()
 	router := mux.NewRouter()
+
+	// User endpoints.
+	router.HandleFunc("/api/users", users.GetUsers).Methods("GET")
+	router.HandleFunc("/api/users/{id}", users.GetUser).Methods("GET")
+	router.HandleFunc("/api/users", users.CreateUser).Methods("POST")
+	router.HandleFunc("/api/users/{id}", users.DeleteUser).Methods("DELETE")
 
 	// World endpoints.
 	router.HandleFunc("/api/world/countries", world.GetCountries).Methods("GET")

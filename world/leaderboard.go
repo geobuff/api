@@ -10,13 +10,12 @@ import (
 
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/gorilla/mux"
-	_ "github.com/lib/pq"
 )
 
 // Entry is the database object for a leaderboard entry.
 type Entry struct {
 	ID        int    `json:"id"`
-	Name      string `json:"name"`
+	UserID    int    `json:"userId"`
 	Country   string `json:"country"`
 	Countries int    `json:"countries"`
 	Time      int    `json:"time"`
@@ -26,32 +25,6 @@ type Entry struct {
 type EntriesDto struct {
 	Entries []Entry `json:"entries"`
 	HasMore bool    `json:"hasMore"`
-}
-
-// GetEntry gets a leaderboard entry by id.
-func GetEntry(writer http.ResponseWriter, request *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(request)["id"])
-	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "%v\n", err)
-		return
-	}
-
-	statement := "SELECT * FROM world_leaderboard WHERE id = $1;"
-	row := database.DBConnection.QueryRow(statement, id)
-
-	var entry Entry
-	switch err = row.Scan(&entry.ID, &entry.Name, &entry.Country, &entry.Countries, &entry.Time); err {
-	case sql.ErrNoRows:
-		writer.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(writer, "%v\n", err)
-	case nil:
-		writer.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(writer).Encode(entry)
-	default:
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
-	}
 }
 
 // GetEntries gets the leaderboard entries for a given page.
@@ -74,7 +47,7 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 	var entries = []Entry{}
 	for rows.Next() {
 		var entry Entry
-		err = rows.Scan(&entry.ID, &entry.Name, &entry.Country, &entry.Countries, &entry.Time)
+		err = rows.Scan(&entry.ID, &entry.UserID, &entry.Country, &entry.Countries, &entry.Time)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(writer, "%v\n", err)
@@ -110,6 +83,32 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+// GetEntry gets a leaderboard entry by id.
+func GetEntry(writer http.ResponseWriter, request *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(request)["id"])
+	if err != nil {
+		writer.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(writer, "%v\n", err)
+		return
+	}
+
+	statement := "SELECT * FROM world_leaderboard WHERE id = $1;"
+	row := database.DBConnection.QueryRow(statement, id)
+
+	var entry Entry
+	switch err = row.Scan(&entry.ID, &entry.UserID, &entry.Country, &entry.Countries, &entry.Time); err {
+	case sql.ErrNoRows:
+		writer.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(writer, "%v\n", err)
+	case nil:
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(entry)
+	default:
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(writer, "%v\n", err)
+	}
+}
+
 // CreateEntry creates a new leaderboard entry.
 var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
@@ -127,10 +126,10 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	statement := "INSERT INTO world_leaderboard (name, country, countries, time) VALUES ($1, $2, $3, $4) RETURNING id;"
+	statement := "INSERT INTO world_leaderboard (userId, country, countries, time) VALUES ($1, $2, $3, $4) RETURNING id;"
 
 	var id int
-	err = database.DBConnection.QueryRow(statement, newEntry.Name, newEntry.Country, newEntry.Countries, newEntry.Time).Scan(&id)
+	err = database.DBConnection.QueryRow(statement, newEntry.UserID, newEntry.Country, newEntry.Countries, newEntry.Time).Scan(&id)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(writer, "%v\n", err)
@@ -167,12 +166,12 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	statement := "UPDATE world_leaderboard set name = $2, country = $3, countries = $4, time = $5 where id = $1 RETURNING *;"
+	statement := "UPDATE world_leaderboard set userId = $2, country = $3, countries = $4, time = $5 where id = $1 RETURNING *;"
 
-	row := database.DBConnection.QueryRow(statement, id, updatedEntry.Name, updatedEntry.Country, updatedEntry.Countries, updatedEntry.Time)
+	row := database.DBConnection.QueryRow(statement, id, updatedEntry.UserID, updatedEntry.Country, updatedEntry.Countries, updatedEntry.Time)
 
 	var entry Entry
-	switch err = row.Scan(&entry.ID, &entry.Name, &entry.Country, &entry.Countries, &entry.Time); err {
+	switch err = row.Scan(&entry.ID, &entry.UserID, &entry.Country, &entry.Countries, &entry.Time); err {
 	case sql.ErrNoRows:
 		writer.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(writer, "%v\n", err)
@@ -198,7 +197,7 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 	row := database.DBConnection.QueryRow(statement, id)
 
 	var entry Entry
-	switch err = row.Scan(&entry.ID, &entry.Name, &entry.Country, &entry.Countries, &entry.Time); err {
+	switch err = row.Scan(&entry.ID, &entry.UserID, &entry.Country, &entry.Countries, &entry.Time); err {
 	case sql.ErrNoRows:
 		writer.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(writer, "%v\n", err)
