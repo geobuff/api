@@ -55,8 +55,8 @@ func main() {
 	router.HandleFunc("/api/isocodes", isocodes.GetCodes).Methods("GET")
 
 	corsOptions := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:3000"},
-		AllowedMethods: []string{"GET", "POST"},
+		AllowedOrigins: config.Values.Cors.Origins,
+		AllowedMethods: config.Values.Cors.Methods,
 		Debug:          true,
 	})
 

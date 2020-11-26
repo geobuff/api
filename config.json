@@ -9,5 +9,9 @@
     "auth0": {
         "audience": "",
         "issuer": ""
+    },
+    "cors": {
+        "origins": [],
+        "methods": []
     }
 }
