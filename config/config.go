@@ -17,6 +17,10 @@ type Config struct {
 		Password string `json:"password"`
 		Name     string `json:"name"`
 	} `json:"database"`
+	Auth0 struct {
+		Audience string `json:"audience"`
+		Issuer   string `json:"issuer"`
+	} `json:"auth0"`
 }
 
 // Load reads the configuration from the config file and loads into out public Config variable.

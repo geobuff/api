@@ -3,10 +3,12 @@ package auth
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/geobuff/geobuff-api/config"
 )
 
 // Response holds the response message.
@@ -33,13 +35,13 @@ type JSONWebKeys struct {
 func GetJwtMiddleware() *jwtmiddleware.JWTMiddleware {
 	return jwtmiddleware.New(jwtmiddleware.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-			aud := "https://geobuff-api.com"
+			aud := config.Values.Auth0.Audience
 			checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
 			if !checkAud {
 				return token, errors.New("invalid audience")
 			}
 
-			iss := "https://geobuff.au.auth0.com/"
+			iss := config.Values.Auth0.Issuer
 			checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
 			if !checkIss {
 				return token, errors.New("invalid issuer")
@@ -59,7 +61,7 @@ func GetJwtMiddleware() *jwtmiddleware.JWTMiddleware {
 
 func getPemCert(token *jwt.Token) (string, error) {
 	cert := ""
-	resp, err := http.Get("https://geobuff.au.auth0.com/.well-known/jwks.json")
+	resp, err := http.Get(fmt.Sprintf("%s.well-known/jwks.json", config.Values.Auth0.Issuer))
 
 	if err != nil {
 		return cert, err
