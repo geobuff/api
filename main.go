@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/geobuff/geobuff-api/auth"
+	"github.com/geobuff/geobuff-api/config"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/geobuff/geobuff-api/isocodes"
 	"github.com/geobuff/geobuff-api/users"
@@ -16,6 +17,8 @@ import (
 )
 
 func main() {
+	config.Load("config.json")
+
 	var err error
 	database.DBConnection, err = sql.Open("postgres", database.GetConnectionString())
 	if err != nil {
