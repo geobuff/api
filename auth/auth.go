@@ -88,3 +88,24 @@ func getPemCert(token *jwt.Token) (string, error) {
 
 	return cert, nil
 }
+
+// IsAdmin confirms the user making a request has the role 'admin'.
+func IsAdmin(request *http.Request) bool {
+	header := request.Header.Get("Authorization")
+	tokenString := header[7:]
+	parser := new(jwt.Parser)
+	token, _, err := parser.ParseUnverified(tokenString, jwt.MapClaims{})
+	if err != nil {
+		return false
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		roles := claims["roles"].([]interface{})
+		for _, role := range roles {
+			if role == "admin" {
+				return true
+			}
+		}
+	}
+	return false
+}

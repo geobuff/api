@@ -35,10 +35,10 @@ func main() {
 	router := mux.NewRouter()
 
 	// User endpoints.
-	router.HandleFunc("/api/users", users.GetUsers).Methods("GET")
-	router.HandleFunc("/api/users/{id}", users.GetUser).Methods("GET")
+	router.Handle("/api/users", jwtMiddleware.Handler(users.GetUsers)).Methods("GET")
+	router.Handle("/api/users/{id}", jwtMiddleware.Handler(users.GetUser)).Methods("GET")
 	router.HandleFunc("/api/users", users.CreateUser).Methods("POST")
-	router.HandleFunc("/api/users/{id}", users.DeleteUser).Methods("DELETE")
+	router.Handle("/api/users/{id}", jwtMiddleware.Handler(users.DeleteUser)).Methods("DELETE")
 
 	// World endpoints.
 	router.HandleFunc("/api/world/countries", world.GetCountries).Methods("GET")
