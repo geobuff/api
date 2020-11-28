@@ -9,10 +9,11 @@ import (
 	"strconv"
 
 	"github.com/geobuff/geobuff-api/database"
+	"github.com/geobuff/geobuff-api/keys"
 	"github.com/gorilla/mux"
 )
 
-// User is the database object for a leaderboard entry.
+// User is the database object for a user entry.
 type User struct {
 	ID    int    `json:"id"`
 	Email string `json:"email"`
@@ -108,6 +109,13 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 
 // CreateUser creates a new user entry.
 func CreateUser(writer http.ResponseWriter, request *http.Request) {
+	key := request.Header.Get("x-api-key")
+	if !keys.ValidAuth0Key(key) {
+		writer.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprintf(writer, "%v\n", "Invalid api key.")
+		return
+	}
+
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
