@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/geobuff/geobuff-api/auth"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/geobuff/geobuff-api/keys"
 	"github.com/gorilla/mux"
@@ -26,7 +27,12 @@ type PageDto struct {
 }
 
 // GetUsers gets the user entries for a given page.
-func GetUsers(writer http.ResponseWriter, request *http.Request) {
+var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	if !auth.IsAdmin(request) {
+		writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	pageParam := request.URL.Query().Get("page")
 	page, err := strconv.Atoi(pageParam)
 	if err != nil {
@@ -79,10 +85,15 @@ func GetUsers(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(writer, "%v\n", err)
 	}
-}
+})
 
 // GetUser gets a user entry by id.
-func GetUser(writer http.ResponseWriter, request *http.Request) {
+var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	if !auth.IsAdmin(request) {
+		writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
@@ -105,7 +116,7 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(writer, "%v\n", err)
 	}
-}
+})
 
 // CreateUser creates a new user entry.
 func CreateUser(writer http.ResponseWriter, request *http.Request) {
@@ -148,7 +159,12 @@ func CreateUser(writer http.ResponseWriter, request *http.Request) {
 }
 
 // DeleteUser deletes an existing user entry.
-func DeleteUser(writer http.ResponseWriter, request *http.Request) {
+var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	if !auth.IsAdmin(request) {
+		writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
@@ -171,4 +187,4 @@ func DeleteUser(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(writer, "%v\n", err)
 	}
-}
+})
