@@ -43,6 +43,8 @@ func main() {
 
 	// Score endpoints.
 	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.GetScores)).Methods("GET")
+	router.Handle("/api/scores", jwtMiddleware.Handler(scores.SetScore)).Methods("PUT")
+	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.DeleteScore)).Methods("DELETE")
 
 	// ISO-code endpoints.
 	router.HandleFunc("/api/isocodes", isocodes.GetCodes).Methods("GET")
