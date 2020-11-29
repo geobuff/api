@@ -9,6 +9,7 @@ import (
 	"github.com/geobuff/geobuff-api/config"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/geobuff/geobuff-api/isocodes"
+	"github.com/geobuff/geobuff-api/scores"
 	"github.com/geobuff/geobuff-api/users"
 	"github.com/geobuff/geobuff-api/world"
 	"github.com/gorilla/mux"
@@ -40,6 +41,12 @@ func main() {
 	router.HandleFunc("/api/users", users.CreateUser).Methods("POST")
 	router.HandleFunc("/api/users/{id}", users.DeleteUser).Methods("DELETE")
 
+	// Score endpoints.
+	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.GetScores)).Methods("GET")
+
+	// ISO-code endpoints.
+	router.HandleFunc("/api/isocodes", isocodes.GetCodes).Methods("GET")
+
 	// World endpoints.
 	router.HandleFunc("/api/world/countries", world.GetCountries).Methods("GET")
 	router.HandleFunc("/api/world/countries/alternatives", world.GetAlternativeNamings).Methods("GET")
@@ -50,9 +57,6 @@ func main() {
 	router.Handle("/api/world/leaderboard", jwtMiddleware.Handler(world.CreateEntry)).Methods("POST")
 	router.Handle("/api/world/leaderboard/{id}", jwtMiddleware.Handler(world.UpdateEntry)).Methods("PUT")
 	router.Handle("/api/world/leaderboard/{id}", jwtMiddleware.Handler(world.DeleteEntry)).Methods("DELETE")
-
-	// ISO-code endpoints.
-	router.HandleFunc("/api/isocodes", isocodes.GetCodes).Methods("GET")
 
 	corsOptions := cors.New(cors.Options{
 		AllowedOrigins: config.Values.Cors.Origins,
