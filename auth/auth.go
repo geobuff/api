@@ -89,22 +89,49 @@ func getPemCert(token *jwt.Token) (string, error) {
 	return cert, nil
 }
 
-// IsAdmin confirms the user making a request has the role 'admin'.
-func IsAdmin(request *http.Request) bool {
+// HasUserReadPermissions confirms the user making a request has the correct permissions to read user data.
+func HasUserReadPermissions(request *http.Request) (bool, error) {
+	permissions, err := getPermissions(request)
+	if err != nil {
+		return false, err
+	}
+
+	return permissionPresent(permissions, "read:users"), nil
+}
+
+// HasUserWritePermissions confirms the user making a request has the correct permissions to update users.
+func HasUserWritePermissions(request *http.Request) (bool, error) {
+	permissions, err := getPermissions(request)
+	if err != nil {
+		return false, err
+	}
+
+	return permissionPresent(permissions, "write:users"), nil
+}
+
+func getPermissions(request *http.Request) ([]interface{}, error) {
 	header := request.Header.Get("Authorization")
 	tokenString := header[7:]
 	parser := new(jwt.Parser)
 	token, _, err := parser.ParseUnverified(tokenString, jwt.MapClaims{})
 	if err != nil {
-		return false
+		return nil, err
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		roles := claims["roles"].([]interface{})
-		for _, role := range roles {
-			if role == "admin" {
-				return true
-			}
+		permissions := claims["permissions"]
+		if permissions == nil {
+			return nil, nil
+		}
+		return permissions.([]interface{}), nil
+	}
+	return nil, errors.New("failed to parse claims from token")
+}
+
+func permissionPresent(permissions []interface{}, target string) bool {
+	for _, permission := range permissions {
+		if permission == target {
+			return true
 		}
 	}
 	return false

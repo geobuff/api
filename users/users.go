@@ -28,7 +28,11 @@ type PageDto struct {
 
 // GetUsers gets the user entries for a given page.
 var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-	if !auth.IsAdmin(request) {
+	if hasPermission, err := auth.HasUserReadPermissions(request); err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(writer, "%v\n", err)
+		return
+	} else if !hasPermission {
 		writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -89,7 +93,11 @@ var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 
 // GetUser gets a user entry by id.
 var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-	if !auth.IsAdmin(request) {
+	if hasPermission, err := auth.HasUserReadPermissions(request); err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(writer, "%v\n", err)
+		return
+	} else if !hasPermission {
 		writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -160,7 +168,11 @@ func CreateUser(writer http.ResponseWriter, request *http.Request) {
 
 // DeleteUser deletes an existing user entry.
 var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-	if !auth.IsAdmin(request) {
+	if hasPermission, err := auth.HasUserWritePermissions(request); err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(writer, "%v\n", err)
+		return
+	} else if !hasPermission {
 		writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -172,8 +184,12 @@ var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 		return
 	}
 
-	statement := "DELETE FROM users WHERE id = $1 RETURNING *;"
-	row := database.DBConnection.QueryRow(statement, id)
+	scoresStatement := "DELETE FROM scores WHERE userId = $1;"
+	database.DBConnection.QueryRow(scoresStatement, id)
+	leaderboardStatement := "DELETE FROM world_leaderboard WHERE userId = $1;"
+	database.DBConnection.QueryRow(leaderboardStatement, id)
+	usersStatement := "DELETE FROM users WHERE id = $1 RETURNING *;"
+	row := database.DBConnection.QueryRow(usersStatement, id)
 
 	var user User
 	switch err = row.Scan(&user.ID, &user.Email); err {
