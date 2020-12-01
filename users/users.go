@@ -16,8 +16,8 @@ import (
 
 // User is the database object for a user entry.
 type User struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
+	ID       int    `json:"id"`
+	Username string `json:"username"`
 }
 
 // PageDto is used to display a paged result of user entries.
@@ -55,7 +55,7 @@ var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 	var users = []User{}
 	for rows.Next() {
 		var user User
-		err = rows.Scan(&user.ID, &user.Email)
+		err = rows.Scan(&user.ID, &user.Username)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(writer, "%v\n", err)
@@ -113,7 +113,7 @@ var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Re
 	row := database.DBConnection.QueryRow(statement, id)
 
 	var user User
-	switch err = row.Scan(&user.ID, &user.Email); err {
+	switch err = row.Scan(&user.ID, &user.Username); err {
 	case sql.ErrNoRows:
 		writer.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(writer, "%v\n", err)
@@ -150,10 +150,10 @@ func CreateUser(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	statement := "INSERT INTO users (email) VALUES ($1) RETURNING id;"
+	statement := "INSERT INTO users (username) VALUES ($1) RETURNING id;"
 
 	var id int
-	err = database.DBConnection.QueryRow(statement, newUser.Email).Scan(&id)
+	err = database.DBConnection.QueryRow(statement, newUser.Username).Scan(&id)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(writer, "%v\n", err)
@@ -192,7 +192,7 @@ var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 	row := database.DBConnection.QueryRow(usersStatement, id)
 
 	var user User
-	switch err = row.Scan(&user.ID, &user.Email); err {
+	switch err = row.Scan(&user.ID, &user.Username); err {
 	case sql.ErrNoRows:
 		writer.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(writer, "%v\n", err)
