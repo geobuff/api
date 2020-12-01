@@ -89,31 +89,18 @@ func getPemCert(token *jwt.Token) (string, error) {
 	return cert, nil
 }
 
-// HasUserReadPermissions confirms the user making a request has the correct permissions to read user data.
-func HasUserReadPermissions(request *http.Request) (bool, error) {
+// HasPermission confirms the user making a request has the correct permissions to complete the action.
+func HasPermission(request *http.Request, permission string) (bool, error) {
 	permissions, err := getPermissions(request)
 	if err != nil {
 		return false, err
 	}
 
-	return permissionPresent(permissions, "read:users"), nil
-}
-
-// HasUserWritePermissions confirms the user making a request has the correct permissions to update users.
-func HasUserWritePermissions(request *http.Request) (bool, error) {
-	permissions, err := getPermissions(request)
-	if err != nil {
-		return false, err
-	}
-
-	return permissionPresent(permissions, "write:users"), nil
+	return permissionPresent(permissions, permission), nil
 }
 
 func getPermissions(request *http.Request) ([]interface{}, error) {
-	header := request.Header.Get("Authorization")
-	tokenString := header[7:]
-	parser := new(jwt.Parser)
-	token, _, err := parser.ParseUnverified(tokenString, jwt.MapClaims{})
+	token, _, err := parseToken(request)
 	if err != nil {
 		return nil, err
 	}
@@ -128,6 +115,13 @@ func getPermissions(request *http.Request) ([]interface{}, error) {
 	return nil, errors.New("failed to parse claims from token")
 }
 
+func parseToken(request *http.Request) (token *jwt.Token, parts []string, err error) {
+	header := request.Header.Get("Authorization")
+	tokenString := header[7:]
+	parser := new(jwt.Parser)
+	return parser.ParseUnverified(tokenString, jwt.MapClaims{})
+}
+
 func permissionPresent(permissions []interface{}, target string) bool {
 	for _, permission := range permissions {
 		if permission == target {
@@ -135,4 +129,27 @@ func permissionPresent(permissions []interface{}, target string) bool {
 		}
 	}
 	return false
+}
+
+// MatchingUser checks whether the username claim in the token matches the given username param.
+func MatchingUser(request *http.Request, target string) (bool, error) {
+	username, err := getUsername(request)
+	if err != nil {
+		return false, err
+	}
+
+	return username == target, nil
+}
+
+func getUsername(request *http.Request) (string, error) {
+	token, _, err := parseToken(request)
+	if err != nil {
+		return "", err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		return fmt.Sprintf("%s", claims["http://geobuff.com/username"]), nil
+	}
+
+	return "", errors.New("failed to parse claims from token")
 }
