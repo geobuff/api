@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/geobuff/geobuff-api/auth"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/gorilla/mux"
 )
@@ -29,6 +30,34 @@ var GetScores = http.HandlerFunc(func(writer http.ResponseWriter, request *http.
 		return
 	}
 
+	statement := "SELECT username FROM users WHERE id = $1;"
+	row := database.DBConnection.QueryRow(statement, id)
+
+	var username string
+	switch err = row.Scan(&username); err {
+	case sql.ErrNoRows:
+		writer.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(writer, "%v\n", err)
+	case nil:
+		if matchingUser, err := auth.MatchingUser(request, username); err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(writer, "%v\n", err)
+			return
+		} else if !matchingUser {
+			if hasPermission, err := auth.HasPermission(request, auth.ReadScores); err != nil {
+				writer.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(writer, "%v\n", err)
+				return
+			} else if !hasPermission {
+				writer.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		}
+	default:
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(writer, "%v\n", err)
+	}
+
 	rows, err := database.DBConnection.Query("SELECT * FROM scores WHERE userId = $1;", id)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -46,7 +75,6 @@ var GetScores = http.HandlerFunc(func(writer http.ResponseWriter, request *http.
 			fmt.Fprintf(writer, "%v\n", err)
 			return
 		}
-
 		scores = append(scores, score)
 	}
 
@@ -78,8 +106,36 @@ var SetScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 		return
 	}
 
-	statement := "SELECT id FROM scores WHERE userId = $1 AND quizId = $2;"
-	row := database.DBConnection.QueryRow(statement, score.UserID, score.QuizID)
+	statement := "SELECT username FROM users WHERE id = $1;"
+	row := database.DBConnection.QueryRow(statement, score.UserID)
+
+	var username string
+	switch err = row.Scan(&username); err {
+	case sql.ErrNoRows:
+		writer.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(writer, "%v\n", err)
+	case nil:
+		if matchingUser, err := auth.MatchingUser(request, username); err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(writer, "%v\n", err)
+			return
+		} else if !matchingUser {
+			if hasPermission, err := auth.HasPermission(request, auth.WriteScores); err != nil {
+				writer.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(writer, "%v\n", err)
+				return
+			} else if !hasPermission {
+				writer.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		}
+	default:
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(writer, "%v\n", err)
+	}
+
+	statement = "SELECT id FROM scores WHERE userId = $1 AND quizId = $2;"
+	row = database.DBConnection.QueryRow(statement, score.UserID, score.QuizID)
 
 	var id int
 	switch err = row.Scan(&id); err {
@@ -124,7 +180,7 @@ var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	statement := "DELETE FROM scores WHERE id = $1 RETURNING *;"
+	statement := "SELECT * FROM scores WHERE id = $1;"
 	row := database.DBConnection.QueryRow(statement, id)
 
 	var score Score
@@ -132,7 +188,41 @@ var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 	case sql.ErrNoRows:
 		writer.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(writer, "%v\n", err)
+		return
 	case nil:
+		statement := "SELECT username FROM users WHERE id = $1;"
+		row := database.DBConnection.QueryRow(statement, score.UserID)
+
+		var username string
+		switch err = row.Scan(&username); err {
+		case sql.ErrNoRows:
+			writer.WriteHeader(http.StatusNotFound)
+			fmt.Fprintf(writer, "%v\n", err)
+			return
+		case nil:
+			if matchingUser, err := auth.MatchingUser(request, username); err != nil {
+				writer.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(writer, "%v\n", err)
+				return
+			} else if !matchingUser {
+				if hasPermission, err := auth.HasPermission(request, auth.WriteScores); err != nil {
+					writer.WriteHeader(http.StatusInternalServerError)
+					fmt.Fprintf(writer, "%v\n", err)
+					return
+				} else if !hasPermission {
+					writer.WriteHeader(http.StatusUnauthorized)
+					return
+				}
+			}
+		default:
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(writer, "%v\n", err)
+			return
+		}
+
+		statement = "DELETE FROM scores WHERE id = $1;"
+		database.DBConnection.QueryRow(statement, id)
+
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(score)
 	default:

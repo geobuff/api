@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/geobuff/geobuff-api/auth"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/gorilla/mux"
 )
@@ -126,7 +127,36 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	statement := "INSERT INTO world_leaderboard (userId, country, countries, time) VALUES ($1, $2, $3, $4) RETURNING id;"
+	statement := "SELECT username FROM users WHERE id = $1;"
+	row := database.DBConnection.QueryRow(statement, newEntry.UserID)
+	var username string
+	switch err = row.Scan(&username); err {
+	case sql.ErrNoRows:
+		writer.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(writer, "%v\n", err)
+		return
+	case nil:
+		if matchingUser, err := auth.MatchingUser(request, username); err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(writer, "%v\n", err)
+			return
+		} else if !matchingUser {
+			if hasPermission, err := auth.HasPermission(request, auth.WriteLeaderboard); err != nil {
+				writer.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(writer, "%v\n", err)
+				return
+			} else if !hasPermission {
+				writer.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		}
+	default:
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(writer, "%v\n", err)
+		return
+	}
+
+	statement = "INSERT INTO world_leaderboard (userId, country, countries, time) VALUES ($1, $2, $3, $4) RETURNING id;"
 
 	var id int
 	err = database.DBConnection.QueryRow(statement, newEntry.UserID, newEntry.Country, newEntry.Countries, newEntry.Time).Scan(&id)
@@ -166,9 +196,37 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	statement := "UPDATE world_leaderboard set userId = $2, country = $3, countries = $4, time = $5 where id = $1 RETURNING *;"
+	statement := "SELECT username FROM users WHERE id = $1;"
+	row := database.DBConnection.QueryRow(statement, updatedEntry.UserID)
+	var username string
+	switch err = row.Scan(&username); err {
+	case sql.ErrNoRows:
+		writer.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(writer, "%v\n", err)
+		return
+	case nil:
+		if matchingUser, err := auth.MatchingUser(request, username); err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(writer, "%v\n", err)
+			return
+		} else if !matchingUser {
+			if hasPermission, err := auth.HasPermission(request, auth.WriteLeaderboard); err != nil {
+				writer.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(writer, "%v\n", err)
+				return
+			} else if !hasPermission {
+				writer.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		}
+	default:
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(writer, "%v\n", err)
+		return
+	}
 
-	row := database.DBConnection.QueryRow(statement, id, updatedEntry.UserID, updatedEntry.Country, updatedEntry.Countries, updatedEntry.Time)
+	statement = "UPDATE world_leaderboard set userId = $2, country = $3, countries = $4, time = $5 where id = $1 RETURNING *;"
+	row = database.DBConnection.QueryRow(statement, id, updatedEntry.UserID, updatedEntry.Country, updatedEntry.Countries, updatedEntry.Time)
 
 	var entry Entry
 	switch err = row.Scan(&entry.ID, &entry.UserID, &entry.Country, &entry.Countries, &entry.Time); err {
@@ -193,7 +251,7 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	statement := "DELETE FROM world_leaderboard WHERE id = $1 RETURNING *;"
+	statement := "SELECT * FROM world_leaderboard WHERE id = $1;"
 	row := database.DBConnection.QueryRow(statement, id)
 
 	var entry Entry
@@ -201,7 +259,41 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 	case sql.ErrNoRows:
 		writer.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(writer, "%v\n", err)
+		return
 	case nil:
+		statement := "SELECT username FROM users WHERE id = $1;"
+		row := database.DBConnection.QueryRow(statement, entry.UserID)
+
+		var username string
+		switch err = row.Scan(&username); err {
+		case sql.ErrNoRows:
+			writer.WriteHeader(http.StatusNotFound)
+			fmt.Fprintf(writer, "%v\n", err)
+			return
+		case nil:
+			if matchingUser, err := auth.MatchingUser(request, username); err != nil {
+				writer.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(writer, "%v\n", err)
+				return
+			} else if !matchingUser {
+				if hasPermission, err := auth.HasPermission(request, auth.WriteLeaderboard); err != nil {
+					writer.WriteHeader(http.StatusInternalServerError)
+					fmt.Fprintf(writer, "%v\n", err)
+					return
+				} else if !hasPermission {
+					writer.WriteHeader(http.StatusUnauthorized)
+					return
+				}
+			}
+		default:
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(writer, "%v\n", err)
+			return
+		}
+
+		statement = "DELETE FROM world_leaderboard WHERE id = $1;"
+		database.DBConnection.QueryRow(statement, id)
+
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entry)
 	default:
