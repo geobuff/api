@@ -28,7 +28,7 @@ type PageDto struct {
 
 // GetUsers gets the user entries for a given page.
 var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-	if hasPermission, err := auth.HasUserReadPermissions(request); err != nil {
+	if hasPermission, err := auth.HasPermission(request, auth.ReadUsers); err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(writer, "%v\n", err)
 		return
@@ -93,15 +93,6 @@ var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 
 // GetUser gets a user entry by id.
 var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-	if hasPermission, err := auth.HasUserReadPermissions(request); err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
-		return
-	} else if !hasPermission {
-		writer.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
@@ -117,12 +108,29 @@ var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Re
 	case sql.ErrNoRows:
 		writer.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(writer, "%v\n", err)
+		return
 	case nil:
+		if matchingUser, err := auth.MatchingUser(request, user.Username); err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(writer, "%v\n", err)
+			return
+		} else if !matchingUser {
+			if hasPermission, err := auth.HasPermission(request, auth.ReadUsers); err != nil {
+				writer.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(writer, "%v\n", err)
+				return
+			} else if !hasPermission {
+				writer.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		}
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(user)
+		return
 	default:
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(writer, "%v\n", err)
+		return
 	}
 })
 
@@ -168,18 +176,38 @@ func CreateUser(writer http.ResponseWriter, request *http.Request) {
 
 // DeleteUser deletes an existing user entry.
 var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-	if hasPermission, err := auth.HasUserWritePermissions(request); err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
-		return
-	} else if !hasPermission {
-		writer.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(writer, "%v\n", err)
+		return
+	}
+
+	statement := "SELECT username FROM users WHERE id = $1;"
+	row := database.DBConnection.QueryRow(statement, id)
+	var username string
+	switch err = row.Scan(&username); err {
+	case sql.ErrNoRows:
+		writer.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(writer, "%v\n", err)
+		return
+	case nil:
+		if matchingUser, err := auth.MatchingUser(request, username); err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(writer, "%v\n", err)
+			return
+		} else if !matchingUser {
+			if hasPermission, err := auth.HasPermission(request, auth.WriteUsers); err != nil {
+				writer.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(writer, "%v\n", err)
+				return
+			} else if !hasPermission {
+				writer.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		}
+	default:
+		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(writer, "%v\n", err)
 		return
 	}
@@ -189,7 +217,7 @@ var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 	leaderboardStatement := "DELETE FROM world_leaderboard WHERE userId = $1;"
 	database.DBConnection.QueryRow(leaderboardStatement, id)
 	usersStatement := "DELETE FROM users WHERE id = $1 RETURNING *;"
-	row := database.DBConnection.QueryRow(usersStatement, id)
+	row = database.DBConnection.QueryRow(usersStatement, id)
 
 	var user User
 	switch err = row.Scan(&user.ID, &user.Username); err {
