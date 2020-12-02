@@ -127,36 +127,13 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	statement := "SELECT username FROM users WHERE id = $1;"
-	row := database.DBConnection.QueryRow(statement, newEntry.UserID)
-	var username string
-	switch err = row.Scan(&username); err {
-	case sql.ErrNoRows:
-		writer.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(writer, "%v\n", err)
-		return
-	case nil:
-		if matchingUser, err := auth.MatchingUser(request, username); err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(writer, "%v\n", err)
-			return
-		} else if !matchingUser {
-			if hasPermission, err := auth.HasPermission(request, auth.WriteLeaderboard); err != nil {
-				writer.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(writer, "%v\n", err)
-				return
-			} else if !hasPermission {
-				writer.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-		}
-	default:
-		writer.WriteHeader(http.StatusInternalServerError)
+	if code, err := auth.ValidUser(request, newEntry.UserID, auth.WriteLeaderboard); err != nil {
+		writer.WriteHeader(code)
 		fmt.Fprintf(writer, "%v\n", err)
 		return
 	}
 
-	statement = "INSERT INTO world_leaderboard (userId, country, countries, time) VALUES ($1, $2, $3, $4) RETURNING id;"
+	statement := "INSERT INTO world_leaderboard (userId, country, countries, time) VALUES ($1, $2, $3, $4) RETURNING id;"
 
 	var id int
 	err = database.DBConnection.QueryRow(statement, newEntry.UserID, newEntry.Country, newEntry.Countries, newEntry.Time).Scan(&id)
@@ -196,37 +173,14 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	statement := "SELECT username FROM users WHERE id = $1;"
-	row := database.DBConnection.QueryRow(statement, updatedEntry.UserID)
-	var username string
-	switch err = row.Scan(&username); err {
-	case sql.ErrNoRows:
-		writer.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(writer, "%v\n", err)
-		return
-	case nil:
-		if matchingUser, err := auth.MatchingUser(request, username); err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(writer, "%v\n", err)
-			return
-		} else if !matchingUser {
-			if hasPermission, err := auth.HasPermission(request, auth.WriteLeaderboard); err != nil {
-				writer.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(writer, "%v\n", err)
-				return
-			} else if !hasPermission {
-				writer.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-		}
-	default:
-		writer.WriteHeader(http.StatusInternalServerError)
+	if code, err := auth.ValidUser(request, updatedEntry.UserID, auth.WriteLeaderboard); err != nil {
+		writer.WriteHeader(code)
 		fmt.Fprintf(writer, "%v\n", err)
 		return
 	}
 
-	statement = "UPDATE world_leaderboard set userId = $2, country = $3, countries = $4, time = $5 where id = $1 RETURNING *;"
-	row = database.DBConnection.QueryRow(statement, id, updatedEntry.UserID, updatedEntry.Country, updatedEntry.Countries, updatedEntry.Time)
+	statement := "UPDATE world_leaderboard set userId = $2, country = $3, countries = $4, time = $5 where id = $1 RETURNING *;"
+	row := database.DBConnection.QueryRow(statement, id, updatedEntry.UserID, updatedEntry.Country, updatedEntry.Countries, updatedEntry.Time)
 
 	var entry Entry
 	switch err = row.Scan(&entry.ID, &entry.UserID, &entry.Country, &entry.Countries, &entry.Time); err {
@@ -261,32 +215,8 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		fmt.Fprintf(writer, "%v\n", err)
 		return
 	case nil:
-		statement := "SELECT username FROM users WHERE id = $1;"
-		row := database.DBConnection.QueryRow(statement, entry.UserID)
-
-		var username string
-		switch err = row.Scan(&username); err {
-		case sql.ErrNoRows:
-			writer.WriteHeader(http.StatusNotFound)
-			fmt.Fprintf(writer, "%v\n", err)
-			return
-		case nil:
-			if matchingUser, err := auth.MatchingUser(request, username); err != nil {
-				writer.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(writer, "%v\n", err)
-				return
-			} else if !matchingUser {
-				if hasPermission, err := auth.HasPermission(request, auth.WriteLeaderboard); err != nil {
-					writer.WriteHeader(http.StatusInternalServerError)
-					fmt.Fprintf(writer, "%v\n", err)
-					return
-				} else if !hasPermission {
-					writer.WriteHeader(http.StatusUnauthorized)
-					return
-				}
-			}
-		default:
-			writer.WriteHeader(http.StatusInternalServerError)
+		if code, err := auth.ValidUser(request, entry.UserID, auth.WriteLeaderboard); err != nil {
+			writer.WriteHeader(code)
 			fmt.Fprintf(writer, "%v\n", err)
 			return
 		}
