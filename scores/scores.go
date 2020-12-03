@@ -30,32 +30,10 @@ var GetScores = http.HandlerFunc(func(writer http.ResponseWriter, request *http.
 		return
 	}
 
-	statement := "SELECT username FROM users WHERE id = $1;"
-	row := database.DBConnection.QueryRow(statement, id)
-
-	var username string
-	switch err = row.Scan(&username); err {
-	case sql.ErrNoRows:
-		writer.WriteHeader(http.StatusNotFound)
+	if code, err := auth.ValidUser(request, id, auth.ReadScores); err != nil {
+		writer.WriteHeader(code)
 		fmt.Fprintf(writer, "%v\n", err)
-	case nil:
-		if matchingUser, err := auth.MatchingUser(request, username); err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(writer, "%v\n", err)
-			return
-		} else if !matchingUser {
-			if hasPermission, err := auth.HasPermission(request, auth.ReadScores); err != nil {
-				writer.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(writer, "%v\n", err)
-				return
-			} else if !hasPermission {
-				writer.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-		}
-	default:
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+		return
 	}
 
 	rows, err := database.DBConnection.Query("SELECT * FROM scores WHERE userId = $1;", id)
@@ -106,36 +84,14 @@ var SetScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 		return
 	}
 
-	statement := "SELECT username FROM users WHERE id = $1;"
-	row := database.DBConnection.QueryRow(statement, score.UserID)
-
-	var username string
-	switch err = row.Scan(&username); err {
-	case sql.ErrNoRows:
-		writer.WriteHeader(http.StatusNotFound)
+	if code, err := auth.ValidUser(request, score.UserID, auth.WriteScores); err != nil {
+		writer.WriteHeader(code)
 		fmt.Fprintf(writer, "%v\n", err)
-	case nil:
-		if matchingUser, err := auth.MatchingUser(request, username); err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(writer, "%v\n", err)
-			return
-		} else if !matchingUser {
-			if hasPermission, err := auth.HasPermission(request, auth.WriteScores); err != nil {
-				writer.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(writer, "%v\n", err)
-				return
-			} else if !hasPermission {
-				writer.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-		}
-	default:
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+		return
 	}
 
-	statement = "SELECT id FROM scores WHERE userId = $1 AND quizId = $2;"
-	row = database.DBConnection.QueryRow(statement, score.UserID, score.QuizID)
+	statement := "SELECT id FROM scores WHERE userId = $1 AND quizId = $2;"
+	row := database.DBConnection.QueryRow(statement, score.UserID, score.QuizID)
 
 	var id int
 	switch err = row.Scan(&id); err {
@@ -190,32 +146,8 @@ var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		fmt.Fprintf(writer, "%v\n", err)
 		return
 	case nil:
-		statement := "SELECT username FROM users WHERE id = $1;"
-		row := database.DBConnection.QueryRow(statement, score.UserID)
-
-		var username string
-		switch err = row.Scan(&username); err {
-		case sql.ErrNoRows:
-			writer.WriteHeader(http.StatusNotFound)
-			fmt.Fprintf(writer, "%v\n", err)
-			return
-		case nil:
-			if matchingUser, err := auth.MatchingUser(request, username); err != nil {
-				writer.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(writer, "%v\n", err)
-				return
-			} else if !matchingUser {
-				if hasPermission, err := auth.HasPermission(request, auth.WriteScores); err != nil {
-					writer.WriteHeader(http.StatusInternalServerError)
-					fmt.Fprintf(writer, "%v\n", err)
-					return
-				} else if !hasPermission {
-					writer.WriteHeader(http.StatusUnauthorized)
-					return
-				}
-			}
-		default:
-			writer.WriteHeader(http.StatusInternalServerError)
+		if code, err := auth.ValidUser(request, score.UserID, auth.WriteScores); err != nil {
+			writer.WriteHeader(code)
 			fmt.Fprintf(writer, "%v\n", err)
 			return
 		}

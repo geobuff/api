@@ -108,29 +108,18 @@ var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Re
 	case sql.ErrNoRows:
 		writer.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(writer, "%v\n", err)
-		return
 	case nil:
-		if matchingUser, err := auth.MatchingUser(request, user.Username); err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
+		if code, err := auth.ValidUser(request, user.ID, auth.ReadUsers); err != nil {
+			writer.WriteHeader(code)
 			fmt.Fprintf(writer, "%v\n", err)
 			return
-		} else if !matchingUser {
-			if hasPermission, err := auth.HasPermission(request, auth.ReadUsers); err != nil {
-				writer.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(writer, "%v\n", err)
-				return
-			} else if !hasPermission {
-				writer.WriteHeader(http.StatusUnauthorized)
-				return
-			}
 		}
+
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(user)
-		return
 	default:
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(writer, "%v\n", err)
-		return
 	}
 })
 
@@ -183,31 +172,8 @@ var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 		return
 	}
 
-	statement := "SELECT username FROM users WHERE id = $1;"
-	row := database.DBConnection.QueryRow(statement, id)
-	var username string
-	switch err = row.Scan(&username); err {
-	case sql.ErrNoRows:
-		writer.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(writer, "%v\n", err)
-		return
-	case nil:
-		if matchingUser, err := auth.MatchingUser(request, username); err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(writer, "%v\n", err)
-			return
-		} else if !matchingUser {
-			if hasPermission, err := auth.HasPermission(request, auth.WriteUsers); err != nil {
-				writer.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(writer, "%v\n", err)
-				return
-			} else if !hasPermission {
-				writer.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-		}
-	default:
-		writer.WriteHeader(http.StatusInternalServerError)
+	if code, err := auth.ValidUser(request, id, auth.WriteUsers); err != nil {
+		writer.WriteHeader(code)
 		fmt.Fprintf(writer, "%v\n", err)
 		return
 	}
@@ -217,7 +183,7 @@ var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 	leaderboardStatement := "DELETE FROM world_leaderboard WHERE userId = $1;"
 	database.DBConnection.QueryRow(leaderboardStatement, id)
 	usersStatement := "DELETE FROM users WHERE id = $1 RETURNING *;"
-	row = database.DBConnection.QueryRow(usersStatement, id)
+	row := database.DBConnection.QueryRow(usersStatement, id)
 
 	var user User
 	switch err = row.Scan(&user.ID, &user.Username); err {
