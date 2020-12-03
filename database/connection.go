@@ -7,8 +7,8 @@ import (
 	"github.com/geobuff/geobuff-api/config"
 )
 
-// DBConnection is the connection handle for the database.
-var DBConnection *sql.DB
+// Connection is the connection handle for the database.
+var Connection *sql.DB
 
 // GetConnectionString returns the database connection string.
 func GetConnectionString() string {
