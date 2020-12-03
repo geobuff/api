@@ -18,9 +18,11 @@ import (
 )
 
 func main() {
-	config.Load("config.json")
+	err := config.Load("config.json")
+	if err != nil {
+		panic(err)
+	}
 
-	var err error
 	database.DBConnection, err = sql.Open("postgres", database.GetConnectionString())
 	if err != nil {
 		panic(err)

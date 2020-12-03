@@ -27,17 +27,14 @@ type Config struct {
 	} `json:"cors"`
 }
 
-// Load reads the configuration from the config file and loads into out public Config variable.
-func Load(fileName string) {
-	configFile, err := os.Open(fileName)
-	defer configFile.Close()
+// Load reads the configuration from the config file and loads into out public Values variable.
+func Load(fileName string) error {
+	config, err := os.Open(fileName)
 	if err != nil {
-		panic(err)
+		return err
 	}
+	defer config.Close()
 
-	jsonParser := json.NewDecoder(configFile)
-	err = jsonParser.Decode(&Values)
-	if err != nil {
-		panic(err)
-	}
+	parser := json.NewDecoder(config)
+	return parser.Decode(&Values)
 }
