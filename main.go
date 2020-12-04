@@ -23,12 +23,12 @@ func main() {
 		panic(err)
 	}
 
-	database.DBConnection, err = sql.Open("postgres", database.GetConnectionString())
+	database.Connection, err = sql.Open("postgres", database.GetConnectionString())
 	if err != nil {
 		panic(err)
 	}
 
-	err = database.DBConnection.Ping()
+	err = database.Connection.Ping()
 	if err != nil {
 		panic(err)
 	}
