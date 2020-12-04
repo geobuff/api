@@ -39,15 +39,11 @@ func HasPermission(request *http.Request, permission string) (bool, error) {
 // ValidUser confirms the user making a request is either making changes to their own data or has the correct
 // permissions to complete the action.
 func ValidUser(request *http.Request, userID int, permission string) (int, error) {
-	statement := "SELECT username FROM users WHERE id = $1;"
-	row := database.DBConnection.QueryRow(statement, userID)
-
-	var username string
-	switch err := row.Scan(&username); err {
+	switch user, err := database.GetUser(userID); err {
 	case sql.ErrNoRows:
 		return http.StatusNotFound, err
 	case nil:
-		if matchingUser, err := matchingUser(request, username); err != nil {
+		if matchingUser, err := matchingUser(request, user.Username); err != nil {
 			return http.StatusInternalServerError, err
 		} else if !matchingUser {
 			if hasPermission, err := HasPermission(request, permission); err != nil {
@@ -59,7 +55,6 @@ func ValidUser(request *http.Request, userID int, permission string) (int, error
 	default:
 		return http.StatusInternalServerError, err
 	}
-
 	return 200, nil
 }
 
