@@ -34,6 +34,23 @@ func main() {
 	}
 	fmt.Println("Successfully connected to database!")
 
+	err = http.ListenAndServe(":8080", handler(router()))
+	if err != nil {
+		panic(err)
+	}
+}
+
+func handler(router http.Handler) http.Handler {
+	corsOptions := cors.New(cors.Options{
+		AllowedOrigins: config.Values.Cors.Origins,
+		AllowedMethods: config.Values.Cors.Methods,
+		Debug:          true,
+	})
+
+	return corsOptions.Handler(router)
+}
+
+func router() http.Handler {
 	jwtMiddleware := auth.GetJwtMiddleware()
 	router := mux.NewRouter()
 
@@ -62,12 +79,5 @@ func main() {
 	router.Handle("/api/world/leaderboard/{id}", jwtMiddleware.Handler(world.UpdateEntry)).Methods("PUT")
 	router.Handle("/api/world/leaderboard/{id}", jwtMiddleware.Handler(world.DeleteEntry)).Methods("DELETE")
 
-	corsOptions := cors.New(cors.Options{
-		AllowedOrigins: config.Values.Cors.Origins,
-		AllowedMethods: config.Values.Cors.Methods,
-		Debug:          true,
-	})
-
-	handler := corsOptions.Handler(router)
-	http.ListenAndServe(":8080", handler)
+	return router
 }
