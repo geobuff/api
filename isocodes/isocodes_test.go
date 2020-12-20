@@ -2,10 +2,10 @@ package isocodes
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
@@ -35,7 +35,7 @@ func TestGetCodes(t *testing.T) {
 		t.Fatalf("could not unmarshal response body: %v", err)
 	}
 
-	if fmt.Sprint(parsed) != fmt.Sprint(codes) {
+	if !reflect.DeepEqual(parsed, codes) {
 		t.Fatalf("response body does not match expected codes")
 	}
 }
