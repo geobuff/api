@@ -79,10 +79,78 @@ func TestPostRoutes(t *testing.T) {
 			if response.StatusCode != tc.status {
 				t.Errorf("expected status %v; got %v", tc.status, response.Status)
 			}
+		})
+	}
+}
 
-			_, err = ioutil.ReadAll(response.Body)
+func TestPutRoutes(t *testing.T) {
+	tt := []struct {
+		name   string
+		route  string
+		body   string
+		status int
+	}{
+		{name: "upsert score", route: "scores", body: "", status: http.StatusUnauthorized},
+		{name: "update world leaderboard entry", route: "world/leaderboard/1", body: "", status: http.StatusUnauthorized},
+	}
+
+	server := httptest.NewServer(router())
+	defer server.Close()
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			jsonString, err := json.Marshal(tc.body)
 			if err != nil {
-				t.Fatalf("could not read response: %v", err)
+				t.Error("failed to parse test body")
+			}
+
+			request, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/%s", server.URL, tc.route), bytes.NewReader(jsonString))
+			if err != nil {
+				t.Fatalf("could not create PUT request: %v", err)
+			}
+
+			response, err := server.Client().Do(request)
+			if err != nil {
+				t.Fatalf("could not send PUT request: %v", err)
+			}
+			defer response.Body.Close()
+
+			if response.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, response.Status)
+			}
+		})
+	}
+}
+
+func TestDeleteRoutes(t *testing.T) {
+	tt := []struct {
+		name   string
+		route  string
+		status int
+	}{
+		{name: "delete user", route: "users/1", status: http.StatusUnauthorized},
+		{name: "delete score", route: "scores/1", status: http.StatusUnauthorized},
+		{name: "delete world leaderboard entry", route: "world/leaderboard/1", status: http.StatusUnauthorized},
+	}
+
+	server := httptest.NewServer(router())
+	defer server.Close()
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/%s", server.URL, tc.route), nil)
+			if err != nil {
+				t.Fatalf("could not create DELETE request: %v", err)
+			}
+
+			response, err := server.Client().Do(request)
+			if err != nil {
+				t.Fatalf("could not send DELETE request: %v", err)
+			}
+			defer response.Body.Close()
+
+			if response.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, response.Status)
 			}
 		})
 	}
