@@ -27,7 +27,7 @@ type Config struct {
 	} `json:"cors"`
 }
 
-// Load reads the configuration from the config file and loads into out public Values variable.
+// Load reads the configuration from the config file and loads into our public Values variable.
 func Load(fileName string) error {
 	config, err := os.Open(fileName)
 	if err != nil {
