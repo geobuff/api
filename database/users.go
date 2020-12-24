@@ -34,7 +34,7 @@ func GetUserID(limit int, offset int) (int, error) {
 }
 
 // GetUser returns the user with a given id.
-func GetUser(id int) (User, error) {
+var GetUser = func(id int) (User, error) {
 	statement := "SELECT * FROM users WHERE id = $1;"
 	var user User
 	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.Username)

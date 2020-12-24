@@ -28,7 +28,7 @@ const (
 )
 
 // HasPermission confirms the user making a request has the correct permissions to complete the action.
-func HasPermission(request *http.Request, permission string) (bool, error) {
+var HasPermission = func(request *http.Request, permission string) (bool, error) {
 	permissions, err := getPermissions(request)
 	if err != nil {
 		return false, err
@@ -90,7 +90,7 @@ func permissionPresent(permissions []interface{}, target string) bool {
 	return false
 }
 
-func matchingUser(request *http.Request, target string) (bool, error) {
+var matchingUser = func(request *http.Request, target string) (bool, error) {
 	username, err := getUsername(request)
 	if err != nil {
 		return false, err
