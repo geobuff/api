@@ -74,15 +74,51 @@ func TestGetRoutes(t *testing.T) {
 		route  string
 		status int
 	}{
-		{name: "get users", route: "users", status: http.StatusUnauthorized},
-		{name: "get user 1", route: "users/1", status: http.StatusUnauthorized},
-		{name: "get scores for user 1", route: "scores/1", status: http.StatusUnauthorized},
-		{name: "get isocodes", route: "isocodes", status: http.StatusOK},
-		{name: "get world countries", route: "world/countries", status: http.StatusOK},
-		{name: "get world country alternatives", route: "world/countries/alternatives", status: http.StatusOK},
-		{name: "get world country prefixes", route: "world/countries/prefixes", status: http.StatusOK},
-		{name: "get world country map", route: "world/countries/map", status: http.StatusOK},
-		{name: "get world leaderboard missing page", route: "world/leaderboard", status: http.StatusBadRequest},
+		{
+			name:   "get users",
+			route:  "users",
+			status: http.StatusUnauthorized,
+		},
+		{
+			name:   "get user 1",
+			route:  "users/1",
+			status: http.StatusUnauthorized,
+		},
+		{
+			name:   "get scores for user 1",
+			route:  "scores/1",
+			status: http.StatusUnauthorized,
+		},
+		{
+			name:   "get isocodes",
+			route:  "isocodes",
+			status: http.StatusOK,
+		},
+		{
+			name:   "get world countries",
+			route:  "world/countries",
+			status: http.StatusOK,
+		},
+		{
+			name:   "get world country alternatives",
+			route:  "world/countries/alternatives",
+			status: http.StatusOK,
+		},
+		{
+			name:   "get world country prefixes",
+			route:  "world/countries/prefixes",
+			status: http.StatusOK,
+		},
+		{
+			name:   "get world country map",
+			route:  "world/countries/map",
+			status: http.StatusOK,
+		},
+		{
+			name:   "get world leaderboard missing page",
+			route:  "world/leaderboard",
+			status: http.StatusBadRequest,
+		},
 	}
 
 	server := httptest.NewServer(router())
@@ -115,7 +151,12 @@ func TestPostRoutes(t *testing.T) {
 		body   string
 		status int
 	}{
-		{name: "create world leaderboard entry", route: "world/leaderboard", body: "", status: http.StatusUnauthorized},
+		{
+			name:   "create world leaderboard entry",
+			route:  "world/leaderboard",
+			body:   "",
+			status: http.StatusUnauthorized,
+		},
 	}
 
 	server := httptest.NewServer(router())
@@ -148,8 +189,18 @@ func TestPutRoutes(t *testing.T) {
 		body   string
 		status int
 	}{
-		{name: "upsert score", route: "scores", body: "", status: http.StatusUnauthorized},
-		{name: "update world leaderboard entry", route: "world/leaderboard/1", body: "", status: http.StatusUnauthorized},
+		{
+			name:   "upsert score",
+			route:  "scores",
+			body:   "",
+			status: http.StatusUnauthorized,
+		},
+		{
+			name:   "update world leaderboard entry",
+			route:  "world/leaderboard/1",
+			body:   "",
+			status: http.StatusUnauthorized,
+		},
 	}
 
 	server := httptest.NewServer(router())
@@ -186,9 +237,21 @@ func TestDeleteRoutes(t *testing.T) {
 		route  string
 		status int
 	}{
-		{name: "delete user", route: "users/1", status: http.StatusUnauthorized},
-		{name: "delete score", route: "scores/1", status: http.StatusUnauthorized},
-		{name: "delete world leaderboard entry", route: "world/leaderboard/1", status: http.StatusUnauthorized},
+		{
+			name:   "delete user",
+			route:  "users/1",
+			status: http.StatusUnauthorized,
+		},
+		{
+			name:   "delete score",
+			route:  "scores/1",
+			status: http.StatusUnauthorized,
+		},
+		{
+			name:   "delete world leaderboard entry",
+			route:  "world/leaderboard/1",
+			status: http.StatusUnauthorized,
+		},
 	}
 
 	server := httptest.NewServer(router())
