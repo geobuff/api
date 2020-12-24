@@ -65,17 +65,17 @@ func getPermissions(request *http.Request) ([]interface{}, error) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		permissions := claims["permissions"]
-		if permissions == nil {
-			return nil, nil
-		}
-		return permissions.([]interface{}), nil
+		return claims["permissions"].([]interface{}), nil
 	}
 	return nil, errors.New("failed to parse claims from token")
 }
 
 func parseToken(request *http.Request) (*jwt.Token, []string, error) {
 	header := request.Header.Get("Authorization")
+	if len(header) < 8 {
+		return nil, nil, errors.New("token missing or invalid length")
+	}
+
 	tokenString := header[7:]
 	parser := new(jwt.Parser)
 	return parser.ParseUnverified(tokenString, jwt.MapClaims{})
