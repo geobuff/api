@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -23,21 +22,20 @@ func main() {
 		panic(err)
 	}
 
-	database.Connection, err = sql.Open("postgres", database.GetConnectionString())
-	if err != nil {
-		panic(err)
-	}
-
-	err = database.Connection.Ping()
+	err = database.OpenConnection()
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Successfully connected to database!")
 
-	err = http.ListenAndServe(":8080", handler(router()))
+	err = serve()
 	if err != nil {
 		panic(err)
 	}
+}
+
+var serve = func() error {
+	return http.ListenAndServe(":8080", handler(router()))
 }
 
 func handler(router http.Handler) http.Handler {

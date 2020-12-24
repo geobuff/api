@@ -28,7 +28,7 @@ type Config struct {
 }
 
 // Load reads the configuration from the config file and loads into our public Values variable.
-func Load(fileName string) error {
+var Load = func(fileName string) error {
 	config, err := os.Open(fileName)
 	if err != nil {
 		return err
