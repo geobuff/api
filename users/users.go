@@ -24,24 +24,21 @@ var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 	pageParam := request.URL.Query().Get("page")
 	page, err := strconv.Atoi(pageParam)
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
 	if hasPermission, err := auth.HasPermission(request, auth.ReadUsers); err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	} else if !hasPermission {
-		writer.WriteHeader(http.StatusUnauthorized)
+		http.Error(writer, "invalid permissions to make request", http.StatusUnauthorized)
 		return
 	}
 
 	users, err := database.GetUsers(10, page*10)
 	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -55,8 +52,7 @@ var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entriesDto)
 	default:
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 	}
 })
 

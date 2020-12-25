@@ -7,7 +7,7 @@ type User struct {
 }
 
 // GetUsers returns a page of users.
-func GetUsers(limit int, offset int) ([]User, error) {
+var GetUsers = func(limit int, offset int) ([]User, error) {
 	rows, err := Connection.Query("SELECT * FROM users LIMIT $1 OFFSET $2;", limit, offset)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func GetUsers(limit int, offset int) ([]User, error) {
 }
 
 // GetUserID returns the first ID for a given page.
-func GetUserID(limit int, offset int) (int, error) {
+var GetUserID = func(limit int, offset int) (int, error) {
 	statement := "SELECT id FROM users LIMIT $1 OFFSET $2;"
 	var id int
 	err := Connection.QueryRow(statement, limit, offset).Scan(&id)
