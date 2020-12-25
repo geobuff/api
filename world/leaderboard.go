@@ -24,15 +24,13 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 	pageParam := request.URL.Query().Get("page")
 	page, err := strconv.Atoi(pageParam)
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
 	entries, err := database.GetWorldLeaderboardEntries(10, page*10)
 	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -46,8 +44,7 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entriesDto)
 	default:
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 	}
 }
 
