@@ -9,7 +9,7 @@ type Score struct {
 }
 
 // GetScores returns all scores for a given user.
-func GetScores(userID int) ([]Score, error) {
+var GetScores = func(userID int) ([]Score, error) {
 	rows, err := Connection.Query("SELECT * FROM scores WHERE userId = $1;", userID)
 	if err != nil {
 		return nil, err

@@ -38,7 +38,7 @@ var HasPermission = func(request *http.Request, permission string) (bool, error)
 
 // ValidUser confirms the user making a request is either making changes to their own data or has the correct
 // permissions to complete the action.
-func ValidUser(request *http.Request, userID int, permission string) (int, error) {
+var ValidUser = func(request *http.Request, userID int, permission string) (int, error) {
 	switch user, err := database.GetUser(userID); err {
 	case sql.ErrNoRows:
 		return http.StatusNotFound, err
