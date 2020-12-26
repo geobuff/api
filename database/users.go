@@ -50,7 +50,7 @@ var InsertUser = func(user User) (int, error) {
 }
 
 // DeleteUser deletes a users scores, leaderboard entries and then the user entry in the users table.
-func DeleteUser(id int) (User, error) {
+var DeleteUser = func(id int) (User, error) {
 	scoresStatement := "DELETE FROM scores WHERE userId = $1;"
 	Connection.QueryRow(scoresStatement, id)
 	leaderboardStatement := "DELETE FROM world_leaderboard WHERE userId = $1;"
