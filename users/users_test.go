@@ -12,6 +12,7 @@ import (
 
 	"github.com/geobuff/geobuff-api/auth"
 	"github.com/geobuff/geobuff-api/database"
+	"github.com/gorilla/mux"
 )
 
 func TestGetUsers(t *testing.T) {
@@ -133,6 +134,106 @@ func TestGetUsers(t *testing.T) {
 
 				if parsed.HasMore != tc.hasMore {
 					t.Errorf("expected hasMore = %v; got: %v", tc.hasMore, parsed.HasMore)
+				}
+			}
+		})
+	}
+}
+
+func TestGetUser(t *testing.T) {
+	savedValidUser := auth.ValidUser
+	savedGetUser := database.GetUser
+
+	defer func() {
+		auth.ValidUser = savedValidUser
+		database.GetUser = savedGetUser
+	}()
+
+	tt := []struct {
+		name      string
+		validUser func(request *http.Request, userID int, permission string) (int, error)
+		getUser   func(id int) (database.User, error)
+		id        string
+		status    int
+	}{
+		{
+			name:      "invalid id",
+			validUser: auth.ValidUser,
+			getUser:   database.GetUser,
+			id:        "testing",
+			status:    http.StatusBadRequest,
+		},
+		{
+			name: "valid id, invalid user",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusUnauthorized, errors.New("test")
+			},
+			getUser: database.GetUser,
+			id:      "1",
+			status:  http.StatusUnauthorized,
+		},
+		{
+			name: "valid id, valid user, user not found",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			getUser: func(id int) (database.User, error) { return database.User{}, sql.ErrNoRows },
+			id:      "1",
+			status:  http.StatusNotFound,
+		},
+		{
+			name: "valid id, valid user, error on GetUser",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			getUser: func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			id:      "1",
+			status:  http.StatusInternalServerError,
+		},
+		{
+			name: "happy path",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			getUser: func(id int) (database.User, error) { return database.User{}, nil },
+			id:      "1",
+			status:  http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			auth.ValidUser = tc.validUser
+			database.GetUser = tc.getUser
+
+			request, err := http.NewRequest("GET", "", nil)
+			if err != nil {
+				t.Fatalf("could not create GET request: %v", err)
+			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"id": tc.id,
+			})
+
+			writer := httptest.NewRecorder()
+			GetUser(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusOK {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.User
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
 				}
 			}
 		})
