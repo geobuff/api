@@ -135,7 +135,7 @@ func TestCreateScore(t *testing.T) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			insertScore: database.InsertScore,
-			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
+			body:        `{"userId":1,"quizId":1,"score":1}`,
 			status:      http.StatusUnauthorized,
 		},
 		{
@@ -144,7 +144,7 @@ func TestCreateScore(t *testing.T) {
 				return http.StatusOK, nil
 			},
 			insertScore: func(score database.Score) (int, error) { return 0, errors.New("test") },
-			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
+			body:        `{"userId":1,"quizId":1,"score":1}`,
 			status:      http.StatusInternalServerError,
 		},
 		{
@@ -153,7 +153,7 @@ func TestCreateScore(t *testing.T) {
 				return http.StatusOK, nil
 			},
 			insertScore: func(score database.Score) (int, error) { return 1, nil },
-			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
+			body:        `{"userId":1,"quizId":1,"score":1}`,
 			status:      http.StatusCreated,
 		},
 	}
@@ -178,6 +178,93 @@ func TestCreateScore(t *testing.T) {
 			}
 
 			if tc.status == http.StatusCreated {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.Score
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestUpdateScore(t *testing.T) {
+	savedValidUser := auth.ValidUser
+	savedUpdateScore := database.UpdateScore
+
+	defer func() {
+		auth.ValidUser = savedValidUser
+		database.UpdateScore = savedUpdateScore
+	}()
+
+	tt := []struct {
+		name        string
+		validUser   func(request *http.Request, userID int, permission string) (int, error)
+		updateScore func(score database.Score) error
+		body        string
+		status      int
+	}{
+		{
+			name:        "invalid body",
+			validUser:   auth.ValidUser,
+			updateScore: database.UpdateScore,
+			body:        "testing",
+			status:      http.StatusBadRequest,
+		},
+		{
+			name: "valid body, invalid user",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusUnauthorized, errors.New("test")
+			},
+			updateScore: database.UpdateScore,
+			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
+			status:      http.StatusUnauthorized,
+		},
+		{
+			name: "valid body, valid user, error on UpdateScore",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			updateScore: func(score database.Score) error { return errors.New("test") },
+			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
+			status:      http.StatusInternalServerError,
+		},
+		{
+			name: "happy path",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			updateScore: func(score database.Score) error { return nil },
+			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
+			status:      http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			auth.ValidUser = tc.validUser
+			database.UpdateScore = tc.updateScore
+
+			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
+			if err != nil {
+				t.Fatalf("could not create PUT request: %v", err)
+			}
+
+			writer := httptest.NewRecorder()
+			UpdateScore(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusOK {
 				body, err := ioutil.ReadAll(result.Body)
 				if err != nil {
 					t.Fatalf("could not read response: %v", err)

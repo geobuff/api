@@ -88,21 +88,13 @@ var UpdateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	id, err := database.GetScoreID(score.UserID, score.QuizID)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
-	id, err = database.UpdateScore(score)
+	err = database.UpdateScore(score)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
 	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(http.StatusOK)
-	score.ID = id
 	json.NewEncoder(writer).Encode(score)
 })
 

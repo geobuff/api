@@ -27,14 +27,6 @@ var GetScores = func(userID int) ([]Score, error) {
 	return scores, rows.Err()
 }
 
-// GetScoreID returns the id for a score for a given user and quiz.
-func GetScoreID(userID int, quizID int) (int, error) {
-	statement := "SELECT id FROM scores WHERE userId = $1 AND quizId = $2;"
-	var id int
-	err := Connection.QueryRow(statement, userID, quizID).Scan(&id)
-	return id, err
-}
-
 // GetScore return a score with the matching id.
 var GetScore = func(id int) (Score, error) {
 	statement := "SELECT * FROM scores WHERE id = $1;"
@@ -52,11 +44,10 @@ var InsertScore = func(score Score) (int, error) {
 }
 
 // UpdateScore updates a score entry.
-func UpdateScore(score Score) (int, error) {
+var UpdateScore = func(score Score) error {
 	statement := "UPDATE scores set score = $1 WHERE userId = $2 AND quizId = $3 RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, score.Score, score.UserID, score.QuizID).Scan(&id)
-	return id, err
+	return Connection.QueryRow(statement, score.Score, score.UserID, score.QuizID).Scan(&id)
 }
 
 // DeleteScore deletes a score entry.
