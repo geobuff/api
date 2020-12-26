@@ -92,33 +92,28 @@ var SetScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
 	switch score, err := database.GetScore(id); err {
 	case sql.ErrNoRows:
-		writer.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
 	case nil:
 		if code, err := auth.ValidUser(request, score.UserID, auth.WriteScores); err != nil {
-			writer.WriteHeader(code)
-			fmt.Fprintf(writer, "%v\n", err)
+			http.Error(writer, fmt.Sprintf("%v\n", err), code)
 			return
 		}
 
 		err = database.DeleteScore(id)
 		if err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(writer, "%v\n", err)
+			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 			return
 		}
 
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(score)
 	default:
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 	}
 })

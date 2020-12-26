@@ -1,6 +1,7 @@
 package scores
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -95,6 +96,121 @@ func TestGetScores(t *testing.T) {
 				}
 
 				var parsed []database.Score
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestDeleteScore(t *testing.T) {
+	savedGetScore := database.GetScore
+	savedValidUser := auth.ValidUser
+	savedDeleteScore := database.DeleteScore
+
+	defer func() {
+		database.GetScore = savedGetScore
+		auth.ValidUser = savedValidUser
+		database.DeleteScore = savedDeleteScore
+	}()
+
+	tt := []struct {
+		name        string
+		getScore    func(id int) (database.Score, error)
+		validUser   func(request *http.Request, userID int, permission string) (int, error)
+		deleteScore func(scoreID int) error
+		id          string
+		status      int
+	}{
+		{
+			name:        "invalid id",
+			getScore:    database.GetScore,
+			validUser:   auth.ValidUser,
+			deleteScore: database.DeleteScore,
+			id:          "testing",
+			status:      http.StatusBadRequest,
+		},
+		{
+			name:        "valid id, score not found",
+			getScore:    func(id int) (database.Score, error) { return database.Score{}, sql.ErrNoRows },
+			validUser:   auth.ValidUser,
+			deleteScore: database.DeleteScore,
+			id:          "1",
+			status:      http.StatusNotFound,
+		},
+		{
+			name:        "valid id, unknown error on GetScore",
+			getScore:    func(id int) (database.Score, error) { return database.Score{}, errors.New("test") },
+			validUser:   auth.ValidUser,
+			deleteScore: database.DeleteScore,
+			id:          "1",
+			status:      http.StatusInternalServerError,
+		},
+		{
+			name:     "valid id, score found, invalid user",
+			getScore: func(id int) (database.Score, error) { return database.Score{}, nil },
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusUnauthorized, errors.New("test")
+			},
+			deleteScore: database.DeleteScore,
+			id:          "1",
+			status:      http.StatusUnauthorized,
+		},
+		{
+			name:     "valid id, score found, valid user, error on DeleteScore",
+			getScore: func(id int) (database.Score, error) { return database.Score{}, nil },
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			deleteScore: func(scoreID int) error { return errors.New("test") },
+			id:          "1",
+			status:      http.StatusInternalServerError,
+		},
+		{
+			name:     "happy path",
+			getScore: func(id int) (database.Score, error) { return database.Score{}, nil },
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			deleteScore: func(scoreID int) error { return nil },
+			id:          "1",
+			status:      http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			database.GetScore = tc.getScore
+			auth.ValidUser = tc.validUser
+			database.DeleteScore = tc.deleteScore
+
+			request, err := http.NewRequest("GET", "", nil)
+			if err != nil {
+				t.Fatalf("could not create GET request: %v", err)
+			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"id": tc.id,
+			})
+
+			writer := httptest.NewRecorder()
+			DeleteScore(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusOK {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.Score
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
