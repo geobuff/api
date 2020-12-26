@@ -44,7 +44,7 @@ var GetScore = func(id int) (Score, error) {
 }
 
 // InsertScore inserts a score entry into the scores table.
-func InsertScore(score Score) (int, error) {
+var InsertScore = func(score Score) (int, error) {
 	statement := "INSERT INTO scores (userId, quizId, score) VALUES ($1, $2, $3) RETURNING id;"
 	var id int
 	err := Connection.QueryRow(statement, score.UserID, score.QuizID, score.Score).Scan(&id)

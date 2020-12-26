@@ -1,6 +1,7 @@
 package scores
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -96,6 +97,93 @@ func TestGetScores(t *testing.T) {
 				}
 
 				var parsed []database.Score
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestCreateScore(t *testing.T) {
+	savedValidUser := auth.ValidUser
+	savedInsertScore := database.InsertScore
+
+	defer func() {
+		auth.ValidUser = savedValidUser
+		database.InsertScore = savedInsertScore
+	}()
+
+	tt := []struct {
+		name        string
+		validUser   func(request *http.Request, userID int, permission string) (int, error)
+		insertScore func(score database.Score) (int, error)
+		body        string
+		status      int
+	}{
+		{
+			name:        "invalid body",
+			validUser:   auth.ValidUser,
+			insertScore: database.InsertScore,
+			body:        "testing",
+			status:      http.StatusBadRequest,
+		},
+		{
+			name: "valid body, invalid user",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusUnauthorized, errors.New("test")
+			},
+			insertScore: database.InsertScore,
+			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
+			status:      http.StatusUnauthorized,
+		},
+		{
+			name: "valid body, valid user, error on InsertScore",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			insertScore: func(score database.Score) (int, error) { return 0, errors.New("test") },
+			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
+			status:      http.StatusInternalServerError,
+		},
+		{
+			name: "happy path",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			insertScore: func(score database.Score) (int, error) { return 1, nil },
+			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
+			status:      http.StatusCreated,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			auth.ValidUser = tc.validUser
+			database.InsertScore = tc.insertScore
+
+			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
+			if err != nil {
+				t.Fatalf("could not create POST request: %v", err)
+			}
+
+			writer := httptest.NewRecorder()
+			CreateScore(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusCreated {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.Score
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
