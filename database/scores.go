@@ -9,7 +9,7 @@ type Score struct {
 }
 
 // GetScores returns all scores for a given user.
-func GetScores(userID int) ([]Score, error) {
+var GetScores = func(userID int) ([]Score, error) {
 	rows, err := Connection.Query("SELECT * FROM scores WHERE userId = $1;", userID)
 	if err != nil {
 		return nil, err
@@ -27,16 +27,8 @@ func GetScores(userID int) ([]Score, error) {
 	return scores, rows.Err()
 }
 
-// GetScoreID returns the id for a score for a given user and quiz.
-func GetScoreID(userID int, quizID int) (int, error) {
-	statement := "SELECT id FROM scores WHERE userId = $1 AND quizId = $2;"
-	var id int
-	err := Connection.QueryRow(statement, userID, quizID).Scan(&id)
-	return id, err
-}
-
 // GetScore return a score with the matching id.
-func GetScore(id int) (Score, error) {
+var GetScore = func(id int) (Score, error) {
 	statement := "SELECT * FROM scores WHERE id = $1;"
 	var score Score
 	err := Connection.QueryRow(statement, id).Scan(&score.ID, &score.UserID, &score.QuizID, &score.Score)
@@ -44,7 +36,7 @@ func GetScore(id int) (Score, error) {
 }
 
 // InsertScore inserts a score entry into the scores table.
-func InsertScore(score Score) (int, error) {
+var InsertScore = func(score Score) (int, error) {
 	statement := "INSERT INTO scores (userId, quizId, score) VALUES ($1, $2, $3) RETURNING id;"
 	var id int
 	err := Connection.QueryRow(statement, score.UserID, score.QuizID, score.Score).Scan(&id)
@@ -52,15 +44,14 @@ func InsertScore(score Score) (int, error) {
 }
 
 // UpdateScore updates a score entry.
-func UpdateScore(score Score) (int, error) {
+var UpdateScore = func(score Score) error {
 	statement := "UPDATE scores set score = $1 WHERE userId = $2 AND quizId = $3 RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, score.Score, score.UserID, score.QuizID).Scan(&id)
-	return id, err
+	return Connection.QueryRow(statement, score.Score, score.UserID, score.QuizID).Scan(&id)
 }
 
 // DeleteScore deletes a score entry.
-func DeleteScore(scoreID int) error {
+var DeleteScore = func(scoreID int) error {
 	statement := "DELETE FROM scores WHERE id = $1 RETURNING id;"
 	var id int
 	err := Connection.QueryRow(statement, scoreID).Scan(&id)

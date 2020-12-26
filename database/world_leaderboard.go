@@ -10,7 +10,7 @@ type Entry struct {
 }
 
 // GetWorldLeaderboardEntries returns a page of leaderboard entries.
-func GetWorldLeaderboardEntries(limit int, offset int) ([]Entry, error) {
+var GetWorldLeaderboardEntries = func(limit int, offset int) ([]Entry, error) {
 	rows, err := Connection.Query("SELECT * FROM world_leaderboard ORDER BY countries DESC, time LIMIT $1 OFFSET $2;", limit, offset)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func GetWorldLeaderboardEntries(limit int, offset int) ([]Entry, error) {
 }
 
 // GetWorldLeaderboardEntryID returns the first ID for a given page.
-func GetWorldLeaderboardEntryID(limit int, offset int) (int, error) {
+var GetWorldLeaderboardEntryID = func(limit int, offset int) (int, error) {
 	statement := "SELECT id FROM world_leaderboard ORDER BY countries DESC, time LIMIT $1 OFFSET $2;"
 	var id int
 	err := Connection.QueryRow(statement, limit, offset).Scan(&id)

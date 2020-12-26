@@ -28,7 +28,7 @@ const (
 )
 
 // HasPermission confirms the user making a request has the correct permissions to complete the action.
-func HasPermission(request *http.Request, permission string) (bool, error) {
+var HasPermission = func(request *http.Request, permission string) (bool, error) {
 	permissions, err := getPermissions(request)
 	if err != nil {
 		return false, err
@@ -38,7 +38,7 @@ func HasPermission(request *http.Request, permission string) (bool, error) {
 
 // ValidUser confirms the user making a request is either making changes to their own data or has the correct
 // permissions to complete the action.
-func ValidUser(request *http.Request, userID int, permission string) (int, error) {
+var ValidUser = func(request *http.Request, userID int, permission string) (int, error) {
 	switch user, err := database.GetUser(userID); err {
 	case sql.ErrNoRows:
 		return http.StatusNotFound, err
@@ -65,17 +65,17 @@ func getPermissions(request *http.Request) ([]interface{}, error) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		permissions := claims["permissions"]
-		if permissions == nil {
-			return nil, nil
-		}
-		return permissions.([]interface{}), nil
+		return claims["permissions"].([]interface{}), nil
 	}
 	return nil, errors.New("failed to parse claims from token")
 }
 
 func parseToken(request *http.Request) (*jwt.Token, []string, error) {
 	header := request.Header.Get("Authorization")
+	if len(header) < 8 {
+		return nil, nil, errors.New("token missing or invalid length")
+	}
+
 	tokenString := header[7:]
 	parser := new(jwt.Parser)
 	return parser.ParseUnverified(tokenString, jwt.MapClaims{})
@@ -90,7 +90,7 @@ func permissionPresent(permissions []interface{}, target string) bool {
 	return false
 }
 
-func matchingUser(request *http.Request, target string) (bool, error) {
+var matchingUser = func(request *http.Request, target string) (bool, error) {
 	username, err := getUsername(request)
 	if err != nil {
 		return false, err
