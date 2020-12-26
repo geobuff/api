@@ -83,34 +83,29 @@ var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Re
 // CreateUser creates a new user entry.
 func CreateUser(writer http.ResponseWriter, request *http.Request) {
 	if entry, err := database.GetKey("auth0"); err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	} else if entry.Key != request.Header.Get("x-api-key") {
-		writer.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprintf(writer, "%v\n", "Invalid api key.")
+		http.Error(writer, fmt.Sprintf("%v\n", "invalid api key"), http.StatusUnauthorized)
 		return
 	}
 
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
 	var newUser database.User
 	err = json.Unmarshal(requestBody, &newUser)
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
 	id, err := database.InsertUser(newUser)
 	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 

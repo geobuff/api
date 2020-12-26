@@ -8,7 +8,7 @@ type Key struct {
 }
 
 // GetKey returns a key with a given name.
-func GetKey(name string) (Key, error) {
+var GetKey = func(name string) (Key, error) {
 	statement := "SELECT * FROM keys WHERE name = $1;"
 	var key Key
 	err := Connection.QueryRow(statement, name).Scan(&key.ID, &key.Name, &key.Key)

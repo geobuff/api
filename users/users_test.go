@@ -1,6 +1,7 @@
 package users
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -225,6 +226,107 @@ func TestGetUser(t *testing.T) {
 			}
 
 			if tc.status == http.StatusOK {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.User
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestCreateUser(t *testing.T) {
+	savedGetKey := database.GetKey
+	savedInsertUser := database.InsertUser
+
+	defer func() {
+		database.GetKey = savedGetKey
+		database.InsertUser = savedInsertUser
+	}()
+
+	key := database.Key{
+		ID:   1,
+		Name: "valid key",
+		Key:  "testkey123",
+	}
+
+	tt := []struct {
+		name       string
+		getKey     func(name string) (database.Key, error)
+		insertUser func(user database.User) (int, error)
+		key        string
+		body       string
+		status     int
+	}{
+		{
+			name:       "error on GetKey",
+			getKey:     func(name string) (database.Key, error) { return database.Key{}, errors.New("test") },
+			insertUser: database.InsertUser,
+			key:        "testkey123",
+			body:       "",
+			status:     http.StatusInternalServerError,
+		},
+		{
+			name:       "invalid key",
+			getKey:     func(name string) (database.Key, error) { return key, nil },
+			insertUser: database.InsertUser,
+			key:        "password1",
+			body:       "",
+			status:     http.StatusUnauthorized,
+		},
+		{
+			name:       "valid key, invalid body",
+			getKey:     func(name string) (database.Key, error) { return key, nil },
+			insertUser: database.InsertUser,
+			key:        "testkey123",
+			body:       `testing`,
+			status:     http.StatusBadRequest,
+		},
+		{
+			name:       "valid key, valid body, error on InsertUser",
+			getKey:     func(name string) (database.Key, error) { return key, nil },
+			insertUser: func(user database.User) (int, error) { return 0, errors.New("test") },
+			key:        "testkey123",
+			body:       `{"username":"mrscrub"}`,
+			status:     http.StatusInternalServerError,
+		},
+		{
+			name:       "happy path",
+			getKey:     func(name string) (database.Key, error) { return key, nil },
+			insertUser: func(user database.User) (int, error) { return 1, nil },
+			key:        "testkey123",
+			body:       `{"username":"mrscrub"}`,
+			status:     http.StatusCreated,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			database.GetKey = tc.getKey
+			database.InsertUser = tc.insertUser
+
+			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
+			if err != nil {
+				t.Fatalf("could not create POST request: %v", err)
+			}
+			request.Header.Add("x-api-key", tc.key)
+
+			writer := httptest.NewRecorder()
+			CreateUser(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusCreated {
 				body, err := ioutil.ReadAll(result.Body)
 				if err != nil {
 					t.Fatalf("could not read response: %v", err)
