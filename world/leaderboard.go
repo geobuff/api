@@ -15,8 +15,8 @@ import (
 
 // EntriesDto is used to display a paged result of leaderboard entries.
 type EntriesDto struct {
-	Entries []database.Entry `json:"entries"`
-	HasMore bool             `json:"hasMore"`
+	Entries []database.WorldLeaderboardEntry `json:"entries"`
+	HasMore bool                             `json:"hasMore"`
 }
 
 // GetEntries gets the leaderboard entries for a given page.
@@ -48,25 +48,22 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// GetEntry gets a leaderboard entry by id.
+// GetEntry gets a leaderboard entry by user id.
 func GetEntry(writer http.ResponseWriter, request *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(request)["id"])
+	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
-	switch entry, err := database.GetWorldLeaderboardEntry(id); err {
+	switch entry, err := database.GetWorldLeaderboardEntry(userID); err {
 	case sql.ErrNoRows:
-		writer.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
 	case nil:
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entry)
 	default:
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 	}
 }
 
@@ -79,7 +76,7 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	var newEntry database.Entry
+	var newEntry database.WorldLeaderboardEntry
 	err = json.Unmarshal(requestBody, &newEntry)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
@@ -122,7 +119,7 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	var updatedEntry database.Entry
+	var updatedEntry database.WorldLeaderboardEntry
 	err = json.Unmarshal(requestBody, &updatedEntry)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)

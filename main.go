@@ -73,7 +73,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/world/countries/prefixes", world.GetPrefixes).Methods("GET")
 	router.HandleFunc("/api/world/countries/map", world.GetCountriesMap).Methods("GET")
 	router.HandleFunc("/api/world/leaderboard", world.GetEntries).Methods("GET")
-	router.HandleFunc("/api/world/leaderboard/{id}", world.GetEntry).Methods("GET")
+	router.HandleFunc("/api/world/leaderboard/{userId}", world.GetEntry).Methods("GET")
 	router.Handle("/api/world/leaderboard", jwtMiddleware.Handler(world.CreateEntry)).Methods("POST")
 	router.Handle("/api/world/leaderboard/{id}", jwtMiddleware.Handler(world.UpdateEntry)).Methods("PUT")
 	router.Handle("/api/world/leaderboard/{id}", jwtMiddleware.Handler(world.DeleteEntry)).Methods("DELETE")
