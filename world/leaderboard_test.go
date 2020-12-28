@@ -376,3 +376,130 @@ func TestUpdateEntry(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteEntry(t *testing.T) {
+	savedGetWorldLeaderboardEntry := database.GetWorldLeaderboardEntry
+	savedValidUser := auth.ValidUser
+	savedDeleteWorldLeaderboardEntry := database.DeleteWorldLeaderboardEntry
+
+	defer func() {
+		database.GetWorldLeaderboardEntry = savedGetWorldLeaderboardEntry
+		auth.ValidUser = savedValidUser
+		database.DeleteWorldLeaderboardEntry = savedDeleteWorldLeaderboardEntry
+	}()
+
+	tt := []struct {
+		name                        string
+		getWorldLeaderboardEntry    func(userID int) (database.WorldLeaderboardEntry, error)
+		validUser                   func(request *http.Request, userID int, permission string) (int, error)
+		deleteWorldLeaderboardEntry func(entryID int) error
+		id                          string
+		status                      int
+	}{
+		{
+			name:                        "invalid id",
+			getWorldLeaderboardEntry:    database.GetWorldLeaderboardEntry,
+			validUser:                   auth.ValidUser,
+			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
+			id:                          "testing",
+			status:                      http.StatusBadRequest,
+		},
+		{
+			name: "valid id, error on GetWorldLeaderboardEntry",
+			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
+				return database.WorldLeaderboardEntry{}, errors.New("test")
+			},
+			validUser:                   auth.ValidUser,
+			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
+			id:                          "1",
+			status:                      http.StatusInternalServerError,
+		},
+		{
+			name: "valid id, entry not found",
+			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
+				return database.WorldLeaderboardEntry{}, sql.ErrNoRows
+			},
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusUnauthorized, errors.New("test")
+			},
+			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
+			id:                          "1",
+			status:                      http.StatusNotFound,
+		},
+		{
+			name: "valid id, entry found, invalid user",
+			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
+				return database.WorldLeaderboardEntry{}, nil
+			},
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusUnauthorized, errors.New("test")
+			},
+			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
+			id:                          "1",
+			status:                      http.StatusUnauthorized,
+		},
+		{
+			name: "valid id, entry found, valid user, error on DeleteWorldLeaderboardEntry",
+			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
+				return database.WorldLeaderboardEntry{}, nil
+			},
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			deleteWorldLeaderboardEntry: func(entryID int) error { return errors.New("test") },
+			id:                          "1",
+			status:                      http.StatusInternalServerError,
+		},
+		{
+			name: "happy path",
+			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
+				return database.WorldLeaderboardEntry{}, nil
+			},
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			deleteWorldLeaderboardEntry: func(entryID int) error { return nil },
+			id:                          "1",
+			status:                      http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			database.GetWorldLeaderboardEntry = tc.getWorldLeaderboardEntry
+			auth.ValidUser = tc.validUser
+			database.DeleteWorldLeaderboardEntry = tc.deleteWorldLeaderboardEntry
+
+			request, err := http.NewRequest("DELETE", "", nil)
+			if err != nil {
+				t.Fatalf("could not create DELETE request: %v", err)
+			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"id": tc.id,
+			})
+
+			writer := httptest.NewRecorder()
+			DeleteEntry(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusOK {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.WorldLeaderboardEntry
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}

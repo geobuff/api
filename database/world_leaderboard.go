@@ -60,9 +60,8 @@ var UpdateWorldLeaderboardEntry = func(entry WorldLeaderboardEntry) error {
 }
 
 // DeleteWorldLeaderboardEntry deletes a leaderboard entry.
-func DeleteWorldLeaderboardEntry(entryID int) (int, error) {
+var DeleteWorldLeaderboardEntry = func(entryID int) error {
 	statement := "DELETE FROM world_leaderboard WHERE id = $1 RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, entryID).Scan(&id)
-	return id, err
+	return Connection.QueryRow(statement, entryID).Scan(&id)
 }
