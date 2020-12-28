@@ -1,6 +1,7 @@
 package world
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -10,6 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/geobuff/geobuff-api/auth"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/gorilla/mux"
 )
@@ -186,6 +188,93 @@ func TestGetEntry(t *testing.T) {
 			}
 
 			if tc.status == http.StatusOK {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.WorldLeaderboardEntry
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestCreateEntry(t *testing.T) {
+	savedValidUser := auth.ValidUser
+	savedInsertWorldLeaderboardEntry := database.InsertWorldLeaderboardEntry
+
+	defer func() {
+		auth.ValidUser = savedValidUser
+		database.InsertWorldLeaderboardEntry = savedInsertWorldLeaderboardEntry
+	}()
+
+	tt := []struct {
+		name                        string
+		validUser                   func(request *http.Request, userID int, permission string) (int, error)
+		insertWorldLeaderboardEntry func(entry database.WorldLeaderboardEntry) (int, error)
+		body                        string
+		status                      int
+	}{
+		{
+			name:                        "invalid body",
+			validUser:                   auth.ValidUser,
+			insertWorldLeaderboardEntry: database.InsertWorldLeaderboardEntry,
+			body:                        "testing",
+			status:                      http.StatusBadRequest,
+		},
+		{
+			name: "valid body, invalid user",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusUnauthorized, errors.New("test")
+			},
+			insertWorldLeaderboardEntry: database.InsertWorldLeaderboardEntry,
+			body:                        `{"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                      http.StatusUnauthorized,
+		},
+		{
+			name: "valid body, valid user, error on InsertWorldLeaderboardEntry",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			insertWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) (int, error) { return 0, errors.New("test") },
+			body:                        `{"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                      http.StatusInternalServerError,
+		},
+		{
+			name: "happy path",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			insertWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) (int, error) { return 1, nil },
+			body:                        `{"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                      http.StatusCreated,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			auth.ValidUser = tc.validUser
+			database.InsertWorldLeaderboardEntry = tc.insertWorldLeaderboardEntry
+
+			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
+			if err != nil {
+				t.Fatalf("could not create POST request: %v", err)
+			}
+
+			writer := httptest.NewRecorder()
+			CreateEntry(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusCreated {
 				body, err := ioutil.ReadAll(result.Body)
 				if err != nil {
 					t.Fatalf("could not read response: %v", err)

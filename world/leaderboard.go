@@ -71,29 +71,25 @@ func GetEntry(writer http.ResponseWriter, request *http.Request) {
 var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
 	var newEntry database.WorldLeaderboardEntry
 	err = json.Unmarshal(requestBody, &newEntry)
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
 	if code, err := auth.ValidUser(request, newEntry.UserID, auth.WriteLeaderboard); err != nil {
-		writer.WriteHeader(code)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
 
 	id, err := database.InsertWorldLeaderboardEntry(newEntry)
 	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 

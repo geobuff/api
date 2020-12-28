@@ -45,7 +45,7 @@ var GetWorldLeaderboardEntry = func(userID int) (WorldLeaderboardEntry, error) {
 }
 
 // InsertWorldLeaderboardEntry inserts a new leaderboard entry into the world_leaderboard table.
-func InsertWorldLeaderboardEntry(entry WorldLeaderboardEntry) (int, error) {
+var InsertWorldLeaderboardEntry = func(entry WorldLeaderboardEntry) (int, error) {
 	statement := "INSERT INTO world_leaderboard (userId, country, countries, time) VALUES ($1, $2, $3, $4) RETURNING id;"
 	var id int
 	err := Connection.QueryRow(statement, entry.UserID, entry.Country, entry.Countries, entry.Time).Scan(&id)
