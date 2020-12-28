@@ -101,46 +101,32 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 // UpdateEntry updates an existing leaderboard entry.
 var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(request)["id"])
-	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "%v\n", err)
-		return
-	}
-
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
 	var updatedEntry database.WorldLeaderboardEntry
 	err = json.Unmarshal(requestBody, &updatedEntry)
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
 	if code, err := auth.ValidUser(request, updatedEntry.UserID, auth.WriteLeaderboard); err != nil {
-		writer.WriteHeader(code)
-		fmt.Fprintf(writer, "%v\n", err)
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
 
-	switch id, err = database.UpdateWorldLeaderboardEntry(id, updatedEntry); err {
-	case sql.ErrNoRows:
-		writer.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(writer, "%v\n", err)
-	case nil:
-		writer.Header().Set("Content-Type", "application/json")
-		updatedEntry.ID = id
-		json.NewEncoder(writer).Encode(updatedEntry)
-	default:
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "%v\n", err)
+	err = database.UpdateWorldLeaderboardEntry(updatedEntry)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
 	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(updatedEntry)
 })
 
 // DeleteEntry deletes an existing leaderboard entry.

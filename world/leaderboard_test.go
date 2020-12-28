@@ -289,3 +289,90 @@ func TestCreateEntry(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateEntry(t *testing.T) {
+	savedValidUser := auth.ValidUser
+	savedUpdateWorldLeaderboardEntry := database.UpdateWorldLeaderboardEntry
+
+	defer func() {
+		auth.ValidUser = savedValidUser
+		database.UpdateWorldLeaderboardEntry = savedUpdateWorldLeaderboardEntry
+	}()
+
+	tt := []struct {
+		name                        string
+		validUser                   func(request *http.Request, userID int, permission string) (int, error)
+		updateWorldLeaderboardEntry func(entry database.WorldLeaderboardEntry) error
+		body                        string
+		status                      int
+	}{
+		{
+			name:                        "invalid body",
+			validUser:                   auth.ValidUser,
+			updateWorldLeaderboardEntry: database.UpdateWorldLeaderboardEntry,
+			body:                        "testing",
+			status:                      http.StatusBadRequest,
+		},
+		{
+			name: "valid body, invalid user",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusUnauthorized, errors.New("test")
+			},
+			updateWorldLeaderboardEntry: database.UpdateWorldLeaderboardEntry,
+			body:                        `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                      http.StatusUnauthorized,
+		},
+		{
+			name: "valid body, valid user, error on UpdateWorldLeaderboardEntry",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			updateWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) error { return errors.New("test") },
+			body:                        `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                      http.StatusInternalServerError,
+		},
+		{
+			name: "happy path",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			updateWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) error { return nil },
+			body:                        `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                      http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			auth.ValidUser = tc.validUser
+			database.UpdateWorldLeaderboardEntry = tc.updateWorldLeaderboardEntry
+
+			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
+			if err != nil {
+				t.Fatalf("could not create PUT request: %v", err)
+			}
+
+			writer := httptest.NewRecorder()
+			UpdateEntry(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusCreated {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.WorldLeaderboardEntry
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}

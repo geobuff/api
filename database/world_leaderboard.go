@@ -53,11 +53,10 @@ var InsertWorldLeaderboardEntry = func(entry WorldLeaderboardEntry) (int, error)
 }
 
 // UpdateWorldLeaderboardEntry updates an existing leaderboard entry.
-func UpdateWorldLeaderboardEntry(entryID int, entry WorldLeaderboardEntry) (int, error) {
+var UpdateWorldLeaderboardEntry = func(entry WorldLeaderboardEntry) error {
 	statement := "UPDATE world_leaderboard set userId = $2, country = $3, countries = $4, time = $5 where id = $1 RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, entryID, entry.UserID, entry.Country, entry.Countries, entry.Time).Scan(&id)
-	return id, err
+	return Connection.QueryRow(statement, entry.ID, entry.UserID, entry.Country, entry.Countries, entry.Time).Scan(&id)
 }
 
 // DeleteWorldLeaderboardEntry deletes a leaderboard entry.
