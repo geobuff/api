@@ -42,7 +42,7 @@ var GetUser = func(id int) (User, error) {
 }
 
 // InsertUser inserts a new user into the users table.
-func InsertUser(user User) (int, error) {
+var InsertUser = func(user User) (int, error) {
 	statement := "INSERT INTO users (username) VALUES ($1) RETURNING id;"
 	var id int
 	err := Connection.QueryRow(statement, user.Username).Scan(&id)
@@ -50,7 +50,7 @@ func InsertUser(user User) (int, error) {
 }
 
 // DeleteUser deletes a users scores, leaderboard entries and then the user entry in the users table.
-func DeleteUser(id int) (User, error) {
+var DeleteUser = func(id int) (User, error) {
 	scoresStatement := "DELETE FROM scores WHERE userId = $1;"
 	Connection.QueryRow(scoresStatement, id)
 	leaderboardStatement := "DELETE FROM world_leaderboard WHERE userId = $1;"

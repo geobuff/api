@@ -1,6 +1,7 @@
 package users
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/geobuff/geobuff-api/auth"
 	"github.com/geobuff/geobuff-api/database"
+	"github.com/gorilla/mux"
 )
 
 func TestGetUsers(t *testing.T) {
@@ -133,6 +135,307 @@ func TestGetUsers(t *testing.T) {
 
 				if parsed.HasMore != tc.hasMore {
 					t.Errorf("expected hasMore = %v; got: %v", tc.hasMore, parsed.HasMore)
+				}
+			}
+		})
+	}
+}
+
+func TestGetUser(t *testing.T) {
+	savedValidUser := auth.ValidUser
+	savedGetUser := database.GetUser
+
+	defer func() {
+		auth.ValidUser = savedValidUser
+		database.GetUser = savedGetUser
+	}()
+
+	tt := []struct {
+		name      string
+		validUser func(request *http.Request, userID int, permission string) (int, error)
+		getUser   func(id int) (database.User, error)
+		id        string
+		status    int
+	}{
+		{
+			name:      "invalid id",
+			validUser: auth.ValidUser,
+			getUser:   database.GetUser,
+			id:        "testing",
+			status:    http.StatusBadRequest,
+		},
+		{
+			name: "valid id, invalid user",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusUnauthorized, errors.New("test")
+			},
+			getUser: database.GetUser,
+			id:      "1",
+			status:  http.StatusUnauthorized,
+		},
+		{
+			name: "valid id, valid user, user not found",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			getUser: func(id int) (database.User, error) { return database.User{}, sql.ErrNoRows },
+			id:      "1",
+			status:  http.StatusNotFound,
+		},
+		{
+			name: "valid id, valid user, error on GetUser",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			getUser: func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			id:      "1",
+			status:  http.StatusInternalServerError,
+		},
+		{
+			name: "happy path",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			getUser: func(id int) (database.User, error) { return database.User{}, nil },
+			id:      "1",
+			status:  http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			auth.ValidUser = tc.validUser
+			database.GetUser = tc.getUser
+
+			request, err := http.NewRequest("GET", "", nil)
+			if err != nil {
+				t.Fatalf("could not create GET request: %v", err)
+			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"id": tc.id,
+			})
+
+			writer := httptest.NewRecorder()
+			GetUser(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusOK {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.User
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestCreateUser(t *testing.T) {
+	savedGetKey := database.GetKey
+	savedInsertUser := database.InsertUser
+
+	defer func() {
+		database.GetKey = savedGetKey
+		database.InsertUser = savedInsertUser
+	}()
+
+	key := database.Key{
+		ID:   1,
+		Name: "valid key",
+		Key:  "testkey123",
+	}
+
+	tt := []struct {
+		name       string
+		getKey     func(name string) (database.Key, error)
+		insertUser func(user database.User) (int, error)
+		key        string
+		body       string
+		status     int
+	}{
+		{
+			name:       "error on GetKey",
+			getKey:     func(name string) (database.Key, error) { return database.Key{}, errors.New("test") },
+			insertUser: database.InsertUser,
+			key:        "testkey123",
+			body:       "",
+			status:     http.StatusInternalServerError,
+		},
+		{
+			name:       "invalid key",
+			getKey:     func(name string) (database.Key, error) { return key, nil },
+			insertUser: database.InsertUser,
+			key:        "password1",
+			body:       "",
+			status:     http.StatusUnauthorized,
+		},
+		{
+			name:       "valid key, invalid body",
+			getKey:     func(name string) (database.Key, error) { return key, nil },
+			insertUser: database.InsertUser,
+			key:        "testkey123",
+			body:       `testing`,
+			status:     http.StatusBadRequest,
+		},
+		{
+			name:       "valid key, valid body, error on InsertUser",
+			getKey:     func(name string) (database.Key, error) { return key, nil },
+			insertUser: func(user database.User) (int, error) { return 0, errors.New("test") },
+			key:        "testkey123",
+			body:       `{"username":"mrscrub"}`,
+			status:     http.StatusInternalServerError,
+		},
+		{
+			name:       "happy path",
+			getKey:     func(name string) (database.Key, error) { return key, nil },
+			insertUser: func(user database.User) (int, error) { return 1, nil },
+			key:        "testkey123",
+			body:       `{"username":"mrscrub"}`,
+			status:     http.StatusCreated,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			database.GetKey = tc.getKey
+			database.InsertUser = tc.insertUser
+
+			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
+			if err != nil {
+				t.Fatalf("could not create POST request: %v", err)
+			}
+			request.Header.Add("x-api-key", tc.key)
+
+			writer := httptest.NewRecorder()
+			CreateUser(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusCreated {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.User
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	savedValidUser := auth.ValidUser
+	savedDeleteUser := database.DeleteUser
+
+	defer func() {
+		auth.ValidUser = savedValidUser
+		database.DeleteUser = savedDeleteUser
+	}()
+
+	tt := []struct {
+		name       string
+		validUser  func(request *http.Request, userID int, permission string) (int, error)
+		deleteUser func(id int) (database.User, error)
+		id         string
+		status     int
+	}{
+		{
+			name:       "invalid id",
+			validUser:  auth.ValidUser,
+			deleteUser: database.DeleteUser,
+			id:         "testing",
+			status:     http.StatusBadRequest,
+		},
+		{
+			name: "valid id, invalid user",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusUnauthorized, errors.New("test")
+			},
+			deleteUser: database.DeleteUser,
+			id:         "1",
+			status:     http.StatusUnauthorized,
+		},
+		{
+			name: "valid id, valid user, user not found",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			deleteUser: func(id int) (database.User, error) { return database.User{}, sql.ErrNoRows },
+			id:         "1",
+			status:     http.StatusNotFound,
+		},
+		{
+			name: "valid id, valid user, error on DeleteUser",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			deleteUser: func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			id:         "1",
+			status:     http.StatusInternalServerError,
+		},
+		{
+			name: "happy path",
+			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+				return http.StatusOK, nil
+			},
+			deleteUser: func(id int) (database.User, error) { return database.User{}, nil },
+			id:         "1",
+			status:     http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			auth.ValidUser = tc.validUser
+			database.DeleteUser = tc.deleteUser
+
+			request, err := http.NewRequest("DELETE", "", nil)
+			if err != nil {
+				t.Fatalf("could not create DELETE request: %v", err)
+			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"id": tc.id,
+			})
+
+			writer := httptest.NewRecorder()
+			DeleteUser(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusOK {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.User
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
 				}
 			}
 		})
