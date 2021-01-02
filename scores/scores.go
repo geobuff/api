@@ -1,7 +1,6 @@
 package scores
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -15,18 +14,18 @@ import (
 
 // GetScores returns all scores for a given user.
 var GetScores = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(request)["id"])
+	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
-	if code, err := auth.ValidUser(request, id, auth.ReadScores); err != nil {
+	if code, err := auth.ValidUser(request, userID, auth.ReadScores); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
 
-	scores, err := database.GetScores(id)
+	scores, err := database.GetScores(userID)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -70,6 +69,12 @@ var CreateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 // UpdateScore updates an existing score.
 var UpdateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(request)["id"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -88,6 +93,7 @@ var UpdateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
+	score.ID = id
 	err = database.UpdateScore(score)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
@@ -106,24 +112,23 @@ var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	switch score, err := database.GetScore(id); err {
-	case sql.ErrNoRows:
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
-	case nil:
-		if code, err := auth.ValidUser(request, score.UserID, auth.WriteScores); err != nil {
-			http.Error(writer, fmt.Sprintf("%v\n", err), code)
-			return
-		}
-
-		err = database.DeleteScore(id)
-		if err != nil {
-			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-			return
-		}
-
-		writer.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(writer).Encode(score)
-	default:
+	score, err := database.GetScore(id)
+	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
 	}
+
+	if code, err := auth.ValidUser(request, score.UserID, auth.WriteScores); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	err = database.DeleteScore(id)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(score)
 })

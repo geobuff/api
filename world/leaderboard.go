@@ -56,15 +56,14 @@ func GetEntry(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	switch entry, err := database.GetWorldLeaderboardEntry(userID); err {
-	case sql.ErrNoRows:
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
-	case nil:
-		writer.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(writer).Encode(entry)
-	default:
+	entry, err := database.GetWorldLeaderboardEntry(userID)
+	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
 	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(entry)
 }
 
 // CreateEntry creates a new leaderboard entry.
@@ -101,6 +100,12 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 // UpdateEntry updates an existing leaderboard entry.
 var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(request)["id"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -119,6 +124,7 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
+	updatedEntry.ID = id
 	err = database.UpdateWorldLeaderboardEntry(updatedEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
@@ -137,24 +143,23 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	switch entry, err := database.GetWorldLeaderboardEntry(id); err {
-	case sql.ErrNoRows:
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
-	case nil:
-		if code, err := auth.ValidUser(request, entry.UserID, auth.WriteLeaderboard); err != nil {
-			http.Error(writer, fmt.Sprintf("%v\n", err), code)
-			return
-		}
-
-		err := database.DeleteWorldLeaderboardEntry(entry.ID)
-		if err != nil {
-			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-			return
-		}
-
-		writer.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(writer).Encode(entry)
-	default:
+	entry, err := database.GetWorldLeaderboardEntry(id)
+	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
 	}
+
+	if code, err := auth.ValidUser(request, entry.UserID, auth.WriteLeaderboard); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	err = database.DeleteWorldLeaderboardEntry(entry.ID)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(entry)
 })

@@ -59,9 +59,9 @@ func router() http.Handler {
 	router.Handle("/api/users/{id}", jwtMiddleware.Handler(users.DeleteUser)).Methods("DELETE")
 
 	// Score endpoints.
-	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.GetScores)).Methods("GET")
+	router.Handle("/api/scores/{userId}", jwtMiddleware.Handler(scores.GetScores)).Methods("GET")
 	router.Handle("/api/scores", jwtMiddleware.Handler(scores.CreateScore)).Methods("POST")
-	router.Handle("/api/scores", jwtMiddleware.Handler(scores.UpdateScore)).Methods("PUT")
+	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.UpdateScore)).Methods("PUT")
 	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.DeleteScore)).Methods("DELETE")
 
 	// ISO-code endpoints.
@@ -75,7 +75,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/world/leaderboard", world.GetEntries).Methods("GET")
 	router.HandleFunc("/api/world/leaderboard/{userId}", world.GetEntry).Methods("GET")
 	router.Handle("/api/world/leaderboard", jwtMiddleware.Handler(world.CreateEntry)).Methods("POST")
-	router.Handle("/api/world/leaderboard", jwtMiddleware.Handler(world.UpdateEntry)).Methods("PUT")
+	router.Handle("/api/world/leaderboard/{id}", jwtMiddleware.Handler(world.UpdateEntry)).Methods("PUT")
 	router.Handle("/api/world/leaderboard/{id}", jwtMiddleware.Handler(world.DeleteEntry)).Methods("DELETE")
 
 	return router

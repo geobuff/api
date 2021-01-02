@@ -191,13 +191,13 @@ func TestPutRoutes(t *testing.T) {
 	}{
 		{
 			name:   "update score",
-			route:  "scores",
+			route:  "scores/1",
 			body:   "",
 			status: http.StatusUnauthorized,
 		},
 		{
 			name:   "update world leaderboard entry",
-			route:  "world/leaderboard",
+			route:  "world/leaderboard/1",
 			body:   "",
 			status: http.StatusUnauthorized,
 		},

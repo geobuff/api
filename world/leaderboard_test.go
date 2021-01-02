@@ -140,14 +140,6 @@ func TestGetEntry(t *testing.T) {
 			status:                   http.StatusBadRequest,
 		},
 		{
-			name: "valid userId, entry not found",
-			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
-				return database.WorldLeaderboardEntry{}, sql.ErrNoRows
-			},
-			userID: "1",
-			status: http.StatusNotFound,
-		},
-		{
 			name: "valid userId, error on GetWorldLeaderboardEntry",
 			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
 				return database.WorldLeaderboardEntry{}, errors.New("test")
@@ -303,31 +295,43 @@ func TestUpdateEntry(t *testing.T) {
 		name                        string
 		validUser                   func(request *http.Request, userID int, permission string) (int, error)
 		updateWorldLeaderboardEntry func(entry database.WorldLeaderboardEntry) error
+		id                          string
 		body                        string
 		status                      int
 	}{
 		{
-			name:                        "invalid body",
+			name:                        "invalid id",
 			validUser:                   auth.ValidUser,
 			updateWorldLeaderboardEntry: database.UpdateWorldLeaderboardEntry,
+			id:                          "testing",
+			body:                        "",
+			status:                      http.StatusBadRequest,
+		},
+		{
+			name:                        "valid id, invalid body",
+			validUser:                   auth.ValidUser,
+			updateWorldLeaderboardEntry: database.UpdateWorldLeaderboardEntry,
+			id:                          "1",
 			body:                        "testing",
 			status:                      http.StatusBadRequest,
 		},
 		{
-			name: "valid body, invalid user",
+			name: "valid id, valid body, invalid user",
 			validUser: func(request *http.Request, userID int, permission string) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			updateWorldLeaderboardEntry: database.UpdateWorldLeaderboardEntry,
+			id:                          "1",
 			body:                        `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
 			status:                      http.StatusUnauthorized,
 		},
 		{
-			name: "valid body, valid user, error on UpdateWorldLeaderboardEntry",
+			name: "valid id, valid body, valid user, error on UpdateWorldLeaderboardEntry",
 			validUser: func(request *http.Request, userID int, permission string) (int, error) {
 				return http.StatusOK, nil
 			},
 			updateWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) error { return errors.New("test") },
+			id:                          "1",
 			body:                        `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
 			status:                      http.StatusInternalServerError,
 		},
@@ -337,6 +341,7 @@ func TestUpdateEntry(t *testing.T) {
 				return http.StatusOK, nil
 			},
 			updateWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) error { return nil },
+			id:                          "1",
 			body:                        `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
 			status:                      http.StatusOK,
 		},
@@ -351,6 +356,10 @@ func TestUpdateEntry(t *testing.T) {
 			if err != nil {
 				t.Fatalf("could not create PUT request: %v", err)
 			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"id": tc.id,
+			})
 
 			writer := httptest.NewRecorder()
 			UpdateEntry(writer, request)
@@ -413,18 +422,6 @@ func TestDeleteEntry(t *testing.T) {
 			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
 			id:                          "1",
 			status:                      http.StatusInternalServerError,
-		},
-		{
-			name: "valid id, entry not found",
-			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
-				return database.WorldLeaderboardEntry{}, sql.ErrNoRows
-			},
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
-				return http.StatusUnauthorized, errors.New("test")
-			},
-			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
-			id:                          "1",
-			status:                      http.StatusNotFound,
 		},
 		{
 			name: "valid id, entry found, invalid user",

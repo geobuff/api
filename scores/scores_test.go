@@ -2,7 +2,6 @@ package scores
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -28,14 +27,14 @@ func TestGetScores(t *testing.T) {
 		name      string
 		validUser func(request *http.Request, userID int, permission string) (int, error)
 		getScores func(userID int) ([]database.Score, error)
-		id        string
+		userID    string
 		status    int
 	}{
 		{
 			name:      "invalid id value",
 			validUser: auth.ValidUser,
 			getScores: database.GetScores,
-			id:        "testing",
+			userID:    "testing",
 			status:    http.StatusBadRequest,
 		},
 		{
@@ -44,7 +43,7 @@ func TestGetScores(t *testing.T) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			getScores: database.GetScores,
-			id:        "1",
+			userID:    "1",
 			status:    http.StatusUnauthorized,
 		},
 		{
@@ -53,7 +52,7 @@ func TestGetScores(t *testing.T) {
 				return http.StatusOK, nil
 			},
 			getScores: func(userID int) ([]database.Score, error) { return nil, errors.New("test") },
-			id:        "1",
+			userID:    "1",
 			status:    http.StatusInternalServerError,
 		},
 		{
@@ -62,7 +61,7 @@ func TestGetScores(t *testing.T) {
 				return http.StatusOK, nil
 			},
 			getScores: func(userID int) ([]database.Score, error) { return []database.Score{}, nil },
-			id:        "1",
+			userID:    "1",
 			status:    http.StatusOK,
 		},
 	}
@@ -78,7 +77,7 @@ func TestGetScores(t *testing.T) {
 			}
 
 			request = mux.SetURLVars(request, map[string]string{
-				"id": tc.id,
+				"userId": tc.userID,
 			})
 
 			writer := httptest.NewRecorder()
@@ -206,31 +205,43 @@ func TestUpdateScore(t *testing.T) {
 		name        string
 		validUser   func(request *http.Request, userID int, permission string) (int, error)
 		updateScore func(score database.Score) error
+		id          string
 		body        string
 		status      int
 	}{
 		{
-			name:        "invalid body",
+			name:        "invalid id",
 			validUser:   auth.ValidUser,
 			updateScore: database.UpdateScore,
+			id:          "testing",
+			body:        "",
+			status:      http.StatusBadRequest,
+		},
+		{
+			name:        "valid id, invalid body",
+			validUser:   auth.ValidUser,
+			updateScore: database.UpdateScore,
+			id:          "1",
 			body:        "testing",
 			status:      http.StatusBadRequest,
 		},
 		{
-			name: "valid body, invalid user",
+			name: "valid id, valid body, invalid user",
 			validUser: func(request *http.Request, userID int, permission string) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			updateScore: database.UpdateScore,
+			id:          "1",
 			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
 			status:      http.StatusUnauthorized,
 		},
 		{
-			name: "valid body, valid user, error on UpdateScore",
+			name: "valid id, valid body, valid user, error on UpdateScore",
 			validUser: func(request *http.Request, userID int, permission string) (int, error) {
 				return http.StatusOK, nil
 			},
 			updateScore: func(score database.Score) error { return errors.New("test") },
+			id:          "1",
 			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
 			status:      http.StatusInternalServerError,
 		},
@@ -240,6 +251,7 @@ func TestUpdateScore(t *testing.T) {
 				return http.StatusOK, nil
 			},
 			updateScore: func(score database.Score) error { return nil },
+			id:          "1",
 			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
 			status:      http.StatusOK,
 		},
@@ -254,6 +266,10 @@ func TestUpdateScore(t *testing.T) {
 			if err != nil {
 				t.Fatalf("could not create PUT request: %v", err)
 			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"id": tc.id,
+			})
 
 			writer := httptest.NewRecorder()
 			UpdateScore(writer, request)
@@ -308,15 +324,7 @@ func TestDeleteScore(t *testing.T) {
 			status:      http.StatusBadRequest,
 		},
 		{
-			name:        "valid id, score not found",
-			getScore:    func(id int) (database.Score, error) { return database.Score{}, sql.ErrNoRows },
-			validUser:   auth.ValidUser,
-			deleteScore: database.DeleteScore,
-			id:          "1",
-			status:      http.StatusNotFound,
-		},
-		{
-			name:        "valid id, unknown error on GetScore",
+			name:        "valid id, error on GetScore",
 			getScore:    func(id int) (database.Score, error) { return database.Score{}, errors.New("test") },
 			validUser:   auth.ValidUser,
 			deleteScore: database.DeleteScore,

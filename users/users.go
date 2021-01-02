@@ -69,15 +69,14 @@ var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
-	switch user, err := database.GetUser(id); err {
-	case sql.ErrNoRows:
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
-	case nil:
-		writer.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(writer).Encode(user)
-	default:
+	user, err := database.GetUser(id)
+	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
 	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(user)
 })
 
 // CreateUser creates a new user entry.
@@ -128,13 +127,12 @@ var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 		return
 	}
 
-	switch user, err := database.DeleteUser(id); err {
-	case sql.ErrNoRows:
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
-	case nil:
-		writer.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(writer).Encode(user)
-	default:
+	user, err := database.DeleteUser(id)
+	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
 	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(user)
 })

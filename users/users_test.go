@@ -174,15 +174,6 @@ func TestGetUser(t *testing.T) {
 			status:  http.StatusUnauthorized,
 		},
 		{
-			name: "valid id, valid user, user not found",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
-				return http.StatusOK, nil
-			},
-			getUser: func(id int) (database.User, error) { return database.User{}, sql.ErrNoRows },
-			id:      "1",
-			status:  http.StatusNotFound,
-		},
-		{
 			name: "valid id, valid user, error on GetUser",
 			validUser: func(request *http.Request, userID int, permission string) (int, error) {
 				return http.StatusOK, nil
@@ -373,15 +364,6 @@ func TestDeleteUser(t *testing.T) {
 			deleteUser: database.DeleteUser,
 			id:         "1",
 			status:     http.StatusUnauthorized,
-		},
-		{
-			name: "valid id, valid user, user not found",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
-				return http.StatusOK, nil
-			},
-			deleteUser: func(id int) (database.User, error) { return database.User{}, sql.ErrNoRows },
-			id:         "1",
-			status:     http.StatusNotFound,
 		},
 		{
 			name: "valid id, valid user, error on DeleteUser",
