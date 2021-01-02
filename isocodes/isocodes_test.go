@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	mapping "github.com/geobuff/location-mapping/isocodes"
 )
 
 func TestGetCodes(t *testing.T) {
@@ -35,7 +37,7 @@ func TestGetCodes(t *testing.T) {
 		t.Fatalf("could not unmarshal response body: %v", err)
 	}
 
-	if !reflect.DeepEqual(parsed, codes) {
+	if !reflect.DeepEqual(parsed, mapping.Codes) {
 		t.Fatalf("response body does not match expected codes")
 	}
 }
