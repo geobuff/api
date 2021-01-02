@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	mapping "github.com/geobuff/location-mapping/world"
 )
 
 func TestGetCountries(t *testing.T) {
@@ -35,7 +37,7 @@ func TestGetCountries(t *testing.T) {
 		t.Fatalf("could not unmarshal response body: %v", err)
 	}
 
-	if !reflect.DeepEqual(parsed, countries) {
+	if !reflect.DeepEqual(parsed, mapping.Countries) {
 		t.Fatalf("response body does not match expected countries")
 	}
 }
@@ -66,7 +68,7 @@ func TestGetAlternativeNamings(t *testing.T) {
 		t.Fatalf("could not unmarshal response body: %v", err)
 	}
 
-	if !reflect.DeepEqual(parsed, alternativeNamings) {
+	if !reflect.DeepEqual(parsed, mapping.AlternativeNamings) {
 		t.Fatalf("response body does not match expected alternative namings")
 	}
 }
@@ -97,7 +99,7 @@ func TestGetPrefixes(t *testing.T) {
 		t.Fatalf("could not unmarshal response body: %v", err)
 	}
 
-	if !reflect.DeepEqual(parsed, prefixes) {
+	if !reflect.DeepEqual(parsed, mapping.Prefixes) {
 		t.Fatalf("response body does not match expected prefixes")
 	}
 }
@@ -128,7 +130,7 @@ func TestGetCountriesMap(t *testing.T) {
 		t.Fatalf("could not unmarshal response body: %v", err)
 	}
 
-	if !reflect.DeepEqual(parsed, countriesMap) {
+	if !reflect.DeepEqual(parsed, mapping.CountriesMap) {
 		t.Fatalf("response body does not match expected countries map")
 	}
 }
