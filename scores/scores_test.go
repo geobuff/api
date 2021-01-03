@@ -49,6 +49,14 @@ func TestGetScores(t *testing.T) {
 			status:    http.StatusBadRequest,
 		},
 		{
+			name:      "valid id, error on GetUser",
+			getUser:   func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			validUser: auth.ValidUser,
+			getScores: database.GetScores,
+			userID:    "1",
+			status:    http.StatusInternalServerError,
+		},
+		{
 			name:    "valid id, invalid user",
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
@@ -153,6 +161,14 @@ func TestCreateScore(t *testing.T) {
 			insertScore: database.InsertScore,
 			body:        "testing",
 			status:      http.StatusBadRequest,
+		},
+		{
+			name:        "valid body, error on GetUser",
+			getUser:     func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			validUser:   auth.ValidUser,
+			insertScore: database.InsertScore,
+			body:        `{"userId":1,"quizId":1,"score":1}`,
+			status:      http.StatusInternalServerError,
 		},
 		{
 			name:    "valid body, invalid user",
@@ -266,6 +282,15 @@ func TestUpdateScore(t *testing.T) {
 			id:          "1",
 			body:        "testing",
 			status:      http.StatusBadRequest,
+		},
+		{
+			name:        "valid id, valid body, error on GetUser",
+			getUser:     func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			validUser:   auth.ValidUser,
+			updateScore: database.UpdateScore,
+			id:          "1",
+			body:        `{"id":1,"userId":1,"quizId":1,"score":1}`,
+			status:      http.StatusInternalServerError,
 		},
 		{
 			name:    "valid id, valid body, invalid user",
@@ -384,6 +409,15 @@ func TestDeleteScore(t *testing.T) {
 			name:        "valid id, error on GetScore",
 			getScore:    func(id int) (database.Score, error) { return database.Score{}, errors.New("test") },
 			getUser:     func(id int) (database.User, error) { return user, nil },
+			validUser:   auth.ValidUser,
+			deleteScore: database.DeleteScore,
+			id:          "1",
+			status:      http.StatusInternalServerError,
+		},
+		{
+			name:        "valid id, error on GetUser",
+			getScore:    func(id int) (database.Score, error) { return database.Score{}, nil },
+			getUser:     func(id int) (database.User, error) { return database.User{}, errors.New("test") },
 			validUser:   auth.ValidUser,
 			deleteScore: database.DeleteScore,
 			id:          "1",

@@ -373,6 +373,14 @@ func TestDeleteUser(t *testing.T) {
 			status:     http.StatusBadRequest,
 		},
 		{
+			name:       "valid id, error on GetUser",
+			getUser:    func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			validUser:  auth.ValidUser,
+			deleteUser: database.DeleteUser,
+			id:         "1",
+			status:     http.StatusInternalServerError,
+		},
+		{
 			name:    "valid id, invalid user",
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {

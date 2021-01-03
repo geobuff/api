@@ -230,6 +230,14 @@ func TestCreateEntry(t *testing.T) {
 			status:                      http.StatusBadRequest,
 		},
 		{
+			name:                        "valid body, error on GetUser",
+			getUser:                     func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			validUser:                   auth.ValidUser,
+			insertWorldLeaderboardEntry: database.InsertWorldLeaderboardEntry,
+			body:                        `{"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                      http.StatusInternalServerError,
+		},
+		{
 			name:    "valid body, invalid user",
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
@@ -341,6 +349,15 @@ func TestUpdateEntry(t *testing.T) {
 			id:                          "1",
 			body:                        "testing",
 			status:                      http.StatusBadRequest,
+		},
+		{
+			name:                        "valid id, valid body, error on GetUser",
+			getUser:                     func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			validUser:                   auth.ValidUser,
+			updateWorldLeaderboardEntry: database.UpdateWorldLeaderboardEntry,
+			id:                          "1",
+			body:                        `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                      http.StatusInternalServerError,
 		},
 		{
 			name:    "valid id, valid body, invalid user",
@@ -461,6 +478,17 @@ func TestDeleteEntry(t *testing.T) {
 				return database.WorldLeaderboardEntry{}, errors.New("test")
 			},
 			getUser:                     func(id int) (database.User, error) { return user, nil },
+			validUser:                   auth.ValidUser,
+			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
+			id:                          "1",
+			status:                      http.StatusInternalServerError,
+		},
+		{
+			name: "valid id, entry found, error on GetUser",
+			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
+				return database.WorldLeaderboardEntry{}, nil
+			},
+			getUser:                     func(id int) (database.User, error) { return database.User{}, errors.New("test") },
 			validUser:                   auth.ValidUser,
 			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
 			id:                          "1",
