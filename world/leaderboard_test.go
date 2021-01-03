@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/geobuff/geobuff-api/auth"
+	"github.com/geobuff/auth0-wrapper/auth"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/gorilla/mux"
 )
@@ -206,7 +206,7 @@ func TestCreateEntry(t *testing.T) {
 
 	tt := []struct {
 		name                        string
-		validUser                   func(request *http.Request, userID int, permission string) (int, error)
+		validUser                   func(uv auth.UserValidation) (int, error)
 		insertWorldLeaderboardEntry func(entry database.WorldLeaderboardEntry) (int, error)
 		body                        string
 		status                      int
@@ -220,7 +220,7 @@ func TestCreateEntry(t *testing.T) {
 		},
 		{
 			name: "valid body, invalid user",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			insertWorldLeaderboardEntry: database.InsertWorldLeaderboardEntry,
@@ -229,7 +229,7 @@ func TestCreateEntry(t *testing.T) {
 		},
 		{
 			name: "valid body, valid user, error on InsertWorldLeaderboardEntry",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			insertWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) (int, error) { return 0, errors.New("test") },
@@ -238,7 +238,7 @@ func TestCreateEntry(t *testing.T) {
 		},
 		{
 			name: "happy path",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			insertWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) (int, error) { return 1, nil },
@@ -293,7 +293,7 @@ func TestUpdateEntry(t *testing.T) {
 
 	tt := []struct {
 		name                        string
-		validUser                   func(request *http.Request, userID int, permission string) (int, error)
+		validUser                   func(uv auth.UserValidation) (int, error)
 		updateWorldLeaderboardEntry func(entry database.WorldLeaderboardEntry) error
 		id                          string
 		body                        string
@@ -317,7 +317,7 @@ func TestUpdateEntry(t *testing.T) {
 		},
 		{
 			name: "valid id, valid body, invalid user",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			updateWorldLeaderboardEntry: database.UpdateWorldLeaderboardEntry,
@@ -327,7 +327,7 @@ func TestUpdateEntry(t *testing.T) {
 		},
 		{
 			name: "valid id, valid body, valid user, error on UpdateWorldLeaderboardEntry",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			updateWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) error { return errors.New("test") },
@@ -337,7 +337,7 @@ func TestUpdateEntry(t *testing.T) {
 		},
 		{
 			name: "happy path",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			updateWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) error { return nil },
@@ -400,7 +400,7 @@ func TestDeleteEntry(t *testing.T) {
 	tt := []struct {
 		name                        string
 		getWorldLeaderboardEntry    func(userID int) (database.WorldLeaderboardEntry, error)
-		validUser                   func(request *http.Request, userID int, permission string) (int, error)
+		validUser                   func(uv auth.UserValidation) (int, error)
 		deleteWorldLeaderboardEntry func(entryID int) error
 		id                          string
 		status                      int
@@ -428,7 +428,7 @@ func TestDeleteEntry(t *testing.T) {
 			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
 				return database.WorldLeaderboardEntry{}, nil
 			},
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
@@ -440,7 +440,7 @@ func TestDeleteEntry(t *testing.T) {
 			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
 				return database.WorldLeaderboardEntry{}, nil
 			},
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			deleteWorldLeaderboardEntry: func(entryID int) error { return errors.New("test") },
@@ -452,7 +452,7 @@ func TestDeleteEntry(t *testing.T) {
 			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
 				return database.WorldLeaderboardEntry{}, nil
 			},
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			deleteWorldLeaderboardEntry: func(entryID int) error { return nil },

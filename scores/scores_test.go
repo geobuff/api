@@ -9,37 +9,49 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/geobuff/geobuff-api/auth"
+	"github.com/geobuff/auth0-wrapper/auth"
+	"github.com/geobuff/geobuff-api/config"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/gorilla/mux"
 )
 
 func TestGetScores(t *testing.T) {
+	savedGetUser := database.GetUser
 	savedValidUser := auth.ValidUser
 	savedGetScores := database.GetScores
+	savedConfigValues := config.Values
 
 	defer func() {
+		database.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
 		database.GetScores = savedGetScores
+		config.Values = savedConfigValues
 	}()
+
+	user := database.User{
+		Username: "testing",
+	}
 
 	tt := []struct {
 		name      string
-		validUser func(request *http.Request, userID int, permission string) (int, error)
+		getUser   func(id int) (database.User, error)
+		validUser func(uv auth.UserValidation) (int, error)
 		getScores func(userID int) ([]database.Score, error)
 		userID    string
 		status    int
 	}{
 		{
 			name:      "invalid id value",
+			getUser:   database.GetUser,
 			validUser: auth.ValidUser,
 			getScores: database.GetScores,
 			userID:    "testing",
 			status:    http.StatusBadRequest,
 		},
 		{
-			name: "valid id, invalid user",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			name:    "valid id, invalid user",
+			getUser: func(id int) (database.User, error) { return user, nil },
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			getScores: database.GetScores,
@@ -47,8 +59,9 @@ func TestGetScores(t *testing.T) {
 			status:    http.StatusUnauthorized,
 		},
 		{
-			name: "valid id, valid user, error on GetScores",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			name:    "valid id, valid user, error on GetScores",
+			getUser: func(id int) (database.User, error) { return user, nil },
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			getScores: func(userID int) ([]database.Score, error) { return nil, errors.New("test") },
@@ -56,8 +69,9 @@ func TestGetScores(t *testing.T) {
 			status:    http.StatusInternalServerError,
 		},
 		{
-			name: "happy path",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			name:    "happy path",
+			getUser: func(id int) (database.User, error) { return user, nil },
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			getScores: func(userID int) ([]database.Score, error) { return []database.Score{}, nil },
@@ -68,8 +82,10 @@ func TestGetScores(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+			database.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
 			database.GetScores = tc.getScores
+			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -106,31 +122,42 @@ func TestGetScores(t *testing.T) {
 }
 
 func TestCreateScore(t *testing.T) {
+	savedGetUser := database.GetUser
 	savedValidUser := auth.ValidUser
 	savedInsertScore := database.InsertScore
+	savedConfigValues := config.Values
 
 	defer func() {
+		database.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
 		database.InsertScore = savedInsertScore
+		config.Values = savedConfigValues
 	}()
+
+	user := database.User{
+		Username: "testing",
+	}
 
 	tt := []struct {
 		name        string
-		validUser   func(request *http.Request, userID int, permission string) (int, error)
+		getUser     func(id int) (database.User, error)
+		validUser   func(uv auth.UserValidation) (int, error)
 		insertScore func(score database.Score) (int, error)
 		body        string
 		status      int
 	}{
 		{
 			name:        "invalid body",
+			getUser:     database.GetUser,
 			validUser:   auth.ValidUser,
 			insertScore: database.InsertScore,
 			body:        "testing",
 			status:      http.StatusBadRequest,
 		},
 		{
-			name: "valid body, invalid user",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			name:    "valid body, invalid user",
+			getUser: func(id int) (database.User, error) { return user, nil },
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			insertScore: database.InsertScore,
@@ -138,8 +165,9 @@ func TestCreateScore(t *testing.T) {
 			status:      http.StatusUnauthorized,
 		},
 		{
-			name: "valid body, valid user, error on InsertScore",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			name:    "valid body, valid user, error on InsertScore",
+			getUser: func(id int) (database.User, error) { return user, nil },
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			insertScore: func(score database.Score) (int, error) { return 0, errors.New("test") },
@@ -147,8 +175,9 @@ func TestCreateScore(t *testing.T) {
 			status:      http.StatusInternalServerError,
 		},
 		{
-			name: "happy path",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			name:    "happy path",
+			getUser: func(id int) (database.User, error) { return user, nil },
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			insertScore: func(score database.Score) (int, error) { return 1, nil },
@@ -159,8 +188,10 @@ func TestCreateScore(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+			database.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
 			database.InsertScore = tc.insertScore
+			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
@@ -193,17 +224,26 @@ func TestCreateScore(t *testing.T) {
 }
 
 func TestUpdateScore(t *testing.T) {
+	savedGetUser := database.GetUser
 	savedValidUser := auth.ValidUser
 	savedUpdateScore := database.UpdateScore
+	savedConfigValues := config.Values
 
 	defer func() {
+		database.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
 		database.UpdateScore = savedUpdateScore
+		config.Values = savedConfigValues
 	}()
+
+	user := database.User{
+		Username: "testing",
+	}
 
 	tt := []struct {
 		name        string
-		validUser   func(request *http.Request, userID int, permission string) (int, error)
+		getUser     func(id int) (database.User, error)
+		validUser   func(uv auth.UserValidation) (int, error)
 		updateScore func(score database.Score) error
 		id          string
 		body        string
@@ -211,6 +251,7 @@ func TestUpdateScore(t *testing.T) {
 	}{
 		{
 			name:        "invalid id",
+			getUser:     database.GetUser,
 			validUser:   auth.ValidUser,
 			updateScore: database.UpdateScore,
 			id:          "testing",
@@ -219,6 +260,7 @@ func TestUpdateScore(t *testing.T) {
 		},
 		{
 			name:        "valid id, invalid body",
+			getUser:     func(id int) (database.User, error) { return user, nil },
 			validUser:   auth.ValidUser,
 			updateScore: database.UpdateScore,
 			id:          "1",
@@ -226,8 +268,9 @@ func TestUpdateScore(t *testing.T) {
 			status:      http.StatusBadRequest,
 		},
 		{
-			name: "valid id, valid body, invalid user",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			name:    "valid id, valid body, invalid user",
+			getUser: func(id int) (database.User, error) { return user, nil },
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			updateScore: database.UpdateScore,
@@ -236,8 +279,9 @@ func TestUpdateScore(t *testing.T) {
 			status:      http.StatusUnauthorized,
 		},
 		{
-			name: "valid id, valid body, valid user, error on UpdateScore",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			name:    "valid id, valid body, valid user, error on UpdateScore",
+			getUser: func(id int) (database.User, error) { return user, nil },
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			updateScore: func(score database.Score) error { return errors.New("test") },
@@ -246,8 +290,9 @@ func TestUpdateScore(t *testing.T) {
 			status:      http.StatusInternalServerError,
 		},
 		{
-			name: "happy path",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			name:    "happy path",
+			getUser: func(id int) (database.User, error) { return user, nil },
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			updateScore: func(score database.Score) error { return nil },
@@ -259,8 +304,10 @@ func TestUpdateScore(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+			database.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
 			database.UpdateScore = tc.updateScore
+			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
@@ -298,19 +345,28 @@ func TestUpdateScore(t *testing.T) {
 
 func TestDeleteScore(t *testing.T) {
 	savedGetScore := database.GetScore
+	savedGetUser := database.GetUser
 	savedValidUser := auth.ValidUser
 	savedDeleteScore := database.DeleteScore
+	savedConfigValues := config.Values
 
 	defer func() {
 		database.GetScore = savedGetScore
+		database.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
 		database.DeleteScore = savedDeleteScore
+		config.Values = savedConfigValues
 	}()
+
+	user := database.User{
+		Username: "testing",
+	}
 
 	tt := []struct {
 		name        string
 		getScore    func(id int) (database.Score, error)
-		validUser   func(request *http.Request, userID int, permission string) (int, error)
+		getUser     func(id int) (database.User, error)
+		validUser   func(uv auth.UserValidation) (int, error)
 		deleteScore func(scoreID int) error
 		id          string
 		status      int
@@ -318,6 +374,7 @@ func TestDeleteScore(t *testing.T) {
 		{
 			name:        "invalid id",
 			getScore:    database.GetScore,
+			getUser:     database.GetUser,
 			validUser:   auth.ValidUser,
 			deleteScore: database.DeleteScore,
 			id:          "testing",
@@ -326,6 +383,7 @@ func TestDeleteScore(t *testing.T) {
 		{
 			name:        "valid id, error on GetScore",
 			getScore:    func(id int) (database.Score, error) { return database.Score{}, errors.New("test") },
+			getUser:     func(id int) (database.User, error) { return user, nil },
 			validUser:   auth.ValidUser,
 			deleteScore: database.DeleteScore,
 			id:          "1",
@@ -334,7 +392,8 @@ func TestDeleteScore(t *testing.T) {
 		{
 			name:     "valid id, score found, invalid user",
 			getScore: func(id int) (database.Score, error) { return database.Score{}, nil },
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			getUser:  func(id int) (database.User, error) { return user, nil },
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			deleteScore: database.DeleteScore,
@@ -344,7 +403,8 @@ func TestDeleteScore(t *testing.T) {
 		{
 			name:     "valid id, score found, valid user, error on DeleteScore",
 			getScore: func(id int) (database.Score, error) { return database.Score{}, nil },
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			getUser:  func(id int) (database.User, error) { return user, nil },
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			deleteScore: func(scoreID int) error { return errors.New("test") },
@@ -354,7 +414,8 @@ func TestDeleteScore(t *testing.T) {
 		{
 			name:     "happy path",
 			getScore: func(id int) (database.Score, error) { return database.Score{}, nil },
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			getUser:  func(id int) (database.User, error) { return user, nil },
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			deleteScore: func(scoreID int) error { return nil },
@@ -366,8 +427,10 @@ func TestDeleteScore(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			database.GetScore = tc.getScore
+			database.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
 			database.DeleteScore = tc.deleteScore
+			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {

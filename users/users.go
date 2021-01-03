@@ -8,8 +8,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/geobuff/geobuff-api/auth"
+	"github.com/geobuff/auth0-wrapper/auth"
+	"github.com/geobuff/geobuff-api/config"
 	"github.com/geobuff/geobuff-api/database"
+	"github.com/geobuff/geobuff-api/permissions"
 	"github.com/gorilla/mux"
 )
 
@@ -28,7 +30,12 @@ var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 		return
 	}
 
-	if hasPermission, err := auth.HasPermission(request, auth.ReadUsers); err != nil {
+	up := auth.UserPermission{
+		Request:    request,
+		Permission: permissions.ReadUsers,
+	}
+
+	if hasPermission, err := auth.HasPermission(up); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	} else if !hasPermission {
@@ -64,14 +71,22 @@ var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
-	if code, err := auth.ValidUser(request, id, auth.ReadUsers); err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), code)
-		return
-	}
-
 	user, err := database.GetUser(id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	uv := auth.UserValidation{
+		Request:    request,
+		UserID:     id,
+		Permission: permissions.ReadUsers,
+		Identifier: config.Values.Auth0.Identifier,
+		Key:        user.Username,
+	}
+
+	if code, err := auth.ValidUser(uv); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
 
@@ -122,12 +137,26 @@ var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 		return
 	}
 
-	if code, err := auth.ValidUser(request, id, auth.WriteUsers); err != nil {
+	user, err := database.GetUser(id)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	uv := auth.UserValidation{
+		Request:    request,
+		UserID:     id,
+		Permission: permissions.ReadUsers,
+		Identifier: config.Values.Auth0.Identifier,
+		Key:        user.Username,
+	}
+
+	if code, err := auth.ValidUser(uv); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
 
-	user, err := database.DeleteUser(id)
+	err = database.DeleteUser(id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return

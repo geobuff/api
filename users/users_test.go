@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/geobuff/geobuff-api/auth"
+	"github.com/geobuff/auth0-wrapper/auth"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/gorilla/mux"
 )
@@ -29,7 +29,7 @@ func TestGetUsers(t *testing.T) {
 
 	tt := []struct {
 		name          string
-		hasPermission func(request *http.Request, permission string) (bool, error)
+		hasPermission func(up auth.UserPermission) (bool, error)
 		getUsers      func(limit int, offset int) ([]database.User, error)
 		getUserID     func(limit int, offset int) (int, error)
 		page          string
@@ -56,7 +56,7 @@ func TestGetUsers(t *testing.T) {
 		},
 		{
 			name:          "valid page parameter, invalid permissions",
-			hasPermission: func(request *http.Request, permission string) (bool, error) { return false, nil },
+			hasPermission: func(up auth.UserPermission) (bool, error) { return false, nil },
 			getUsers:      database.GetUsers,
 			getUserID:     database.GetUserID,
 			page:          "0",
@@ -65,7 +65,7 @@ func TestGetUsers(t *testing.T) {
 		},
 		{
 			name:          "valid page parameter, valid permissions, error on GetUsers",
-			hasPermission: func(request *http.Request, permission string) (bool, error) { return true, nil },
+			hasPermission: func(up auth.UserPermission) (bool, error) { return true, nil },
 			getUsers:      func(limit int, offset int) ([]database.User, error) { return nil, errors.New("test") },
 			getUserID:     database.GetUserID,
 			page:          "0",
@@ -74,7 +74,7 @@ func TestGetUsers(t *testing.T) {
 		},
 		{
 			name:          "valid page parameter, valid permissions, error on GetUserID",
-			hasPermission: func(request *http.Request, permission string) (bool, error) { return true, nil },
+			hasPermission: func(up auth.UserPermission) (bool, error) { return true, nil },
 			getUsers:      func(limit int, offset int) ([]database.User, error) { return []database.User{}, nil },
 			getUserID:     func(limit int, offset int) (int, error) { return 0, errors.New("test") },
 			page:          "0",
@@ -83,7 +83,7 @@ func TestGetUsers(t *testing.T) {
 		},
 		{
 			name:          "happy path, has more is false",
-			hasPermission: func(request *http.Request, permission string) (bool, error) { return true, nil },
+			hasPermission: func(up auth.UserPermission) (bool, error) { return true, nil },
 			getUsers:      func(limit int, offset int) ([]database.User, error) { return []database.User{}, nil },
 			getUserID:     func(limit int, offset int) (int, error) { return 0, sql.ErrNoRows },
 			page:          "0",
@@ -92,7 +92,7 @@ func TestGetUsers(t *testing.T) {
 		},
 		{
 			name:          "happy path, has more is true",
-			hasPermission: func(request *http.Request, permission string) (bool, error) { return true, nil },
+			hasPermission: func(up auth.UserPermission) (bool, error) { return true, nil },
 			getUsers:      func(limit int, offset int) ([]database.User, error) { return []database.User{}, nil },
 			getUserID:     func(limit int, offset int) (int, error) { return 1, nil },
 			page:          "0",
@@ -152,7 +152,7 @@ func TestGetUser(t *testing.T) {
 
 	tt := []struct {
 		name      string
-		validUser func(request *http.Request, userID int, permission string) (int, error)
+		validUser func(uv auth.UserValidation) (int, error)
 		getUser   func(id int) (database.User, error)
 		id        string
 		status    int
@@ -166,7 +166,7 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			name: "valid id, invalid user",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			getUser: database.GetUser,
@@ -175,7 +175,7 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			name: "valid id, valid user, error on GetUser",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			getUser: func(id int) (database.User, error) { return database.User{}, errors.New("test") },
@@ -184,7 +184,7 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			name: "happy path",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
 			getUser: func(id int) (database.User, error) { return database.User{}, nil },
@@ -344,8 +344,8 @@ func TestDeleteUser(t *testing.T) {
 
 	tt := []struct {
 		name       string
-		validUser  func(request *http.Request, userID int, permission string) (int, error)
-		deleteUser func(id int) (database.User, error)
+		validUser  func(uv auth.UserValidation) (int, error)
+		deleteUser func(id int) error
 		id         string
 		status     int
 	}{
@@ -358,7 +358,7 @@ func TestDeleteUser(t *testing.T) {
 		},
 		{
 			name: "valid id, invalid user",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			deleteUser: database.DeleteUser,
@@ -367,19 +367,19 @@ func TestDeleteUser(t *testing.T) {
 		},
 		{
 			name: "valid id, valid user, error on DeleteUser",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			deleteUser: func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			deleteUser: func(id int) error { return errors.New("test") },
 			id:         "1",
 			status:     http.StatusInternalServerError,
 		},
 		{
 			name: "happy path",
-			validUser: func(request *http.Request, userID int, permission string) (int, error) {
+			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			deleteUser: func(id int) (database.User, error) { return database.User{}, nil },
+			deleteUser: func(id int) error { return nil },
 			id:         "1",
 			status:     http.StatusOK,
 		},

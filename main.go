@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/geobuff/geobuff-api/auth"
+	"github.com/geobuff/auth0-wrapper/auth"
 	"github.com/geobuff/geobuff-api/config"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/geobuff/geobuff-api/isocodes"
@@ -49,7 +49,7 @@ func handler(router http.Handler) http.Handler {
 }
 
 func router() http.Handler {
-	jwtMiddleware := auth.GetJwtMiddleware()
+	jwtMiddleware := auth.GetJwtMiddleware(config.Values.Auth0.Audience, config.Values.Auth0.Issuer)
 	router := mux.NewRouter()
 
 	// User endpoints.
