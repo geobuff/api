@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/geobuff/geobuff-api/auth"
+	"github.com/geobuff/auth0-wrapper/auth"
+	"github.com/geobuff/geobuff-api/config"
 	"github.com/geobuff/geobuff-api/database"
+	"github.com/geobuff/geobuff-api/permissions"
 	"github.com/gorilla/mux"
 )
 
@@ -20,7 +22,21 @@ var GetScores = http.HandlerFunc(func(writer http.ResponseWriter, request *http.
 		return
 	}
 
-	if code, err := auth.ValidUser(request, userID, auth.ReadScores); err != nil {
+	user, err := database.GetUser(userID)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	uv := auth.UserValidation{
+		Request:    request,
+		UserID:     userID,
+		Permission: permissions.ReadScores,
+		Identifier: config.Values.Auth0.Identifier,
+		Key:        user.Username,
+	}
+
+	if code, err := auth.ValidUser(uv); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -50,7 +66,21 @@ var CreateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	if code, err := auth.ValidUser(request, score.UserID, auth.WriteScores); err != nil {
+	user, err := database.GetUser(score.UserID)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	uv := auth.UserValidation{
+		Request:    request,
+		UserID:     score.UserID,
+		Permission: permissions.WriteScores,
+		Identifier: config.Values.Auth0.Identifier,
+		Key:        user.Username,
+	}
+
+	if code, err := auth.ValidUser(uv); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -88,7 +118,21 @@ var UpdateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	if code, err := auth.ValidUser(request, score.UserID, auth.WriteScores); err != nil {
+	user, err := database.GetUser(score.UserID)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	uv := auth.UserValidation{
+		Request:    request,
+		UserID:     score.UserID,
+		Permission: permissions.WriteScores,
+		Identifier: config.Values.Auth0.Identifier,
+		Key:        user.Username,
+	}
+
+	if code, err := auth.ValidUser(uv); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -118,7 +162,21 @@ var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	if code, err := auth.ValidUser(request, score.UserID, auth.WriteScores); err != nil {
+	user, err := database.GetUser(score.UserID)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	uv := auth.UserValidation{
+		Request:    request,
+		UserID:     score.UserID,
+		Permission: permissions.WriteScores,
+		Identifier: config.Values.Auth0.Identifier,
+		Key:        user.Username,
+	}
+
+	if code, err := auth.ValidUser(uv); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}

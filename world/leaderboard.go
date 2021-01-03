@@ -8,8 +8,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/geobuff/geobuff-api/auth"
+	"github.com/geobuff/auth0-wrapper/auth"
+	"github.com/geobuff/geobuff-api/config"
 	"github.com/geobuff/geobuff-api/database"
+	"github.com/geobuff/geobuff-api/permissions"
 	"github.com/gorilla/mux"
 )
 
@@ -81,7 +83,21 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	if code, err := auth.ValidUser(request, newEntry.UserID, auth.WriteLeaderboard); err != nil {
+	user, err := database.GetUser(newEntry.UserID)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	uv := auth.UserValidation{
+		Request:    request,
+		UserID:     newEntry.UserID,
+		Permission: permissions.WriteLeaderboard,
+		Identifier: config.Values.Auth0.Identifier,
+		Key:        user.Username,
+	}
+
+	if code, err := auth.ValidUser(uv); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -119,7 +135,21 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	if code, err := auth.ValidUser(request, updatedEntry.UserID, auth.WriteLeaderboard); err != nil {
+	user, err := database.GetUser(updatedEntry.UserID)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	uv := auth.UserValidation{
+		Request:    request,
+		UserID:     updatedEntry.UserID,
+		Permission: permissions.WriteLeaderboard,
+		Identifier: config.Values.Auth0.Identifier,
+		Key:        user.Username,
+	}
+
+	if code, err := auth.ValidUser(uv); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -149,7 +179,21 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	if code, err := auth.ValidUser(request, entry.UserID, auth.WriteLeaderboard); err != nil {
+	user, err := database.GetUser(entry.UserID)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	uv := auth.UserValidation{
+		Request:    request,
+		UserID:     entry.UserID,
+		Permission: permissions.WriteLeaderboard,
+		Identifier: config.Values.Auth0.Identifier,
+		Key:        user.Username,
+	}
+
+	if code, err := auth.ValidUser(uv); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
