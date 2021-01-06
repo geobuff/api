@@ -2,17 +2,18 @@ package world
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 
-	mapping "github.com/geobuff/location-mapping/world"
+	"github.com/geobuff/mapping"
 )
 
 func TestGetCountries(t *testing.T) {
-	request, err := http.NewRequest("GET", "localhost:8080/api/world/countries", nil)
+	request, err := http.NewRequest("GET", "", nil)
 	if err != nil {
 		t.Fatalf("could not create GET request: %v", err)
 	}
@@ -31,25 +32,26 @@ func TestGetCountries(t *testing.T) {
 		t.Fatalf("could not read response: %v", err)
 	}
 
-	var parsed []string
+	var parsed map[string][]mapping.Country
 	err = json.Unmarshal(body, &parsed)
 	if err != nil {
 		t.Fatalf("could not unmarshal response body: %v", err)
 	}
 
 	if !reflect.DeepEqual(parsed, mapping.Countries) {
-		t.Fatalf("response body does not match expected countries")
+		t.Fatalf("response body does not match expected map")
 	}
 }
 
-func TestGetAlternativeNamings(t *testing.T) {
-	request, err := http.NewRequest("GET", "localhost:8080/api/world/countries/alternatives", nil)
+func TestGetCountriesQueryParam(t *testing.T) {
+	continent := "asia"
+	request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/world/countries?continent=%v", continent), nil)
 	if err != nil {
 		t.Fatalf("could not create GET request: %v", err)
 	}
 
 	writer := httptest.NewRecorder()
-	GetAlternativeNamings(writer, request)
+	GetCountries(writer, request)
 	result := writer.Result()
 	defer result.Body.Close()
 
@@ -62,75 +64,13 @@ func TestGetAlternativeNamings(t *testing.T) {
 		t.Fatalf("could not read response: %v", err)
 	}
 
-	var parsed []string
+	var parsed []mapping.Country
 	err = json.Unmarshal(body, &parsed)
 	if err != nil {
 		t.Fatalf("could not unmarshal response body: %v", err)
 	}
 
-	if !reflect.DeepEqual(parsed, mapping.AlternativeNamings) {
-		t.Fatalf("response body does not match expected alternative namings")
-	}
-}
-
-func TestGetPrefixes(t *testing.T) {
-	request, err := http.NewRequest("GET", "localhost:8080/api/world/countries/prefixes", nil)
-	if err != nil {
-		t.Fatalf("could not create GET request: %v", err)
-	}
-
-	writer := httptest.NewRecorder()
-	GetPrefixes(writer, request)
-	result := writer.Result()
-	defer result.Body.Close()
-
-	if result.StatusCode != http.StatusOK {
-		t.Errorf("expected status OK; got %v", result.StatusCode)
-	}
-
-	body, err := ioutil.ReadAll(result.Body)
-	if err != nil {
-		t.Fatalf("could not read response: %v", err)
-	}
-
-	var parsed map[string]string
-	err = json.Unmarshal(body, &parsed)
-	if err != nil {
-		t.Fatalf("could not unmarshal response body: %v", err)
-	}
-
-	if !reflect.DeepEqual(parsed, mapping.Prefixes) {
-		t.Fatalf("response body does not match expected prefixes")
-	}
-}
-
-func TestGetCountriesMap(t *testing.T) {
-	request, err := http.NewRequest("GET", "localhost:8080/api/world/countries/map", nil)
-	if err != nil {
-		t.Fatalf("could not create GET request: %v", err)
-	}
-
-	writer := httptest.NewRecorder()
-	GetCountriesMap(writer, request)
-	result := writer.Result()
-	defer result.Body.Close()
-
-	if result.StatusCode != http.StatusOK {
-		t.Errorf("expected status OK; got %v", result.StatusCode)
-	}
-
-	body, err := ioutil.ReadAll(result.Body)
-	if err != nil {
-		t.Fatalf("could not read response: %v", err)
-	}
-
-	var parsed map[string]string
-	err = json.Unmarshal(body, &parsed)
-	if err != nil {
-		t.Fatalf("could not unmarshal response body: %v", err)
-	}
-
-	if !reflect.DeepEqual(parsed, mapping.CountriesMap) {
-		t.Fatalf("response body does not match expected countries map")
+	if !reflect.DeepEqual(parsed, mapping.Countries[continent]) {
+		t.Fatalf("response body does not match expected list of countries")
 	}
 }

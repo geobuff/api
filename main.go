@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/geobuff/auth0-wrapper/auth"
+	"github.com/geobuff/auth"
 	"github.com/geobuff/geobuff-api/config"
 	"github.com/geobuff/geobuff-api/database"
-	"github.com/geobuff/geobuff-api/isocodes"
 	"github.com/geobuff/geobuff-api/scores"
 	"github.com/geobuff/geobuff-api/users"
 	"github.com/geobuff/geobuff-api/world"
@@ -64,14 +63,8 @@ func router() http.Handler {
 	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.UpdateScore)).Methods("PUT")
 	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.DeleteScore)).Methods("DELETE")
 
-	// ISO-code endpoints.
-	router.HandleFunc("/api/isocodes", isocodes.GetCodes).Methods("GET")
-
 	// World endpoints.
 	router.HandleFunc("/api/world/countries", world.GetCountries).Methods("GET")
-	router.HandleFunc("/api/world/countries/alternatives", world.GetAlternativeNamings).Methods("GET")
-	router.HandleFunc("/api/world/countries/prefixes", world.GetPrefixes).Methods("GET")
-	router.HandleFunc("/api/world/countries/map", world.GetCountriesMap).Methods("GET")
 	router.HandleFunc("/api/world/leaderboard", world.GetEntries).Methods("GET")
 	router.HandleFunc("/api/world/leaderboard/{userId}", world.GetEntry).Methods("GET")
 	router.Handle("/api/world/leaderboard", jwtMiddleware.Handler(world.CreateEntry)).Methods("POST")
