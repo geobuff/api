@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/geobuff/auth0-wrapper/auth"
+	"github.com/geobuff/auth"
 	"github.com/geobuff/geobuff-api/config"
 	"github.com/geobuff/geobuff-api/database"
 	"github.com/gorilla/mux"
