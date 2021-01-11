@@ -1,4 +1,4 @@
-package world
+package countries
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"github.com/geobuff/mapping"
 )
 
-// GetCountries gets the list of accepted countries.
+// GetCountries gets the map of accepted countries.
 func GetCountries(writer http.ResponseWriter, request *http.Request) {
 	continentParam := request.URL.Query().Get("continent")
 	writer.Header().Set("Content-Type", "application/json")

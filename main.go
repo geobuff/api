@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/geobuff/api/capitals"
+	"github.com/geobuff/api/config"
+	"github.com/geobuff/api/countries"
+	"github.com/geobuff/api/database"
+	"github.com/geobuff/api/scores"
+	"github.com/geobuff/api/users"
 	"github.com/geobuff/auth"
-	"github.com/geobuff/geobuff-api/config"
-	"github.com/geobuff/geobuff-api/database"
-	"github.com/geobuff/geobuff-api/scores"
-	"github.com/geobuff/geobuff-api/users"
-	"github.com/geobuff/geobuff-api/world"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"github.com/rs/cors"
@@ -63,13 +64,16 @@ func router() http.Handler {
 	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.UpdateScore)).Methods("PUT")
 	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.DeleteScore)).Methods("DELETE")
 
-	// World endpoints.
-	router.HandleFunc("/api/world/countries", world.GetCountries).Methods("GET")
-	router.HandleFunc("/api/world/leaderboard", world.GetEntries).Methods("GET")
-	router.HandleFunc("/api/world/leaderboard/{userId}", world.GetEntry).Methods("GET")
-	router.Handle("/api/world/leaderboard", jwtMiddleware.Handler(world.CreateEntry)).Methods("POST")
-	router.Handle("/api/world/leaderboard/{id}", jwtMiddleware.Handler(world.UpdateEntry)).Methods("PUT")
-	router.Handle("/api/world/leaderboard/{id}", jwtMiddleware.Handler(world.DeleteEntry)).Methods("DELETE")
+	// Countries endpoints.
+	router.HandleFunc("/api/countries", countries.GetCountries).Methods("GET")
+	router.HandleFunc("/api/countries/leaderboard", countries.GetEntries).Methods("GET")
+	router.HandleFunc("/api/countries/leaderboard/{userId}", countries.GetEntry).Methods("GET")
+	router.Handle("/api/countries/leaderboard", jwtMiddleware.Handler(countries.CreateEntry)).Methods("POST")
+	router.Handle("/api/countries/leaderboard/{id}", jwtMiddleware.Handler(countries.UpdateEntry)).Methods("PUT")
+	router.Handle("/api/countries/leaderboard/{id}", jwtMiddleware.Handler(countries.DeleteEntry)).Methods("DELETE")
+
+	// Capitals endpoints.
+	router.HandleFunc("/api/capitals", capitals.GetCapitals).Methods("GET")
 
 	return router
 }
