@@ -1,4 +1,4 @@
-package world
+package capitals
 
 import (
 	"encoding/json"
@@ -12,14 +12,14 @@ import (
 	"github.com/geobuff/mapping"
 )
 
-func TestGetCountries(t *testing.T) {
+func TestGetCapitals(t *testing.T) {
 	request, err := http.NewRequest("GET", "", nil)
 	if err != nil {
 		t.Fatalf("could not create GET request: %v", err)
 	}
 
 	writer := httptest.NewRecorder()
-	GetCountries(writer, request)
+	GetCapitals(writer, request)
 	result := writer.Result()
 	defer result.Body.Close()
 
@@ -32,26 +32,26 @@ func TestGetCountries(t *testing.T) {
 		t.Fatalf("could not read response: %v", err)
 	}
 
-	var parsed map[string][]mapping.Country
+	var parsed map[string][]mapping.Mapping
 	err = json.Unmarshal(body, &parsed)
 	if err != nil {
 		t.Fatalf("could not unmarshal response body: %v", err)
 	}
 
-	if !reflect.DeepEqual(parsed, mapping.Countries) {
+	if !reflect.DeepEqual(parsed, mapping.Capitals) {
 		t.Fatalf("response body does not match expected map")
 	}
 }
 
 func TestGetCountriesQueryParam(t *testing.T) {
 	continent := "asia"
-	request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/world/countries?continent=%v", continent), nil)
+	request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/capitals?continent=%v", continent), nil)
 	if err != nil {
 		t.Fatalf("could not create GET request: %v", err)
 	}
 
 	writer := httptest.NewRecorder()
-	GetCountries(writer, request)
+	GetCapitals(writer, request)
 	result := writer.Result()
 	defer result.Body.Close()
 
@@ -64,13 +64,13 @@ func TestGetCountriesQueryParam(t *testing.T) {
 		t.Fatalf("could not read response: %v", err)
 	}
 
-	var parsed []mapping.Country
+	var parsed []mapping.Mapping
 	err = json.Unmarshal(body, &parsed)
 	if err != nil {
 		t.Fatalf("could not unmarshal response body: %v", err)
 	}
 
-	if !reflect.DeepEqual(parsed, mapping.Countries[continent]) {
+	if !reflect.DeepEqual(parsed, mapping.Capitals[continent]) {
 		t.Fatalf("response body does not match expected list of countries")
 	}
 }
