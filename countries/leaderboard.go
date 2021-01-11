@@ -1,4 +1,4 @@
-package world
+package countries
 
 import (
 	"database/sql"
@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/geobuff/api/config"
+	"github.com/geobuff/api/database"
+	"github.com/geobuff/api/permissions"
 	"github.com/geobuff/auth"
-	"github.com/geobuff/geobuff-api/config"
-	"github.com/geobuff/geobuff-api/database"
-	"github.com/geobuff/geobuff-api/permissions"
 	"github.com/gorilla/mux"
 )
 

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/geobuff/geobuff-api/config"
+	"github.com/geobuff/api/config"
 )
 
 // Connection is the connection handle for the database.

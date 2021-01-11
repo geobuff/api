@@ -9,9 +9,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/geobuff/api/config"
+	"github.com/geobuff/api/database"
 	"github.com/geobuff/auth"
-	"github.com/geobuff/geobuff-api/config"
-	"github.com/geobuff/geobuff-api/database"
 	"github.com/gorilla/mux"
 )
 

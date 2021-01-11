@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/geobuff/geobuff-api/config"
-	"github.com/geobuff/geobuff-api/database"
+	"github.com/geobuff/api/config"
+	"github.com/geobuff/api/database"
 )
 
 func TestMain(t *testing.T) {
