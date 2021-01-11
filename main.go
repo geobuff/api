@@ -8,6 +8,7 @@ import (
 	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/countries"
 	"github.com/geobuff/api/database"
+	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/scores"
 	"github.com/geobuff/api/users"
 	"github.com/geobuff/auth"
@@ -51,6 +52,10 @@ func handler(router http.Handler) http.Handler {
 func router() http.Handler {
 	jwtMiddleware := auth.GetJwtMiddleware(config.Values.Auth0.Audience, config.Values.Auth0.Issuer)
 	router := mux.NewRouter()
+
+	// Quiz endpoints.
+	router.HandleFunc("/api/quizzes", quizzes.GetQuizzes).Methods("GET")
+	router.HandleFunc("/api/quizzes/{id}", quizzes.GetQuiz).Methods("GET")
 
 	// User endpoints.
 	router.Handle("/api/users", jwtMiddleware.Handler(users.GetUsers)).Methods("GET")
