@@ -53,7 +53,7 @@ var InsertUser = func(user User) (int, error) {
 var DeleteUser = func(userID int) error {
 	scoresStatement := "DELETE FROM scores WHERE userId = $1;"
 	Connection.QueryRow(scoresStatement, userID)
-	leaderboardStatement := "DELETE FROM world_leaderboard WHERE userId = $1;"
+	leaderboardStatement := "DELETE FROM countries_leaderboard WHERE userId = $1;"
 	Connection.QueryRow(leaderboardStatement, userID)
 	usersStatement := "DELETE FROM users WHERE id = $1 RETURNING id;"
 	var id int
