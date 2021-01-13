@@ -12,10 +12,12 @@ var Connection *sql.DB
 
 // OpenConnection initializes the Connection variable.
 var OpenConnection = func() error {
-	Connection, err := sql.Open("postgres", getConnectionString())
+	connection, err := sql.Open("postgres", getConnectionString())
 	if err != nil {
 		return err
 	}
+
+	Connection = connection
 	return Connection.Ping()
 }
 
