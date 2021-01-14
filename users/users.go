@@ -49,7 +49,7 @@ var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 		return
 	}
 
-	switch _, err := database.GetUserID(1, (page+1)*10); err {
+	switch _, err := database.GetFirstID(1, (page+1)*10); err {
 	case sql.ErrNoRows:
 		entriesDto := PageDto{users, false}
 		writer.Header().Set("Content-Type", "application/json")
@@ -93,6 +93,20 @@ var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Re
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(user)
 })
+
+// GetUserID gets a user's id by username.
+func GetUserID(writer http.ResponseWriter, request *http.Request) {
+	username := mux.Vars(request)["username"]
+	switch id, err := database.GetUserID(username); err {
+	case sql.ErrNoRows:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
+	case nil:
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(id)
+	default:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+	}
+}
 
 // CreateUser creates a new user entry.
 func CreateUser(writer http.ResponseWriter, request *http.Request) {

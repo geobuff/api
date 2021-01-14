@@ -25,11 +25,19 @@ var GetUsers = func(limit int, offset int) ([]User, error) {
 	return users, rows.Err()
 }
 
-// GetUserID returns the first ID for a given page.
-var GetUserID = func(limit int, offset int) (int, error) {
+// GetFirstID returns the first ID for a given page.
+var GetFirstID = func(limit int, offset int) (int, error) {
 	statement := "SELECT id FROM users LIMIT $1 OFFSET $2;"
 	var id int
 	err := Connection.QueryRow(statement, limit, offset).Scan(&id)
+	return id, err
+}
+
+// GetUserID returns the user's id for a given username.
+var GetUserID = func(username string) (int, error) {
+	statement := "SELECT id FROM users WHERE username = $1;"
+	var id int
+	err := Connection.QueryRow(statement, username).Scan(&id)
 	return id, err
 }
 
