@@ -60,6 +60,7 @@ func router() http.Handler {
 	// User endpoints.
 	router.Handle("/api/users", jwtMiddleware.Handler(users.GetUsers)).Methods("GET")
 	router.Handle("/api/users/{id}", jwtMiddleware.Handler(users.GetUser)).Methods("GET")
+	router.HandleFunc("/api/users/id/{username}", users.GetUserID).Methods("GET")
 	router.HandleFunc("/api/users", users.CreateUser).Methods("POST")
 	router.Handle("/api/users/{id}", jwtMiddleware.Handler(users.DeleteUser)).Methods("DELETE")
 

@@ -20,12 +20,12 @@ import (
 func TestGetUsers(t *testing.T) {
 	savedHasPermission := auth.HasPermission
 	savedGetUsers := database.GetUsers
-	savedGetUserID := database.GetUserID
+	savedGetUserID := database.GetFirstID
 
 	defer func() {
 		auth.HasPermission = savedHasPermission
 		database.GetUsers = savedGetUsers
-		database.GetUserID = savedGetUserID
+		database.GetFirstID = savedGetUserID
 	}()
 
 	tt := []struct {
@@ -41,7 +41,7 @@ func TestGetUsers(t *testing.T) {
 			name:          "invalid page parameter",
 			hasPermission: auth.HasPermission,
 			getUsers:      database.GetUsers,
-			getUserID:     database.GetUserID,
+			getUserID:     database.GetFirstID,
 			page:          "testing",
 			status:        http.StatusBadRequest,
 			hasMore:       false,
@@ -50,7 +50,7 @@ func TestGetUsers(t *testing.T) {
 			name:          "valid page parameter, error on HasPermission",
 			hasPermission: auth.HasPermission,
 			getUsers:      database.GetUsers,
-			getUserID:     database.GetUserID,
+			getUserID:     database.GetFirstID,
 			page:          "0",
 			status:        http.StatusInternalServerError,
 			hasMore:       false,
@@ -59,7 +59,7 @@ func TestGetUsers(t *testing.T) {
 			name:          "valid page parameter, invalid permissions",
 			hasPermission: func(up auth.UserPermission) (bool, error) { return false, nil },
 			getUsers:      database.GetUsers,
-			getUserID:     database.GetUserID,
+			getUserID:     database.GetFirstID,
 			page:          "0",
 			status:        http.StatusUnauthorized,
 			hasMore:       false,
@@ -68,7 +68,7 @@ func TestGetUsers(t *testing.T) {
 			name:          "valid page parameter, valid permissions, error on GetUsers",
 			hasPermission: func(up auth.UserPermission) (bool, error) { return true, nil },
 			getUsers:      func(limit int, offset int) ([]database.User, error) { return nil, errors.New("test") },
-			getUserID:     database.GetUserID,
+			getUserID:     database.GetFirstID,
 			page:          "0",
 			status:        http.StatusInternalServerError,
 			hasMore:       false,
@@ -106,7 +106,7 @@ func TestGetUsers(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			auth.HasPermission = tc.hasPermission
 			database.GetUsers = tc.getUsers
-			database.GetUserID = tc.getUserID
+			database.GetFirstID = tc.getUserID
 
 			request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/users?page=%v", tc.page), nil)
 			if err != nil {
@@ -229,6 +229,77 @@ func TestGetUser(t *testing.T) {
 				}
 
 				var parsed database.User
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestGetUserID(t *testing.T) {
+	savedGetUserID := database.GetUserID
+
+	defer func() {
+		database.GetUserID = savedGetUserID
+	}()
+
+	tt := []struct {
+		name      string
+		getUserID func(username string) (int, error)
+		username  string
+		status    int
+	}{
+		{
+			name:      "error on GetUserID",
+			getUserID: func(username string) (int, error) { return 0, errors.New("test") },
+			username:  "testing",
+			status:    http.StatusInternalServerError,
+		},
+		{
+			name:      "error on GetUserID",
+			getUserID: func(username string) (int, error) { return 0, sql.ErrNoRows },
+			username:  "testing",
+			status:    http.StatusNotFound,
+		},
+		{
+			name:      "happy path",
+			getUserID: func(username string) (int, error) { return 1, nil },
+			username:  "testing",
+			status:    http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			database.GetUserID = tc.getUserID
+
+			request, err := http.NewRequest("GET", "", nil)
+			if err != nil {
+				t.Fatalf("could not create GET request: %v", err)
+			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"username": tc.username,
+			})
+
+			writer := httptest.NewRecorder()
+			GetUserID(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusOK {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed int
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
