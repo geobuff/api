@@ -11,8 +11,8 @@ type Quiz struct {
 }
 
 // GetQuizzes returns all quizzes.
-var GetQuizzes = func(search string) ([]Quiz, error) {
-	rows, err := Connection.Query("SELECT * FROM quizzes WHERE name ILIKE '%" + search + "%';")
+var GetQuizzes = func(filter string) ([]Quiz, error) {
+	rows, err := Connection.Query("SELECT * FROM quizzes WHERE name ILIKE '%" + filter + "%';")
 	if err != nil {
 		return nil, err
 	}

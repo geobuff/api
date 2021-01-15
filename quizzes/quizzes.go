@@ -12,8 +12,8 @@ import (
 
 // GetQuizzes returns all quizzes.
 func GetQuizzes(writer http.ResponseWriter, request *http.Request) {
-	searchParam := request.URL.Query().Get("search")
-	quizzes, err := database.GetQuizzes(searchParam)
+	filterParam := request.URL.Query().Get("filter")
+	quizzes, err := database.GetQuizzes(filterParam)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
