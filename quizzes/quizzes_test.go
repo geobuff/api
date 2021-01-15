@@ -21,17 +21,17 @@ func TestGetQuizzes(t *testing.T) {
 
 	tt := []struct {
 		Name       string
-		getQuizzes func() ([]database.Quiz, error)
+		getQuizzes func(search string) ([]database.Quiz, error)
 		status     int
 	}{
 		{
 			Name:       "error on getQuizzes",
-			getQuizzes: func() ([]database.Quiz, error) { return nil, errors.New("test") },
+			getQuizzes: func(search string) ([]database.Quiz, error) { return nil, errors.New("test") },
 			status:     http.StatusInternalServerError,
 		},
 		{
 			Name:       "happy path",
-			getQuizzes: func() ([]database.Quiz, error) { return []database.Quiz{}, nil },
+			getQuizzes: func(search string) ([]database.Quiz, error) { return []database.Quiz{}, nil },
 			status:     http.StatusOK,
 		},
 	}
