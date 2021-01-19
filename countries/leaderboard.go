@@ -17,8 +17,8 @@ import (
 
 // EntriesDto is used to display a paged result of leaderboard entries.
 type EntriesDto struct {
-	Entries []database.WorldLeaderboardEntry `json:"entries"`
-	HasMore bool                             `json:"hasMore"`
+	Entries []database.CountriesLeaderboardEntry `json:"entries"`
+	HasMore bool                                 `json:"hasMore"`
 }
 
 // GetEntries gets the leaderboard entries for a given page.
@@ -30,13 +30,13 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	entries, err := database.GetWorldLeaderboardEntries(10, page*10)
+	entries, err := database.GetCountriesLeaderboardEntries(10, page*10)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
-	switch _, err := database.GetWorldLeaderboardEntryID(1, (page+1)*10); err {
+	switch _, err := database.GetCountriesLeaderboardEntryID(1, (page+1)*10); err {
 	case sql.ErrNoRows:
 		entriesDto := EntriesDto{entries, false}
 		writer.Header().Set("Content-Type", "application/json")
@@ -58,7 +58,7 @@ func GetEntry(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	entry, err := database.GetWorldLeaderboardEntry(userID)
+	entry, err := database.GetCountriesLeaderboardEntry(userID)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -76,7 +76,7 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	var newEntry database.WorldLeaderboardEntry
+	var newEntry database.CountriesLeaderboardEntry
 	err = json.Unmarshal(requestBody, &newEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -102,7 +102,7 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	id, err := database.InsertWorldLeaderboardEntry(newEntry)
+	id, err := database.InsertCountriesLeaderboardEntry(newEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -128,7 +128,7 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	var updatedEntry database.WorldLeaderboardEntry
+	var updatedEntry database.CountriesLeaderboardEntry
 	err = json.Unmarshal(requestBody, &updatedEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -155,7 +155,7 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 	}
 
 	updatedEntry.ID = id
-	err = database.UpdateWorldLeaderboardEntry(updatedEntry)
+	err = database.UpdateCountriesLeaderboardEntry(updatedEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -173,7 +173,7 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	entry, err := database.GetWorldLeaderboardEntry(id)
+	entry, err := database.GetCountriesLeaderboardEntry(id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -198,7 +198,7 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	err = database.DeleteWorldLeaderboardEntry(entry.ID)
+	err = database.DeleteCountriesLeaderboardEntry(entry.ID)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return

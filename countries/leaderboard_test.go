@@ -18,76 +18,78 @@ import (
 )
 
 func TestGetEntries(t *testing.T) {
-	savedGetWorldLeaderboardEntries := database.GetWorldLeaderboardEntries
-	savedGetWorldLeaderboardEntryID := database.GetWorldLeaderboardEntryID
+	savedGetCountriesLeaderboardEntries := database.GetCountriesLeaderboardEntries
+	savedGetCountriesLeaderboardEntryID := database.GetCountriesLeaderboardEntryID
 
 	defer func() {
-		database.GetWorldLeaderboardEntries = savedGetWorldLeaderboardEntries
-		database.GetWorldLeaderboardEntryID = savedGetWorldLeaderboardEntryID
+		database.GetCountriesLeaderboardEntries = savedGetCountriesLeaderboardEntries
+		database.GetCountriesLeaderboardEntryID = savedGetCountriesLeaderboardEntryID
 	}()
 
 	tt := []struct {
-		name                       string
-		getWorldLeaderboardEntries func(limit int, offset int) ([]database.WorldLeaderboardEntry, error)
-		getWorldLeaderboardEntryID func(limit int, offset int) (int, error)
-		page                       string
-		status                     int
-		hasMore                    bool
+		name                           string
+		getCountriesLeaderboardEntries func(limit int, offset int) ([]database.CountriesLeaderboardEntry, error)
+		getCountriesLeaderboardEntryID func(limit int, offset int) (int, error)
+		page                           string
+		status                         int
+		hasMore                        bool
 	}{
 		{
-			name:                       "invalid page parameter",
-			getWorldLeaderboardEntries: database.GetWorldLeaderboardEntries,
-			getWorldLeaderboardEntryID: database.GetWorldLeaderboardEntryID,
-			page:                       "testing",
-			status:                     http.StatusBadRequest,
-			hasMore:                    false,
+			name:                           "invalid page parameter",
+			getCountriesLeaderboardEntries: database.GetCountriesLeaderboardEntries,
+			getCountriesLeaderboardEntryID: database.GetCountriesLeaderboardEntryID,
+			page:                           "testing",
+			status:                         http.StatusBadRequest,
+			hasMore:                        false,
 		},
 		{
-			name:                       "valid page, error on GetWorldLeaderboardEntries",
-			getWorldLeaderboardEntries: func(limit int, offset int) ([]database.WorldLeaderboardEntry, error) { return nil, errors.New("test") },
-			getWorldLeaderboardEntryID: database.GetWorldLeaderboardEntryID,
-			page:                       "0",
-			status:                     http.StatusInternalServerError,
-			hasMore:                    false,
-		},
-		{
-			name: "valid page, error on GetWorldLeaderboardEntryID",
-			getWorldLeaderboardEntries: func(limit int, offset int) ([]database.WorldLeaderboardEntry, error) {
-				return []database.WorldLeaderboardEntry{}, nil
+			name: "valid page, error on GetCountriesLeaderboardEntries",
+			getCountriesLeaderboardEntries: func(limit int, offset int) ([]database.CountriesLeaderboardEntry, error) {
+				return nil, errors.New("test")
 			},
-			getWorldLeaderboardEntryID: func(limit int, offset int) (int, error) { return 0, errors.New("test") },
-			page:                       "0",
-			status:                     http.StatusInternalServerError,
-			hasMore:                    false,
+			getCountriesLeaderboardEntryID: database.GetCountriesLeaderboardEntryID,
+			page:                           "0",
+			status:                         http.StatusInternalServerError,
+			hasMore:                        false,
+		},
+		{
+			name: "valid page, error on GetCountriesLeaderboardEntryID",
+			getCountriesLeaderboardEntries: func(limit int, offset int) ([]database.CountriesLeaderboardEntry, error) {
+				return []database.CountriesLeaderboardEntry{}, nil
+			},
+			getCountriesLeaderboardEntryID: func(limit int, offset int) (int, error) { return 0, errors.New("test") },
+			page:                           "0",
+			status:                         http.StatusInternalServerError,
+			hasMore:                        false,
 		},
 		{
 			name: "happy path, has more is false",
-			getWorldLeaderboardEntries: func(limit int, offset int) ([]database.WorldLeaderboardEntry, error) {
-				return []database.WorldLeaderboardEntry{}, nil
+			getCountriesLeaderboardEntries: func(limit int, offset int) ([]database.CountriesLeaderboardEntry, error) {
+				return []database.CountriesLeaderboardEntry{}, nil
 			},
-			getWorldLeaderboardEntryID: func(limit int, offset int) (int, error) { return 0, sql.ErrNoRows },
-			page:                       "0",
-			status:                     http.StatusOK,
-			hasMore:                    false,
+			getCountriesLeaderboardEntryID: func(limit int, offset int) (int, error) { return 0, sql.ErrNoRows },
+			page:                           "0",
+			status:                         http.StatusOK,
+			hasMore:                        false,
 		},
 		{
 			name: "happy path, has more is true",
-			getWorldLeaderboardEntries: func(limit int, offset int) ([]database.WorldLeaderboardEntry, error) {
-				return []database.WorldLeaderboardEntry{}, nil
+			getCountriesLeaderboardEntries: func(limit int, offset int) ([]database.CountriesLeaderboardEntry, error) {
+				return []database.CountriesLeaderboardEntry{}, nil
 			},
-			getWorldLeaderboardEntryID: func(limit int, offset int) (int, error) { return 1, nil },
-			page:                       "0",
-			status:                     http.StatusOK,
-			hasMore:                    true,
+			getCountriesLeaderboardEntryID: func(limit int, offset int) (int, error) { return 1, nil },
+			page:                           "0",
+			status:                         http.StatusOK,
+			hasMore:                        true,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			database.GetWorldLeaderboardEntries = tc.getWorldLeaderboardEntries
-			database.GetWorldLeaderboardEntryID = tc.getWorldLeaderboardEntryID
+			database.GetCountriesLeaderboardEntries = tc.getCountriesLeaderboardEntries
+			database.GetCountriesLeaderboardEntryID = tc.getCountriesLeaderboardEntryID
 
-			request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/world/leaderboard?page=%v", tc.page), nil)
+			request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/Countries/leaderboard?page=%v", tc.page), nil)
 			if err != nil {
 				t.Fatalf("could not create GET request: %v", err)
 			}
@@ -122,36 +124,36 @@ func TestGetEntries(t *testing.T) {
 }
 
 func TestGetEntry(t *testing.T) {
-	savedGetWorldLeaderboardEntry := database.GetWorldLeaderboardEntry
+	savedGetCountriesLeaderboardEntry := database.GetCountriesLeaderboardEntry
 
 	defer func() {
-		database.GetWorldLeaderboardEntry = savedGetWorldLeaderboardEntry
+		database.GetCountriesLeaderboardEntry = savedGetCountriesLeaderboardEntry
 	}()
 
 	tt := []struct {
-		name                     string
-		getWorldLeaderboardEntry func(userID int) (database.WorldLeaderboardEntry, error)
-		userID                   string
-		status                   int
+		name                         string
+		getCountriesLeaderboardEntry func(userID int) (database.CountriesLeaderboardEntry, error)
+		userID                       string
+		status                       int
 	}{
 		{
-			name:                     "invalid userId",
-			getWorldLeaderboardEntry: database.GetWorldLeaderboardEntry,
-			userID:                   "testing",
-			status:                   http.StatusBadRequest,
+			name:                         "invalid userId",
+			getCountriesLeaderboardEntry: database.GetCountriesLeaderboardEntry,
+			userID:                       "testing",
+			status:                       http.StatusBadRequest,
 		},
 		{
-			name: "valid userId, error on GetWorldLeaderboardEntry",
-			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
-				return database.WorldLeaderboardEntry{}, errors.New("test")
+			name: "valid userId, error on GetCountriesLeaderboardEntry",
+			getCountriesLeaderboardEntry: func(userID int) (database.CountriesLeaderboardEntry, error) {
+				return database.CountriesLeaderboardEntry{}, errors.New("test")
 			},
 			userID: "1",
 			status: http.StatusInternalServerError,
 		},
 		{
 			name: "happy path",
-			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
-				return database.WorldLeaderboardEntry{}, nil
+			getCountriesLeaderboardEntry: func(userID int) (database.CountriesLeaderboardEntry, error) {
+				return database.CountriesLeaderboardEntry{}, nil
 			},
 			userID: "1",
 			status: http.StatusOK,
@@ -160,7 +162,7 @@ func TestGetEntry(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			database.GetWorldLeaderboardEntry = tc.getWorldLeaderboardEntry
+			database.GetCountriesLeaderboardEntry = tc.getCountriesLeaderboardEntry
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -186,7 +188,7 @@ func TestGetEntry(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.WorldLeaderboardEntry
+				var parsed database.CountriesLeaderboardEntry
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
@@ -199,13 +201,13 @@ func TestGetEntry(t *testing.T) {
 func TestCreateEntry(t *testing.T) {
 	savedGetUser := database.GetUser
 	savedValidUser := auth.ValidUser
-	savedInsertWorldLeaderboardEntry := database.InsertWorldLeaderboardEntry
+	savedInsertCountriesLeaderboardEntry := database.InsertCountriesLeaderboardEntry
 	savedConfigValues := config.Values
 
 	defer func() {
 		database.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
-		database.InsertWorldLeaderboardEntry = savedInsertWorldLeaderboardEntry
+		database.InsertCountriesLeaderboardEntry = savedInsertCountriesLeaderboardEntry
 		config.Values = savedConfigValues
 	}()
 
@@ -214,28 +216,28 @@ func TestCreateEntry(t *testing.T) {
 	}
 
 	tt := []struct {
-		name                        string
-		getUser                     func(id int) (database.User, error)
-		validUser                   func(uv auth.UserValidation) (int, error)
-		insertWorldLeaderboardEntry func(entry database.WorldLeaderboardEntry) (int, error)
-		body                        string
-		status                      int
+		name                            string
+		getUser                         func(id int) (database.User, error)
+		validUser                       func(uv auth.UserValidation) (int, error)
+		insertCountriesLeaderboardEntry func(entry database.CountriesLeaderboardEntry) (int, error)
+		body                            string
+		status                          int
 	}{
 		{
-			name:                        "invalid body",
-			getUser:                     database.GetUser,
-			validUser:                   auth.ValidUser,
-			insertWorldLeaderboardEntry: database.InsertWorldLeaderboardEntry,
-			body:                        "testing",
-			status:                      http.StatusBadRequest,
+			name:                            "invalid body",
+			getUser:                         database.GetUser,
+			validUser:                       auth.ValidUser,
+			insertCountriesLeaderboardEntry: database.InsertCountriesLeaderboardEntry,
+			body:                            "testing",
+			status:                          http.StatusBadRequest,
 		},
 		{
-			name:                        "valid body, error on GetUser",
-			getUser:                     func(id int) (database.User, error) { return database.User{}, errors.New("test") },
-			validUser:                   auth.ValidUser,
-			insertWorldLeaderboardEntry: database.InsertWorldLeaderboardEntry,
-			body:                        `{"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
-			status:                      http.StatusInternalServerError,
+			name:                            "valid body, error on GetUser",
+			getUser:                         func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			validUser:                       auth.ValidUser,
+			insertCountriesLeaderboardEntry: database.InsertCountriesLeaderboardEntry,
+			body:                            `{"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                          http.StatusInternalServerError,
 		},
 		{
 			name:    "valid body, invalid user",
@@ -243,19 +245,19 @@ func TestCreateEntry(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
-			insertWorldLeaderboardEntry: database.InsertWorldLeaderboardEntry,
-			body:                        `{"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
-			status:                      http.StatusUnauthorized,
+			insertCountriesLeaderboardEntry: database.InsertCountriesLeaderboardEntry,
+			body:                            `{"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                          http.StatusUnauthorized,
 		},
 		{
-			name:    "valid body, valid user, error on InsertWorldLeaderboardEntry",
+			name:    "valid body, valid user, error on InsertCountriesLeaderboardEntry",
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			insertWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) (int, error) { return 0, errors.New("test") },
-			body:                        `{"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
-			status:                      http.StatusInternalServerError,
+			insertCountriesLeaderboardEntry: func(entry database.CountriesLeaderboardEntry) (int, error) { return 0, errors.New("test") },
+			body:                            `{"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                          http.StatusInternalServerError,
 		},
 		{
 			name:    "happy path",
@@ -263,9 +265,9 @@ func TestCreateEntry(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			insertWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) (int, error) { return 1, nil },
-			body:                        `{"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
-			status:                      http.StatusCreated,
+			insertCountriesLeaderboardEntry: func(entry database.CountriesLeaderboardEntry) (int, error) { return 1, nil },
+			body:                            `{"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                          http.StatusCreated,
 		},
 	}
 
@@ -273,7 +275,7 @@ func TestCreateEntry(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			database.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
-			database.InsertWorldLeaderboardEntry = tc.insertWorldLeaderboardEntry
+			database.InsertCountriesLeaderboardEntry = tc.insertCountriesLeaderboardEntry
 			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
@@ -296,7 +298,7 @@ func TestCreateEntry(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.WorldLeaderboardEntry
+				var parsed database.CountriesLeaderboardEntry
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
@@ -309,13 +311,13 @@ func TestCreateEntry(t *testing.T) {
 func TestUpdateEntry(t *testing.T) {
 	savedGetUser := database.GetUser
 	savedValidUser := auth.ValidUser
-	savedUpdateWorldLeaderboardEntry := database.UpdateWorldLeaderboardEntry
+	savedUpdateCountriesLeaderboardEntry := database.UpdateCountriesLeaderboardEntry
 	savedConfigValues := config.Values
 
 	defer func() {
 		database.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
-		database.UpdateWorldLeaderboardEntry = savedUpdateWorldLeaderboardEntry
+		database.UpdateCountriesLeaderboardEntry = savedUpdateCountriesLeaderboardEntry
 		config.Values = savedConfigValues
 	}()
 
@@ -324,40 +326,40 @@ func TestUpdateEntry(t *testing.T) {
 	}
 
 	tt := []struct {
-		name                        string
-		getUser                     func(id int) (database.User, error)
-		validUser                   func(uv auth.UserValidation) (int, error)
-		updateWorldLeaderboardEntry func(entry database.WorldLeaderboardEntry) error
-		id                          string
-		body                        string
-		status                      int
+		name                            string
+		getUser                         func(id int) (database.User, error)
+		validUser                       func(uv auth.UserValidation) (int, error)
+		updateCountriesLeaderboardEntry func(entry database.CountriesLeaderboardEntry) error
+		id                              string
+		body                            string
+		status                          int
 	}{
 		{
-			name:                        "invalid id",
-			getUser:                     database.GetUser,
-			validUser:                   auth.ValidUser,
-			updateWorldLeaderboardEntry: database.UpdateWorldLeaderboardEntry,
-			id:                          "testing",
-			body:                        "",
-			status:                      http.StatusBadRequest,
+			name:                            "invalid id",
+			getUser:                         database.GetUser,
+			validUser:                       auth.ValidUser,
+			updateCountriesLeaderboardEntry: database.UpdateCountriesLeaderboardEntry,
+			id:                              "testing",
+			body:                            "",
+			status:                          http.StatusBadRequest,
 		},
 		{
-			name:                        "valid id, invalid body",
-			getUser:                     func(id int) (database.User, error) { return user, nil },
-			validUser:                   auth.ValidUser,
-			updateWorldLeaderboardEntry: database.UpdateWorldLeaderboardEntry,
-			id:                          "1",
-			body:                        "testing",
-			status:                      http.StatusBadRequest,
+			name:                            "valid id, invalid body",
+			getUser:                         func(id int) (database.User, error) { return user, nil },
+			validUser:                       auth.ValidUser,
+			updateCountriesLeaderboardEntry: database.UpdateCountriesLeaderboardEntry,
+			id:                              "1",
+			body:                            "testing",
+			status:                          http.StatusBadRequest,
 		},
 		{
-			name:                        "valid id, valid body, error on GetUser",
-			getUser:                     func(id int) (database.User, error) { return database.User{}, errors.New("test") },
-			validUser:                   auth.ValidUser,
-			updateWorldLeaderboardEntry: database.UpdateWorldLeaderboardEntry,
-			id:                          "1",
-			body:                        `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
-			status:                      http.StatusInternalServerError,
+			name:                            "valid id, valid body, error on GetUser",
+			getUser:                         func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			validUser:                       auth.ValidUser,
+			updateCountriesLeaderboardEntry: database.UpdateCountriesLeaderboardEntry,
+			id:                              "1",
+			body:                            `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                          http.StatusInternalServerError,
 		},
 		{
 			name:    "valid id, valid body, invalid user",
@@ -365,21 +367,21 @@ func TestUpdateEntry(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
-			updateWorldLeaderboardEntry: database.UpdateWorldLeaderboardEntry,
-			id:                          "1",
-			body:                        `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
-			status:                      http.StatusUnauthorized,
+			updateCountriesLeaderboardEntry: database.UpdateCountriesLeaderboardEntry,
+			id:                              "1",
+			body:                            `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                          http.StatusUnauthorized,
 		},
 		{
-			name:    "valid id, valid body, valid user, error on UpdateWorldLeaderboardEntry",
+			name:    "valid id, valid body, valid user, error on UpdateCountriesLeaderboardEntry",
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			updateWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) error { return errors.New("test") },
-			id:                          "1",
-			body:                        `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
-			status:                      http.StatusInternalServerError,
+			updateCountriesLeaderboardEntry: func(entry database.CountriesLeaderboardEntry) error { return errors.New("test") },
+			id:                              "1",
+			body:                            `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                          http.StatusInternalServerError,
 		},
 		{
 			name:    "happy path",
@@ -387,10 +389,10 @@ func TestUpdateEntry(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			updateWorldLeaderboardEntry: func(entry database.WorldLeaderboardEntry) error { return nil },
-			id:                          "1",
-			body:                        `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
-			status:                      http.StatusOK,
+			updateCountriesLeaderboardEntry: func(entry database.CountriesLeaderboardEntry) error { return nil },
+			id:                              "1",
+			body:                            `{"id": 1,"userId": 1, "country": "New Zealand", "countries": 100, "time": 200}`,
+			status:                          http.StatusOK,
 		},
 	}
 
@@ -398,7 +400,7 @@ func TestUpdateEntry(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			database.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
-			database.UpdateWorldLeaderboardEntry = tc.updateWorldLeaderboardEntry
+			database.UpdateCountriesLeaderboardEntry = tc.updateCountriesLeaderboardEntry
 			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
@@ -425,7 +427,7 @@ func TestUpdateEntry(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.WorldLeaderboardEntry
+				var parsed database.CountriesLeaderboardEntry
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
@@ -436,17 +438,17 @@ func TestUpdateEntry(t *testing.T) {
 }
 
 func TestDeleteEntry(t *testing.T) {
-	savedGetWorldLeaderboardEntry := database.GetWorldLeaderboardEntry
+	savedGetCountriesLeaderboardEntry := database.GetCountriesLeaderboardEntry
 	savedGetUser := database.GetUser
 	savedValidUser := auth.ValidUser
-	savedDeleteWorldLeaderboardEntry := database.DeleteWorldLeaderboardEntry
+	savedDeleteCountriesLeaderboardEntry := database.DeleteCountriesLeaderboardEntry
 	savedConfigValues := config.Values
 
 	defer func() {
-		database.GetWorldLeaderboardEntry = savedGetWorldLeaderboardEntry
+		database.GetCountriesLeaderboardEntry = savedGetCountriesLeaderboardEntry
 		database.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
-		database.DeleteWorldLeaderboardEntry = savedDeleteWorldLeaderboardEntry
+		database.DeleteCountriesLeaderboardEntry = savedDeleteCountriesLeaderboardEntry
 		config.Values = savedConfigValues
 	}()
 
@@ -455,92 +457,92 @@ func TestDeleteEntry(t *testing.T) {
 	}
 
 	tt := []struct {
-		name                        string
-		getWorldLeaderboardEntry    func(userID int) (database.WorldLeaderboardEntry, error)
-		getUser                     func(id int) (database.User, error)
-		validUser                   func(uv auth.UserValidation) (int, error)
-		deleteWorldLeaderboardEntry func(entryID int) error
-		id                          string
-		status                      int
+		name                            string
+		getCountriesLeaderboardEntry    func(userID int) (database.CountriesLeaderboardEntry, error)
+		getUser                         func(id int) (database.User, error)
+		validUser                       func(uv auth.UserValidation) (int, error)
+		deleteCountriesLeaderboardEntry func(entryID int) error
+		id                              string
+		status                          int
 	}{
 		{
-			name:                        "invalid id",
-			getWorldLeaderboardEntry:    database.GetWorldLeaderboardEntry,
-			getUser:                     database.GetUser,
-			validUser:                   auth.ValidUser,
-			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
-			id:                          "testing",
-			status:                      http.StatusBadRequest,
+			name:                            "invalid id",
+			getCountriesLeaderboardEntry:    database.GetCountriesLeaderboardEntry,
+			getUser:                         database.GetUser,
+			validUser:                       auth.ValidUser,
+			deleteCountriesLeaderboardEntry: database.DeleteCountriesLeaderboardEntry,
+			id:                              "testing",
+			status:                          http.StatusBadRequest,
 		},
 		{
-			name: "valid id, error on GetWorldLeaderboardEntry",
-			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
-				return database.WorldLeaderboardEntry{}, errors.New("test")
+			name: "valid id, error on GetCountriesLeaderboardEntry",
+			getCountriesLeaderboardEntry: func(userID int) (database.CountriesLeaderboardEntry, error) {
+				return database.CountriesLeaderboardEntry{}, errors.New("test")
 			},
-			getUser:                     func(id int) (database.User, error) { return user, nil },
-			validUser:                   auth.ValidUser,
-			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
-			id:                          "1",
-			status:                      http.StatusInternalServerError,
+			getUser:                         func(id int) (database.User, error) { return user, nil },
+			validUser:                       auth.ValidUser,
+			deleteCountriesLeaderboardEntry: database.DeleteCountriesLeaderboardEntry,
+			id:                              "1",
+			status:                          http.StatusInternalServerError,
 		},
 		{
 			name: "valid id, entry found, error on GetUser",
-			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
-				return database.WorldLeaderboardEntry{}, nil
+			getCountriesLeaderboardEntry: func(userID int) (database.CountriesLeaderboardEntry, error) {
+				return database.CountriesLeaderboardEntry{}, nil
 			},
-			getUser:                     func(id int) (database.User, error) { return database.User{}, errors.New("test") },
-			validUser:                   auth.ValidUser,
-			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
-			id:                          "1",
-			status:                      http.StatusInternalServerError,
+			getUser:                         func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			validUser:                       auth.ValidUser,
+			deleteCountriesLeaderboardEntry: database.DeleteCountriesLeaderboardEntry,
+			id:                              "1",
+			status:                          http.StatusInternalServerError,
 		},
 		{
 			name: "valid id, entry found, invalid user",
-			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
-				return database.WorldLeaderboardEntry{}, nil
+			getCountriesLeaderboardEntry: func(userID int) (database.CountriesLeaderboardEntry, error) {
+				return database.CountriesLeaderboardEntry{}, nil
 			},
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
-			deleteWorldLeaderboardEntry: database.DeleteWorldLeaderboardEntry,
-			id:                          "1",
-			status:                      http.StatusUnauthorized,
+			deleteCountriesLeaderboardEntry: database.DeleteCountriesLeaderboardEntry,
+			id:                              "1",
+			status:                          http.StatusUnauthorized,
 		},
 		{
-			name: "valid id, entry found, valid user, error on DeleteWorldLeaderboardEntry",
-			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
-				return database.WorldLeaderboardEntry{}, nil
+			name: "valid id, entry found, valid user, error on DeleteCountriesLeaderboardEntry",
+			getCountriesLeaderboardEntry: func(userID int) (database.CountriesLeaderboardEntry, error) {
+				return database.CountriesLeaderboardEntry{}, nil
 			},
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			deleteWorldLeaderboardEntry: func(entryID int) error { return errors.New("test") },
-			id:                          "1",
-			status:                      http.StatusInternalServerError,
+			deleteCountriesLeaderboardEntry: func(entryID int) error { return errors.New("test") },
+			id:                              "1",
+			status:                          http.StatusInternalServerError,
 		},
 		{
 			name: "happy path",
-			getWorldLeaderboardEntry: func(userID int) (database.WorldLeaderboardEntry, error) {
-				return database.WorldLeaderboardEntry{}, nil
+			getCountriesLeaderboardEntry: func(userID int) (database.CountriesLeaderboardEntry, error) {
+				return database.CountriesLeaderboardEntry{}, nil
 			},
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			deleteWorldLeaderboardEntry: func(entryID int) error { return nil },
-			id:                          "1",
-			status:                      http.StatusOK,
+			deleteCountriesLeaderboardEntry: func(entryID int) error { return nil },
+			id:                              "1",
+			status:                          http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			database.GetWorldLeaderboardEntry = tc.getWorldLeaderboardEntry
+			database.GetCountriesLeaderboardEntry = tc.getCountriesLeaderboardEntry
 			database.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
-			database.DeleteWorldLeaderboardEntry = tc.deleteWorldLeaderboardEntry
+			database.DeleteCountriesLeaderboardEntry = tc.deleteCountriesLeaderboardEntry
 			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("DELETE", "", nil)
@@ -567,7 +569,7 @@ func TestDeleteEntry(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.WorldLeaderboardEntry
+				var parsed database.CountriesLeaderboardEntry
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
