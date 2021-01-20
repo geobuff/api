@@ -38,7 +38,7 @@ func TestGetCountries(t *testing.T) {
 		t.Fatalf("could not unmarshal response body: %v", err)
 	}
 
-	if !reflect.DeepEqual(parsed, mapping.Countries) {
+	if !reflect.DeepEqual(parsed, mapping.WorldCountries) {
 		t.Fatalf("response body does not match expected map")
 	}
 }
@@ -70,7 +70,7 @@ func TestGetCountriesQueryParam(t *testing.T) {
 		t.Fatalf("could not unmarshal response body: %v", err)
 	}
 
-	if !reflect.DeepEqual(parsed, mapping.Countries[continent]) {
+	if !reflect.DeepEqual(parsed, mapping.WorldCountries[continent]) {
 		t.Fatalf("response body does not match expected list of countries")
 	}
 }
