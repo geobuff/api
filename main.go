@@ -80,6 +80,11 @@ func router() http.Handler {
 
 	// Capitals endpoints.
 	router.HandleFunc("/api/capitals", capitals.GetCapitals).Methods("GET")
+	router.HandleFunc("/api/capitals/leaderboard", capitals.GetEntries).Methods("GET")
+	router.HandleFunc("/api/capitals/leaderboard/{userId}", capitals.GetEntry).Methods("GET")
+	router.Handle("/api/capitals/leaderboard", jwtMiddleware.Handler(capitals.CreateEntry)).Methods("POST")
+	router.Handle("/api/capitals/leaderboard/{id}", jwtMiddleware.Handler(capitals.UpdateEntry)).Methods("PUT")
+	router.Handle("/api/capitals/leaderboard/{id}", jwtMiddleware.Handler(capitals.DeleteEntry)).Methods("DELETE")
 
 	return router
 }
