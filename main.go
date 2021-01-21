@@ -10,6 +10,8 @@ import (
 	"github.com/geobuff/api/database"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/scores"
+	"github.com/geobuff/api/uk"
+	"github.com/geobuff/api/us"
 	"github.com/geobuff/api/users"
 	"github.com/geobuff/auth"
 	"github.com/gorilla/mux"
@@ -85,6 +87,12 @@ func router() http.Handler {
 	router.Handle("/api/capitals/leaderboard", jwtMiddleware.Handler(capitals.CreateEntry)).Methods("POST")
 	router.Handle("/api/capitals/leaderboard/{id}", jwtMiddleware.Handler(capitals.UpdateEntry)).Methods("PUT")
 	router.Handle("/api/capitals/leaderboard/{id}", jwtMiddleware.Handler(capitals.DeleteEntry)).Methods("DELETE")
+
+	// UK endpoints.
+	router.HandleFunc("/api/uk", uk.GetCounties).Methods("GET")
+
+	// US endpoints.
+	router.HandleFunc("/api/us", us.GetStates).Methods("GET")
 
 	return router
 }

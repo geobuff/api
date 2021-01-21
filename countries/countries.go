@@ -13,8 +13,8 @@ func GetCountries(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 
 	if continentParam != "" {
-		json.NewEncoder(writer).Encode(mapping.Countries[continentParam])
+		json.NewEncoder(writer).Encode(mapping.WorldCountries[continentParam])
 	} else {
-		json.NewEncoder(writer).Encode(mapping.Countries)
+		json.NewEncoder(writer).Encode(mapping.WorldCountries)
 	}
 }

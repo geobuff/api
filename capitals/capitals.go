@@ -13,8 +13,8 @@ func GetCapitals(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 
 	if continentParam != "" {
-		json.NewEncoder(writer).Encode(mapping.Capitals[continentParam])
+		json.NewEncoder(writer).Encode(mapping.WorldCapitals[continentParam])
 	} else {
-		json.NewEncoder(writer).Encode(mapping.Capitals)
+		json.NewEncoder(writer).Encode(mapping.WorldCapitals)
 	}
 }
