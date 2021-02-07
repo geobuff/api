@@ -18,76 +18,76 @@ import (
 )
 
 func TestGetEntries(t *testing.T) {
-	savedGetCapitalsLeaderboardEntries := database.GetCapitalsLeaderboardEntries
-	savedGetCapitalsLeaderboardEntryID := database.GetCapitalsLeaderboardEntryID
+	savedGetLeaderboardEntries := database.GetLeaderboardEntries
+	savedGetLeaderboardEntryID := database.GetLeaderboardEntryID
 
 	defer func() {
-		database.GetCapitalsLeaderboardEntries = savedGetCapitalsLeaderboardEntries
-		database.GetCapitalsLeaderboardEntryID = savedGetCapitalsLeaderboardEntryID
+		database.GetLeaderboardEntries = savedGetLeaderboardEntries
+		database.GetLeaderboardEntryID = savedGetLeaderboardEntryID
 	}()
 
 	tt := []struct {
-		name                          string
-		getCapitalsLeaderboardEntries func(limit int, offset int) ([]database.CapitalsLeaderboardEntry, error)
-		getCapitalsLeaderboardEntryID func(limit int, offset int) (int, error)
-		page                          string
-		status                        int
-		hasMore                       bool
+		name                  string
+		getLeaderboardEntries func(table string, limit int, offset int) ([]database.LeaderboardEntry, error)
+		getLeaderboardEntryID func(table string, limit int, offset int) (int, error)
+		page                  string
+		status                int
+		hasMore               bool
 	}{
 		{
-			name:                          "invalid page parameter",
-			getCapitalsLeaderboardEntries: database.GetCapitalsLeaderboardEntries,
-			getCapitalsLeaderboardEntryID: database.GetCapitalsLeaderboardEntryID,
-			page:                          "testing",
-			status:                        http.StatusBadRequest,
-			hasMore:                       false,
+			name:                  "invalid page parameter",
+			getLeaderboardEntries: database.GetLeaderboardEntries,
+			getLeaderboardEntryID: database.GetLeaderboardEntryID,
+			page:                  "testing",
+			status:                http.StatusBadRequest,
+			hasMore:               false,
 		},
 		{
-			name: "valid page, error on GetCapitalsLeaderboardEntries",
-			getCapitalsLeaderboardEntries: func(limit int, offset int) ([]database.CapitalsLeaderboardEntry, error) {
+			name: "valid page, error on GetLeaderboardEntries",
+			getLeaderboardEntries: func(table string, limit int, offset int) ([]database.LeaderboardEntry, error) {
 				return nil, errors.New("test")
 			},
-			getCapitalsLeaderboardEntryID: database.GetCapitalsLeaderboardEntryID,
-			page:                          "0",
-			status:                        http.StatusInternalServerError,
-			hasMore:                       false,
+			getLeaderboardEntryID: database.GetLeaderboardEntryID,
+			page:                  "0",
+			status:                http.StatusInternalServerError,
+			hasMore:               false,
 		},
 		{
-			name: "valid page, error on GetCapitalsLeaderboardEntryID",
-			getCapitalsLeaderboardEntries: func(limit int, offset int) ([]database.CapitalsLeaderboardEntry, error) {
-				return []database.CapitalsLeaderboardEntry{}, nil
+			name: "valid page, error on GetLeaderboardEntryID",
+			getLeaderboardEntries: func(table string, limit int, offset int) ([]database.LeaderboardEntry, error) {
+				return []database.LeaderboardEntry{}, nil
 			},
-			getCapitalsLeaderboardEntryID: func(limit int, offset int) (int, error) { return 0, errors.New("test") },
-			page:                          "0",
-			status:                        http.StatusInternalServerError,
-			hasMore:                       false,
+			getLeaderboardEntryID: func(table string, limit int, offset int) (int, error) { return 0, errors.New("test") },
+			page:                  "0",
+			status:                http.StatusInternalServerError,
+			hasMore:               false,
 		},
 		{
 			name: "happy path, has more is false",
-			getCapitalsLeaderboardEntries: func(limit int, offset int) ([]database.CapitalsLeaderboardEntry, error) {
-				return []database.CapitalsLeaderboardEntry{}, nil
+			getLeaderboardEntries: func(table string, limit int, offset int) ([]database.LeaderboardEntry, error) {
+				return []database.LeaderboardEntry{}, nil
 			},
-			getCapitalsLeaderboardEntryID: func(limit int, offset int) (int, error) { return 0, sql.ErrNoRows },
-			page:                          "0",
-			status:                        http.StatusOK,
-			hasMore:                       false,
+			getLeaderboardEntryID: func(table string, limit int, offset int) (int, error) { return 0, sql.ErrNoRows },
+			page:                  "0",
+			status:                http.StatusOK,
+			hasMore:               false,
 		},
 		{
 			name: "happy path, has more is true",
-			getCapitalsLeaderboardEntries: func(limit int, offset int) ([]database.CapitalsLeaderboardEntry, error) {
-				return []database.CapitalsLeaderboardEntry{}, nil
+			getLeaderboardEntries: func(table string, limit int, offset int) ([]database.LeaderboardEntry, error) {
+				return []database.LeaderboardEntry{}, nil
 			},
-			getCapitalsLeaderboardEntryID: func(limit int, offset int) (int, error) { return 1, nil },
-			page:                          "0",
-			status:                        http.StatusOK,
-			hasMore:                       true,
+			getLeaderboardEntryID: func(table string, limit int, offset int) (int, error) { return 1, nil },
+			page:                  "0",
+			status:                http.StatusOK,
+			hasMore:               true,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			database.GetCapitalsLeaderboardEntries = tc.getCapitalsLeaderboardEntries
-			database.GetCapitalsLeaderboardEntryID = tc.getCapitalsLeaderboardEntryID
+			database.GetLeaderboardEntries = tc.getLeaderboardEntries
+			database.GetLeaderboardEntryID = tc.getLeaderboardEntryID
 
 			request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/capitals/leaderboard?page=%v", tc.page), nil)
 			if err != nil {
@@ -124,36 +124,36 @@ func TestGetEntries(t *testing.T) {
 }
 
 func TestGetEntry(t *testing.T) {
-	savedGetCapitalsLeaderboardEntry := database.GetCapitalsLeaderboardEntry
+	savedGetLeaderboardEntry := database.GetLeaderboardEntry
 
 	defer func() {
-		database.GetCapitalsLeaderboardEntry = savedGetCapitalsLeaderboardEntry
+		database.GetLeaderboardEntry = savedGetLeaderboardEntry
 	}()
 
 	tt := []struct {
-		name                        string
-		getCapitalsLeaderboardEntry func(userID int) (database.CapitalsLeaderboardEntry, error)
-		userID                      string
-		status                      int
+		name                string
+		getLeaderboardEntry func(table string, userID int) (database.LeaderboardEntry, error)
+		userID              string
+		status              int
 	}{
 		{
-			name:                        "invalid userId",
-			getCapitalsLeaderboardEntry: database.GetCapitalsLeaderboardEntry,
-			userID:                      "testing",
-			status:                      http.StatusBadRequest,
+			name:                "invalid userId",
+			getLeaderboardEntry: database.GetLeaderboardEntry,
+			userID:              "testing",
+			status:              http.StatusBadRequest,
 		},
 		{
-			name: "valid userId, error on GetCapitalsLeaderboardEntry",
-			getCapitalsLeaderboardEntry: func(userID int) (database.CapitalsLeaderboardEntry, error) {
-				return database.CapitalsLeaderboardEntry{}, errors.New("test")
+			name: "valid userId, error on GetLeaderboardEntry",
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
+				return database.LeaderboardEntry{}, errors.New("test")
 			},
 			userID: "1",
 			status: http.StatusInternalServerError,
 		},
 		{
 			name: "happy path",
-			getCapitalsLeaderboardEntry: func(userID int) (database.CapitalsLeaderboardEntry, error) {
-				return database.CapitalsLeaderboardEntry{}, nil
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
+				return database.LeaderboardEntry{}, nil
 			},
 			userID: "1",
 			status: http.StatusOK,
@@ -162,7 +162,7 @@ func TestGetEntry(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			database.GetCapitalsLeaderboardEntry = tc.getCapitalsLeaderboardEntry
+			database.GetLeaderboardEntry = tc.getLeaderboardEntry
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -188,7 +188,7 @@ func TestGetEntry(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.CapitalsLeaderboardEntry
+				var parsed database.LeaderboardEntry
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
@@ -201,13 +201,13 @@ func TestGetEntry(t *testing.T) {
 func TestCreateEntry(t *testing.T) {
 	savedGetUser := database.GetUser
 	savedValidUser := auth.ValidUser
-	savedInsertCapitalsLeaderboardEntry := database.InsertCapitalsLeaderboardEntry
+	savedInsertLeaderboardEntry := database.InsertLeaderboardEntry
 	savedConfigValues := config.Values
 
 	defer func() {
 		database.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
-		database.InsertCapitalsLeaderboardEntry = savedInsertCapitalsLeaderboardEntry
+		database.InsertLeaderboardEntry = savedInsertLeaderboardEntry
 		config.Values = savedConfigValues
 	}()
 
@@ -216,28 +216,28 @@ func TestCreateEntry(t *testing.T) {
 	}
 
 	tt := []struct {
-		name                           string
-		getUser                        func(id int) (database.User, error)
-		validUser                      func(uv auth.UserValidation) (int, error)
-		insertCapitalsLeaderboardEntry func(entry database.CapitalsLeaderboardEntry) (int, error)
-		body                           string
-		status                         int
+		name                   string
+		getUser                func(id int) (database.User, error)
+		validUser              func(uv auth.UserValidation) (int, error)
+		insertLeaderboardEntry func(table string, entry database.LeaderboardEntry) (int, error)
+		body                   string
+		status                 int
 	}{
 		{
-			name:                           "invalid body",
-			getUser:                        database.GetUser,
-			validUser:                      auth.ValidUser,
-			insertCapitalsLeaderboardEntry: database.InsertCapitalsLeaderboardEntry,
-			body:                           "testing",
-			status:                         http.StatusBadRequest,
+			name:                   "invalid body",
+			getUser:                database.GetUser,
+			validUser:              auth.ValidUser,
+			insertLeaderboardEntry: database.InsertLeaderboardEntry,
+			body:                   "testing",
+			status:                 http.StatusBadRequest,
 		},
 		{
-			name:                           "valid body, error on GetUser",
-			getUser:                        func(id int) (database.User, error) { return database.User{}, errors.New("test") },
-			validUser:                      auth.ValidUser,
-			insertCapitalsLeaderboardEntry: database.InsertCapitalsLeaderboardEntry,
-			body:                           `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
-			status:                         http.StatusInternalServerError,
+			name:                   "valid body, error on GetUser",
+			getUser:                func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			validUser:              auth.ValidUser,
+			insertLeaderboardEntry: database.InsertLeaderboardEntry,
+			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusInternalServerError,
 		},
 		{
 			name:    "valid body, invalid user",
@@ -245,19 +245,19 @@ func TestCreateEntry(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
-			insertCapitalsLeaderboardEntry: database.InsertCapitalsLeaderboardEntry,
-			body:                           `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
-			status:                         http.StatusUnauthorized,
+			insertLeaderboardEntry: database.InsertLeaderboardEntry,
+			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusUnauthorized,
 		},
 		{
-			name:    "valid body, valid user, error on InsertCapitalsLeaderboardEntry",
+			name:    "valid body, valid user, error on InsertLeaderboardEntry",
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			insertCapitalsLeaderboardEntry: func(entry database.CapitalsLeaderboardEntry) (int, error) { return 0, errors.New("test") },
-			body:                           `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
-			status:                         http.StatusInternalServerError,
+			insertLeaderboardEntry: func(table string, entry database.LeaderboardEntry) (int, error) { return 0, errors.New("test") },
+			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusInternalServerError,
 		},
 		{
 			name:    "happy path",
@@ -265,9 +265,9 @@ func TestCreateEntry(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			insertCapitalsLeaderboardEntry: func(entry database.CapitalsLeaderboardEntry) (int, error) { return 1, nil },
-			body:                           `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
-			status:                         http.StatusCreated,
+			insertLeaderboardEntry: func(table string, entry database.LeaderboardEntry) (int, error) { return 1, nil },
+			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusCreated,
 		},
 	}
 
@@ -275,7 +275,7 @@ func TestCreateEntry(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			database.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
-			database.InsertCapitalsLeaderboardEntry = tc.insertCapitalsLeaderboardEntry
+			database.InsertLeaderboardEntry = tc.insertLeaderboardEntry
 			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
@@ -298,7 +298,7 @@ func TestCreateEntry(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.CapitalsLeaderboardEntry
+				var parsed database.LeaderboardEntry
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
@@ -311,13 +311,13 @@ func TestCreateEntry(t *testing.T) {
 func TestUpdateEntry(t *testing.T) {
 	savedGetUser := database.GetUser
 	savedValidUser := auth.ValidUser
-	savedUpdateCapitalsLeaderboardEntry := database.UpdateCapitalsLeaderboardEntry
+	savedUpdateLeaderboardEntry := database.UpdateLeaderboardEntry
 	savedConfigValues := config.Values
 
 	defer func() {
 		database.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
-		database.UpdateCapitalsLeaderboardEntry = savedUpdateCapitalsLeaderboardEntry
+		database.UpdateLeaderboardEntry = savedUpdateLeaderboardEntry
 		config.Values = savedConfigValues
 	}()
 
@@ -326,40 +326,40 @@ func TestUpdateEntry(t *testing.T) {
 	}
 
 	tt := []struct {
-		name                           string
-		getUser                        func(id int) (database.User, error)
-		validUser                      func(uv auth.UserValidation) (int, error)
-		updateCapitalsLeaderboardEntry func(entry database.CapitalsLeaderboardEntry) error
-		id                             string
-		body                           string
-		status                         int
+		name                   string
+		getUser                func(id int) (database.User, error)
+		validUser              func(uv auth.UserValidation) (int, error)
+		updateLeaderboardEntry func(table string, entry database.LeaderboardEntry) error
+		id                     string
+		body                   string
+		status                 int
 	}{
 		{
-			name:                           "invalid id",
-			getUser:                        database.GetUser,
-			validUser:                      auth.ValidUser,
-			updateCapitalsLeaderboardEntry: database.UpdateCapitalsLeaderboardEntry,
-			id:                             "testing",
-			body:                           "",
-			status:                         http.StatusBadRequest,
+			name:                   "invalid id",
+			getUser:                database.GetUser,
+			validUser:              auth.ValidUser,
+			updateLeaderboardEntry: database.UpdateLeaderboardEntry,
+			id:                     "testing",
+			body:                   "",
+			status:                 http.StatusBadRequest,
 		},
 		{
-			name:                           "valid id, invalid body",
-			getUser:                        func(id int) (database.User, error) { return user, nil },
-			validUser:                      auth.ValidUser,
-			updateCapitalsLeaderboardEntry: database.UpdateCapitalsLeaderboardEntry,
-			id:                             "1",
-			body:                           "testing",
-			status:                         http.StatusBadRequest,
+			name:                   "valid id, invalid body",
+			getUser:                func(id int) (database.User, error) { return user, nil },
+			validUser:              auth.ValidUser,
+			updateLeaderboardEntry: database.UpdateLeaderboardEntry,
+			id:                     "1",
+			body:                   "testing",
+			status:                 http.StatusBadRequest,
 		},
 		{
-			name:                           "valid id, valid body, error on GetUser",
-			getUser:                        func(id int) (database.User, error) { return database.User{}, errors.New("test") },
-			validUser:                      auth.ValidUser,
-			updateCapitalsLeaderboardEntry: database.UpdateCapitalsLeaderboardEntry,
-			id:                             "1",
-			body:                           `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
-			status:                         http.StatusInternalServerError,
+			name:                   "valid id, valid body, error on GetUser",
+			getUser:                func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			validUser:              auth.ValidUser,
+			updateLeaderboardEntry: database.UpdateLeaderboardEntry,
+			id:                     "1",
+			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusInternalServerError,
 		},
 		{
 			name:    "valid id, valid body, invalid user",
@@ -367,21 +367,21 @@ func TestUpdateEntry(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
-			updateCapitalsLeaderboardEntry: database.UpdateCapitalsLeaderboardEntry,
-			id:                             "1",
-			body:                           `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
-			status:                         http.StatusUnauthorized,
+			updateLeaderboardEntry: database.UpdateLeaderboardEntry,
+			id:                     "1",
+			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusUnauthorized,
 		},
 		{
-			name:    "valid id, valid body, valid user, error on UpdateCapitalsLeaderboardEntry",
+			name:    "valid id, valid body, valid user, error on UpdateLeaderboardEntry",
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			updateCapitalsLeaderboardEntry: func(entry database.CapitalsLeaderboardEntry) error { return errors.New("test") },
-			id:                             "1",
-			body:                           `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
-			status:                         http.StatusInternalServerError,
+			updateLeaderboardEntry: func(table string, entry database.LeaderboardEntry) error { return errors.New("test") },
+			id:                     "1",
+			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusInternalServerError,
 		},
 		{
 			name:    "happy path",
@@ -389,10 +389,10 @@ func TestUpdateEntry(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			updateCapitalsLeaderboardEntry: func(entry database.CapitalsLeaderboardEntry) error { return nil },
-			id:                             "1",
-			body:                           `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
-			status:                         http.StatusOK,
+			updateLeaderboardEntry: func(table string, entry database.LeaderboardEntry) error { return nil },
+			id:                     "1",
+			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusOK,
 		},
 	}
 
@@ -400,7 +400,7 @@ func TestUpdateEntry(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			database.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
-			database.UpdateCapitalsLeaderboardEntry = tc.updateCapitalsLeaderboardEntry
+			database.UpdateLeaderboardEntry = tc.updateLeaderboardEntry
 			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
@@ -427,7 +427,7 @@ func TestUpdateEntry(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.CapitalsLeaderboardEntry
+				var parsed database.LeaderboardEntry
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
@@ -438,17 +438,17 @@ func TestUpdateEntry(t *testing.T) {
 }
 
 func TestDeleteEntry(t *testing.T) {
-	savedGetCapitalsLeaderboardEntry := database.GetCapitalsLeaderboardEntry
+	savedGetLeaderboardEntry := database.GetLeaderboardEntry
 	savedGetUser := database.GetUser
 	savedValidUser := auth.ValidUser
-	savedDeleteCapitalsLeaderboardEntry := database.DeleteCapitalsLeaderboardEntry
+	savedDeleteLeaderboardEntry := database.DeleteLeaderboardEntry
 	savedConfigValues := config.Values
 
 	defer func() {
-		database.GetCapitalsLeaderboardEntry = savedGetCapitalsLeaderboardEntry
+		database.GetLeaderboardEntry = savedGetLeaderboardEntry
 		database.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
-		database.DeleteCapitalsLeaderboardEntry = savedDeleteCapitalsLeaderboardEntry
+		database.DeleteLeaderboardEntry = savedDeleteLeaderboardEntry
 		config.Values = savedConfigValues
 	}()
 
@@ -457,92 +457,92 @@ func TestDeleteEntry(t *testing.T) {
 	}
 
 	tt := []struct {
-		name                           string
-		getCapitalsLeaderboardEntry    func(userID int) (database.CapitalsLeaderboardEntry, error)
-		getUser                        func(id int) (database.User, error)
-		validUser                      func(uv auth.UserValidation) (int, error)
-		deleteCapitalsLeaderboardEntry func(entryID int) error
-		id                             string
-		status                         int
+		name                   string
+		getLeaderboardEntry    func(table string, userID int) (database.LeaderboardEntry, error)
+		getUser                func(id int) (database.User, error)
+		validUser              func(uv auth.UserValidation) (int, error)
+		deleteLeaderboardEntry func(table string, entryID int) error
+		id                     string
+		status                 int
 	}{
 		{
-			name:                           "invalid id",
-			getCapitalsLeaderboardEntry:    database.GetCapitalsLeaderboardEntry,
-			getUser:                        database.GetUser,
-			validUser:                      auth.ValidUser,
-			deleteCapitalsLeaderboardEntry: database.DeleteCapitalsLeaderboardEntry,
-			id:                             "testing",
-			status:                         http.StatusBadRequest,
+			name:                   "invalid id",
+			getLeaderboardEntry:    database.GetLeaderboardEntry,
+			getUser:                database.GetUser,
+			validUser:              auth.ValidUser,
+			deleteLeaderboardEntry: database.DeleteLeaderboardEntry,
+			id:                     "testing",
+			status:                 http.StatusBadRequest,
 		},
 		{
-			name: "valid id, error on GetCapitalsLeaderboardEntry",
-			getCapitalsLeaderboardEntry: func(userID int) (database.CapitalsLeaderboardEntry, error) {
-				return database.CapitalsLeaderboardEntry{}, errors.New("test")
+			name: "valid id, error on GetLeaderboardEntry",
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
+				return database.LeaderboardEntry{}, errors.New("test")
 			},
-			getUser:                        func(id int) (database.User, error) { return user, nil },
-			validUser:                      auth.ValidUser,
-			deleteCapitalsLeaderboardEntry: database.DeleteCapitalsLeaderboardEntry,
-			id:                             "1",
-			status:                         http.StatusInternalServerError,
+			getUser:                func(id int) (database.User, error) { return user, nil },
+			validUser:              auth.ValidUser,
+			deleteLeaderboardEntry: database.DeleteLeaderboardEntry,
+			id:                     "1",
+			status:                 http.StatusInternalServerError,
 		},
 		{
 			name: "valid id, entry found, error on GetUser",
-			getCapitalsLeaderboardEntry: func(userID int) (database.CapitalsLeaderboardEntry, error) {
-				return database.CapitalsLeaderboardEntry{}, nil
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
+				return database.LeaderboardEntry{}, nil
 			},
-			getUser:                        func(id int) (database.User, error) { return database.User{}, errors.New("test") },
-			validUser:                      auth.ValidUser,
-			deleteCapitalsLeaderboardEntry: database.DeleteCapitalsLeaderboardEntry,
-			id:                             "1",
-			status:                         http.StatusInternalServerError,
+			getUser:                func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			validUser:              auth.ValidUser,
+			deleteLeaderboardEntry: database.DeleteLeaderboardEntry,
+			id:                     "1",
+			status:                 http.StatusInternalServerError,
 		},
 		{
 			name: "valid id, entry found, invalid user",
-			getCapitalsLeaderboardEntry: func(userID int) (database.CapitalsLeaderboardEntry, error) {
-				return database.CapitalsLeaderboardEntry{}, nil
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
+				return database.LeaderboardEntry{}, nil
 			},
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
-			deleteCapitalsLeaderboardEntry: database.DeleteCapitalsLeaderboardEntry,
-			id:                             "1",
-			status:                         http.StatusUnauthorized,
+			deleteLeaderboardEntry: database.DeleteLeaderboardEntry,
+			id:                     "1",
+			status:                 http.StatusUnauthorized,
 		},
 		{
-			name: "valid id, entry found, valid user, error on DeleteCapitalsLeaderboardEntry",
-			getCapitalsLeaderboardEntry: func(userID int) (database.CapitalsLeaderboardEntry, error) {
-				return database.CapitalsLeaderboardEntry{}, nil
+			name: "valid id, entry found, valid user, error on DeleteLeaderboardEntry",
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
+				return database.LeaderboardEntry{}, nil
 			},
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			deleteCapitalsLeaderboardEntry: func(entryID int) error { return errors.New("test") },
-			id:                             "1",
-			status:                         http.StatusInternalServerError,
+			deleteLeaderboardEntry: func(table string, entryID int) error { return errors.New("test") },
+			id:                     "1",
+			status:                 http.StatusInternalServerError,
 		},
 		{
 			name: "happy path",
-			getCapitalsLeaderboardEntry: func(userID int) (database.CapitalsLeaderboardEntry, error) {
-				return database.CapitalsLeaderboardEntry{}, nil
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
+				return database.LeaderboardEntry{}, nil
 			},
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			deleteCapitalsLeaderboardEntry: func(entryID int) error { return nil },
-			id:                             "1",
-			status:                         http.StatusOK,
+			deleteLeaderboardEntry: func(table string, entryID int) error { return nil },
+			id:                     "1",
+			status:                 http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			database.GetCapitalsLeaderboardEntry = tc.getCapitalsLeaderboardEntry
+			database.GetLeaderboardEntry = tc.getLeaderboardEntry
 			database.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
-			database.DeleteCapitalsLeaderboardEntry = tc.deleteCapitalsLeaderboardEntry
+			database.DeleteLeaderboardEntry = tc.deleteLeaderboardEntry
 			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("DELETE", "", nil)
@@ -569,7 +569,7 @@ func TestDeleteEntry(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.CapitalsLeaderboardEntry
+				var parsed database.LeaderboardEntry
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
