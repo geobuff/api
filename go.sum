@@ -3,10 +3,8 @@ github.com/auth0/go-jwt-middleware v1.0.0/go.mod h1:nX2S0GmCyl087kdNSSItfOvMYokq
 github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0/go.mod h1:4Zcjuz89kmFXt9morQgcfYZAYZ5n8WHjt81YYWIwtTM=
 github.com/form3tech-oss/jwt-go v3.2.2+incompatible h1:TcekIExNqud5crz4xD2pavyTgWiPvpYe4Xau31I0PRk=
 github.com/form3tech-oss/jwt-go v3.2.2+incompatible/go.mod h1:pbq4aXjuKjdthFRnoDwaVPLA+WlJuPGy+QneDUgJi2k=
-github.com/geobuff/auth v0.0.0-20210106231123-c45f96be1cb2 h1:n+XpipX0yuhlHcfH4pjm6dTEBc3GnvfAyECkB3r6zNo=
-github.com/geobuff/auth v0.0.0-20210106231123-c45f96be1cb2/go.mod h1:uq3yofVePh7pxdDXEOe0CDQXzaiGq0NVo9B61eEDTMw=
-github.com/geobuff/mapping v0.0.0-20210118233651-827ac6ad920d h1:2D924250P4ub5d0xFwmZpPaGdMwleF81Eq3SqbPTBWk=
-github.com/geobuff/mapping v0.0.0-20210118233651-827ac6ad920d/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
+github.com/geobuff/auth v0.0.0-20210214020853-0771477ac391 h1:sNlJ3nbPA2eVRB9I+E2fu4lu9Uv1nkTlhOsR9aRhDaM=
+github.com/geobuff/auth v0.0.0-20210214020853-0771477ac391/go.mod h1:uq3yofVePh7pxdDXEOe0CDQXzaiGq0NVo9B61eEDTMw=
 github.com/geobuff/mapping v0.0.0-20210120212647-20a1332431b5 h1:p2xqbkCTCad4FSY1tb94DCmEE5jko/pISoqFulRcqv0=
 github.com/geobuff/mapping v0.0.0-20210120212647-20a1332431b5/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
 github.com/go-martini/martini v0.0.0-20170121215854-22fa46961aab/go.mod h1:/P9AEU963A2AYjv4d1V5eVL1CQbEJq6aCNHDDjibzu8=

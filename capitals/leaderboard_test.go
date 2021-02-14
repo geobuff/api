@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/database"
+	"github.com/geobuff/api/models"
 	"github.com/geobuff/auth"
 	"github.com/gorilla/mux"
 )
@@ -28,57 +28,59 @@ func TestGetEntries(t *testing.T) {
 
 	tt := []struct {
 		name                  string
-		getLeaderboardEntries func(table string, limit int, offset int) ([]database.LeaderboardEntry, error)
-		getLeaderboardEntryID func(table string, limit int, offset int) (int, error)
-		page                  string
+		getLeaderboardEntries func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntry, error)
+		getLeaderboardEntryID func(table string, filterParams models.GetEntriesFilterParams) (int, error)
+		body                  string
 		status                int
 		hasMore               bool
 	}{
 		{
-			name:                  "invalid page parameter",
+			name:                  "error on unmarshal",
 			getLeaderboardEntries: database.GetLeaderboardEntries,
 			getLeaderboardEntryID: database.GetLeaderboardEntryID,
-			page:                  "testing",
+			body:                  "",
 			status:                http.StatusBadRequest,
 			hasMore:               false,
 		},
 		{
-			name: "valid page, error on GetLeaderboardEntries",
-			getLeaderboardEntries: func(table string, limit int, offset int) ([]database.LeaderboardEntry, error) {
+			name: "error on GetLeaderboardEntries",
+			getLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntry, error) {
 				return nil, errors.New("test")
 			},
 			getLeaderboardEntryID: database.GetLeaderboardEntryID,
-			page:                  "0",
+			body:                  `{"page": 0, "limit": 10, "range": "", "user": ""}`,
 			status:                http.StatusInternalServerError,
 			hasMore:               false,
 		},
 		{
-			name: "valid page, error on GetLeaderboardEntryID",
-			getLeaderboardEntries: func(table string, limit int, offset int) ([]database.LeaderboardEntry, error) {
+			name: "error on GetLeaderboardEntryID",
+			getLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntry, error) {
 				return []database.LeaderboardEntry{}, nil
 			},
-			getLeaderboardEntryID: func(table string, limit int, offset int) (int, error) { return 0, errors.New("test") },
-			page:                  "0",
-			status:                http.StatusInternalServerError,
-			hasMore:               false,
+			getLeaderboardEntryID: func(table string, filterParams models.GetEntriesFilterParams) (int, error) {
+				return 0, errors.New("test")
+			},
+			body:    `{"page": 0, "limit": 10, "range": "", "user": ""}`,
+			status:  http.StatusInternalServerError,
+			hasMore: false,
 		},
 		{
 			name: "happy path, has more is false",
-			getLeaderboardEntries: func(table string, limit int, offset int) ([]database.LeaderboardEntry, error) {
+			getLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntry, error) {
 				return []database.LeaderboardEntry{}, nil
 			},
-			getLeaderboardEntryID: func(table string, limit int, offset int) (int, error) { return 0, sql.ErrNoRows },
-			page:                  "0",
+			getLeaderboardEntryID: func(table string, filterParams models.GetEntriesFilterParams) (int, error) { return 0, sql.ErrNoRows },
+			body:                  `{"page": 0, "limit": 10, "range": "", "user": ""}`,
 			status:                http.StatusOK,
 			hasMore:               false,
 		},
 		{
 			name: "happy path, has more is true",
-			getLeaderboardEntries: func(table string, limit int, offset int) ([]database.LeaderboardEntry, error) {
+			getLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntry, error) {
 				return []database.LeaderboardEntry{}, nil
 			},
-			getLeaderboardEntryID: func(table string, limit int, offset int) (int, error) { return 1, nil },
-			page:                  "0",
+			getLeaderboardEntryID: func(table string, filterParams models.GetEntriesFilterParams) (int, error) { return 1, nil },
+			body:                  `{"page": 0, "limit": 10, "range": "", "user": ""}`,
 			status:                http.StatusOK,
 			hasMore:               true,
 		},
@@ -89,9 +91,9 @@ func TestGetEntries(t *testing.T) {
 			database.GetLeaderboardEntries = tc.getLeaderboardEntries
 			database.GetLeaderboardEntryID = tc.getLeaderboardEntryID
 
-			request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/capitals/leaderboard?page=%v", tc.page), nil)
+			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
-				t.Fatalf("could not create GET request: %v", err)
+				t.Fatalf("could not create POST request: %v", err)
 			}
 
 			writer := httptest.NewRecorder()

@@ -1,14 +1,20 @@
 package database
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+
+	"github.com/geobuff/api/models"
+)
 
 // LeaderboardEntry is the database object for leaderboard entries.
 type LeaderboardEntry struct {
-	ID          int    `json:"id"`
-	UserID      int    `json:"userId"`
-	CountryCode string `json:"countryCode"`
-	Score       int    `json:"score"`
-	Time        int    `json:"time"`
+	ID          int       `json:"id"`
+	UserID      int       `json:"userId"`
+	CountryCode string    `json:"countryCode"`
+	Score       int       `json:"score"`
+	Time        int       `json:"time"`
+	Added       time.Time `json:"added"`
 }
 
 const (
@@ -20,9 +26,10 @@ const (
 )
 
 // GetLeaderboardEntries returns a page of leaderboard entries.
-var GetLeaderboardEntries = func(table string, limit, offset int) ([]LeaderboardEntry, error) {
-	query := fmt.Sprintf("SELECT * FROM %s ORDER BY score DESC, time LIMIT $1 OFFSET $2;", table)
-	rows, err := Connection.Query(query, limit, offset)
+var GetLeaderboardEntries = func(table string, filterParams models.GetEntriesFilterParams) ([]LeaderboardEntry, error) {
+	query := fmt.Sprintf("SELECT l.id, userid, countrycode, score, time, added FROM %s l %s ORDER BY score DESC, time LIMIT $1 OFFSET $2;", table, getFilterSection(filterParams))
+
+	rows, err := Connection.Query(query, filterParams.Limit, filterParams.Page*filterParams.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +38,7 @@ var GetLeaderboardEntries = func(table string, limit, offset int) ([]Leaderboard
 	var entries = []LeaderboardEntry{}
 	for rows.Next() {
 		var entry LeaderboardEntry
-		if err = rows.Scan(&entry.ID, &entry.UserID, &entry.CountryCode, &entry.Score, &entry.Time); err != nil {
+		if err = rows.Scan(&entry.ID, &entry.UserID, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added); err != nil {
 			return nil, err
 		}
 		entries = append(entries, entry)
@@ -39,11 +46,36 @@ var GetLeaderboardEntries = func(table string, limit, offset int) ([]Leaderboard
 	return entries, rows.Err()
 }
 
+func getFilterSection(filterParams models.GetEntriesFilterParams) string {
+	if filterParams.User == "" {
+		switch filterParams.Range {
+		case "day":
+			date := time.Now().AddDate(0, 0, -1)
+			return fmt.Sprintf("WHERE added > '%v-%v-%v' ", date.Year(), date.Month(), date.Day())
+		case "week":
+			date := time.Now().AddDate(0, 0, -8)
+			return fmt.Sprintf("WHERE added > '%v-%v-%v' ", date.Year(), date.Month(), date.Day())
+		}
+		return ""
+	}
+
+	result := fmt.Sprintf("JOIN users u on u.id = l.userid WHERE u.username = '%s' ", filterParams.User)
+	switch filterParams.Range {
+	case "day":
+		date := time.Now().AddDate(0, 0, -1)
+		return result + fmt.Sprintf("AND added > '%v-%v-%v' ", date.Year(), date.Month(), date.Day())
+	case "week":
+		date := time.Now().AddDate(0, 0, -8)
+		return result + fmt.Sprintf("AND added > '%v-%v-%v' ", date.Year(), date.Month(), date.Day())
+	}
+	return result
+}
+
 // GetLeaderboardEntryID returns the first ID for a given page.
-var GetLeaderboardEntryID = func(table string, limit, offset int) (int, error) {
-	statement := fmt.Sprintf("SELECT id FROM %s ORDER BY score DESC, time LIMIT $1 OFFSET $2;", table)
+var GetLeaderboardEntryID = func(table string, filterParams models.GetEntriesFilterParams) (int, error) {
+	statement := fmt.Sprintf("SELECT l.id FROM %s l %s ORDER BY score DESC, time LIMIT 1 OFFSET $1;", table, getFilterSection(filterParams))
 	var id int
-	err := Connection.QueryRow(statement, limit, offset).Scan(&id)
+	err := Connection.QueryRow(statement, (filterParams.Page+1)*filterParams.Limit).Scan(&id)
 	return id, err
 }
 
@@ -51,23 +83,23 @@ var GetLeaderboardEntryID = func(table string, limit, offset int) (int, error) {
 var GetLeaderboardEntry = func(table string, userID int) (LeaderboardEntry, error) {
 	statement := fmt.Sprintf("SELECT * FROM %s WHERE userId = $1;", table)
 	var entry LeaderboardEntry
-	err := Connection.QueryRow(statement, userID).Scan(&entry.ID, &entry.UserID, &entry.CountryCode, &entry.Score, &entry.Time)
+	err := Connection.QueryRow(statement, userID).Scan(&entry.ID, &entry.UserID, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added)
 	return entry, err
 }
 
 // InsertLeaderboardEntry inserts a new leaderboard entry into the countries_leaderboard table.
 var InsertLeaderboardEntry = func(table string, entry LeaderboardEntry) (int, error) {
-	statement := fmt.Sprintf("INSERT INTO %s (userId, countryCode, score, time) VALUES ($1, $2, $3, $4) RETURNING id;", table)
+	statement := fmt.Sprintf("INSERT INTO %s (userId, countryCode, score, time, added) VALUES ($1, $2, $3, $4, $5) RETURNING id;", table)
 	var id int
-	err := Connection.QueryRow(statement, entry.UserID, entry.CountryCode, entry.Score, entry.Time).Scan(&id)
+	err := Connection.QueryRow(statement, entry.UserID, entry.CountryCode, entry.Score, entry.Time, entry.Added).Scan(&id)
 	return id, err
 }
 
 // UpdateLeaderboardEntry updates an existing leaderboard entry.
 var UpdateLeaderboardEntry = func(table string, entry LeaderboardEntry) error {
-	statement := fmt.Sprintf("UPDATE %s set userId = $2, countryCode = $3, score = $4, time = $5 where id = $1 RETURNING id;", table)
+	statement := fmt.Sprintf("UPDATE %s set userId = $2, countryCode = $3, score = $4, time = $5, added = $6 where id = $1 RETURNING id;", table)
 	var id int
-	return Connection.QueryRow(statement, entry.ID, entry.UserID, entry.CountryCode, entry.Score, entry.Time).Scan(&id)
+	return Connection.QueryRow(statement, entry.ID, entry.UserID, entry.CountryCode, entry.Score, entry.Time, entry.Added).Scan(&id)
 }
 
 // DeleteLeaderboardEntry deletes a leaderboard entry.
