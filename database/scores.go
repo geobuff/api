@@ -1,11 +1,15 @@
 package database
 
+import "time"
+
 // Score is the database object for a score entry.
 type Score struct {
-	ID     int `json:"id"`
-	UserID int `json:"userId"`
-	QuizID int `json:"quizId"`
-	Score  int `json:"score"`
+	ID     int       `json:"id"`
+	UserID int       `json:"userId"`
+	QuizID int       `json:"quizId"`
+	Score  int       `json:"score"`
+	Time   int       `json:"time"`
+	Added  time.Time `json:"added"`
 }
 
 // GetScores returns all scores for a given user.
@@ -19,7 +23,7 @@ var GetScores = func(userID int) ([]Score, error) {
 	var scores = []Score{}
 	for rows.Next() {
 		var score Score
-		if err = rows.Scan(&score.ID, &score.UserID, &score.QuizID, &score.Score); err != nil {
+		if err = rows.Scan(&score.ID, &score.UserID, &score.QuizID, &score.Score, &score.Time, &score.Added); err != nil {
 			return nil, err
 		}
 		scores = append(scores, score)
@@ -31,23 +35,23 @@ var GetScores = func(userID int) ([]Score, error) {
 var GetScore = func(id int) (Score, error) {
 	statement := "SELECT * FROM scores WHERE id = $1;"
 	var score Score
-	err := Connection.QueryRow(statement, id).Scan(&score.ID, &score.UserID, &score.QuizID, &score.Score)
+	err := Connection.QueryRow(statement, id).Scan(&score.ID, &score.UserID, &score.QuizID, &score.Score, &score.Time, &score.Added)
 	return score, err
 }
 
 // InsertScore inserts a score entry into the scores table.
 var InsertScore = func(score Score) (int, error) {
-	statement := "INSERT INTO scores (userId, quizId, score) VALUES ($1, $2, $3) RETURNING id;"
+	statement := "INSERT INTO scores (userId, quizId, score, time, added) VALUES ($1, $2, $3, $4, $5) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, score.UserID, score.QuizID, score.Score).Scan(&id)
+	err := Connection.QueryRow(statement, score.UserID, score.QuizID, score.Score, score.Time, score.Added).Scan(&id)
 	return id, err
 }
 
 // UpdateScore updates a score entry.
 var UpdateScore = func(score Score) error {
-	statement := "UPDATE scores set score = $1 WHERE userId = $2 AND quizId = $3 RETURNING id;"
+	statement := "UPDATE scores set userid = $1, quizid = $2, score = $3, time = $4, added = $5 WHERE id = $6 RETURNING id;"
 	var id int
-	return Connection.QueryRow(statement, score.Score, score.UserID, score.QuizID).Scan(&id)
+	return Connection.QueryRow(statement, score.UserID, score.QuizID, score.Score, score.Time, score.Added, score.ID).Scan(&id)
 }
 
 // DeleteScore deletes a score entry.
