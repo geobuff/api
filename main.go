@@ -74,7 +74,7 @@ func router() http.Handler {
 
 	// Countries endpoints.
 	router.HandleFunc("/api/countries", countries.GetCountries).Methods("GET")
-	router.HandleFunc("/api/countries/leaderboard", countries.GetEntries).Methods("POST")
+	router.HandleFunc("/api/countries/leaderboard/all", countries.GetEntries).Methods("POST")
 	router.HandleFunc("/api/countries/leaderboard/{userId}", countries.GetEntry).Methods("GET")
 	router.Handle("/api/countries/leaderboard", jwtMiddleware.Handler(countries.CreateEntry)).Methods("POST")
 	router.Handle("/api/countries/leaderboard/{id}", jwtMiddleware.Handler(countries.UpdateEntry)).Methods("PUT")
@@ -82,7 +82,7 @@ func router() http.Handler {
 
 	// Capitals endpoints.
 	router.HandleFunc("/api/capitals", capitals.GetCapitals).Methods("GET")
-	router.HandleFunc("/api/capitals/leaderboard", capitals.GetEntries).Methods("POST")
+	router.HandleFunc("/api/capitals/leaderboard/all", capitals.GetEntries).Methods("POST")
 	router.HandleFunc("/api/capitals/leaderboard/{userId}", capitals.GetEntry).Methods("GET")
 	router.Handle("/api/capitals/leaderboard", jwtMiddleware.Handler(capitals.CreateEntry)).Methods("POST")
 	router.Handle("/api/capitals/leaderboard/{id}", jwtMiddleware.Handler(capitals.UpdateEntry)).Methods("PUT")

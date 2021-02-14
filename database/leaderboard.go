@@ -56,6 +56,7 @@ func getFilterSection(filterParams models.GetEntriesFilterParams) string {
 			date := time.Now().AddDate(0, 0, -8)
 			return fmt.Sprintf("WHERE added > '%v-%v-%v' ", date.Year(), date.Month(), date.Day())
 		}
+		return ""
 	}
 
 	result := fmt.Sprintf("JOIN users u on u.id = l.userid WHERE u.username = '%s' ", filterParams.User)
@@ -82,23 +83,23 @@ var GetLeaderboardEntryID = func(table string, filterParams models.GetEntriesFil
 var GetLeaderboardEntry = func(table string, userID int) (LeaderboardEntry, error) {
 	statement := fmt.Sprintf("SELECT * FROM %s WHERE userId = $1;", table)
 	var entry LeaderboardEntry
-	err := Connection.QueryRow(statement, userID).Scan(&entry.ID, &entry.UserID, &entry.CountryCode, &entry.Score, &entry.Time)
+	err := Connection.QueryRow(statement, userID).Scan(&entry.ID, &entry.UserID, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added)
 	return entry, err
 }
 
 // InsertLeaderboardEntry inserts a new leaderboard entry into the countries_leaderboard table.
 var InsertLeaderboardEntry = func(table string, entry LeaderboardEntry) (int, error) {
-	statement := fmt.Sprintf("INSERT INTO %s (userId, countryCode, score, time) VALUES ($1, $2, $3, $4) RETURNING id;", table)
+	statement := fmt.Sprintf("INSERT INTO %s (userId, countryCode, score, time, added) VALUES ($1, $2, $3, $4, $5) RETURNING id;", table)
 	var id int
-	err := Connection.QueryRow(statement, entry.UserID, entry.CountryCode, entry.Score, entry.Time).Scan(&id)
+	err := Connection.QueryRow(statement, entry.UserID, entry.CountryCode, entry.Score, entry.Time, entry.Added).Scan(&id)
 	return id, err
 }
 
 // UpdateLeaderboardEntry updates an existing leaderboard entry.
 var UpdateLeaderboardEntry = func(table string, entry LeaderboardEntry) error {
-	statement := fmt.Sprintf("UPDATE %s set userId = $2, countryCode = $3, score = $4, time = $5 where id = $1 RETURNING id;", table)
+	statement := fmt.Sprintf("UPDATE %s set userId = $2, countryCode = $3, score = $4, time = $5, added = $6 where id = $1 RETURNING id;", table)
 	var id int
-	return Connection.QueryRow(statement, entry.ID, entry.UserID, entry.CountryCode, entry.Score, entry.Time).Scan(&id)
+	return Connection.QueryRow(statement, entry.ID, entry.UserID, entry.CountryCode, entry.Score, entry.Time, entry.Added).Scan(&id)
 }
 
 // DeleteLeaderboardEntry deletes a leaderboard entry.

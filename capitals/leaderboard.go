@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/database"
@@ -109,6 +110,7 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
+	newEntry.Added = time.Now()
 	id, err := database.InsertLeaderboardEntry(database.CapitalsTable, newEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
