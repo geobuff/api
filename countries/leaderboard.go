@@ -10,6 +10,7 @@ import (
 
 	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/database"
+	"github.com/geobuff/api/models"
 	"github.com/geobuff/api/permissions"
 	"github.com/geobuff/auth"
 	"github.com/gorilla/mux"
@@ -23,20 +24,26 @@ type EntriesDto struct {
 
 // GetEntries gets the leaderboard entries for a given page.
 func GetEntries(writer http.ResponseWriter, request *http.Request) {
-	pageParam := request.URL.Query().Get("page")
-	page, err := strconv.Atoi(pageParam)
+	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
-	entries, err := database.GetLeaderboardEntries(database.CountriesTable, 10, page*10)
+	var filterParams models.GetEntriesFilterParams
+	err = json.Unmarshal(requestBody, &filterParams)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	entries, err := database.GetLeaderboardEntries(database.CountriesTable, filterParams)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
-	switch _, err := database.GetLeaderboardEntryID(database.CountriesTable, 1, (page+1)*10); err {
+	switch _, err := database.GetLeaderboardEntryID(database.CountriesTable, filterParams); err {
 	case sql.ErrNoRows:
 		entriesDto := EntriesDto{entries, false}
 		writer.Header().Set("Content-Type", "application/json")
