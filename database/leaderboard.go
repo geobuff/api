@@ -15,6 +15,7 @@ type LeaderboardEntry struct {
 	Score       int       `json:"score"`
 	Time        int       `json:"time"`
 	Added       time.Time `json:"added"`
+	Ranking     int       `json:"ranking"`
 }
 
 const (
@@ -81,9 +82,9 @@ var GetLeaderboardEntryID = func(table string, filterParams models.GetEntriesFil
 
 // GetLeaderboardEntry returns the leaderboard entry with a given id.
 var GetLeaderboardEntry = func(table string, userID int) (LeaderboardEntry, error) {
-	statement := fmt.Sprintf("SELECT * FROM %s WHERE userId = $1;", table)
+	statement := fmt.Sprintf("SELECT * from (SELECT id, userid, countrycode, score, time, added, RANK () OVER (ORDER BY score desc, time) rank FROM %s) c WHERE c.userid = $1;", table)
 	var entry LeaderboardEntry
-	err := Connection.QueryRow(statement, userID).Scan(&entry.ID, &entry.UserID, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added)
+	err := Connection.QueryRow(statement, userID).Scan(&entry.ID, &entry.UserID, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added, &entry.Ranking)
 	return entry, err
 }
 

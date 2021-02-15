@@ -164,6 +164,7 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 	}
 
 	updatedEntry.ID = id
+	updatedEntry.Added = time.Now()
 	err = database.UpdateLeaderboardEntry(database.CapitalsTable, updatedEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
