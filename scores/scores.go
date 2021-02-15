@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/database"
@@ -85,6 +86,7 @@ var CreateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
+	score.Added = time.Now()
 	id, err := database.InsertScore(score)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
@@ -138,6 +140,7 @@ var UpdateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 	}
 
 	score.ID = id
+	score.Added = time.Now()
 	err = database.UpdateScore(score)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
