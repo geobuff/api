@@ -99,7 +99,6 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 	uv := auth.UserValidation{
 		Request:    request,
-		UserID:     newEntry.UserID,
 		Permission: permissions.WriteLeaderboard,
 		Identifier: config.Values.Auth0.Identifier,
 		Key:        user.Username,
@@ -152,7 +151,6 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 	uv := auth.UserValidation{
 		Request:    request,
-		UserID:     updatedEntry.UserID,
 		Permission: permissions.WriteLeaderboard,
 		Identifier: config.Values.Auth0.Identifier,
 		Key:        user.Username,
@@ -197,7 +195,6 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 	uv := auth.UserValidation{
 		Request:    request,
-		UserID:     entry.UserID,
 		Permission: permissions.WriteLeaderboard,
 		Identifier: config.Values.Auth0.Identifier,
 		Key:        user.Username,

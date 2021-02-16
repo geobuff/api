@@ -79,7 +79,6 @@ var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Re
 
 	uv := auth.UserValidation{
 		Request:    request,
-		UserID:     id,
 		Permission: permissions.ReadUsers,
 		Identifier: config.Values.Auth0.Identifier,
 		Key:        user.Username,
@@ -159,7 +158,6 @@ var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 
 	uv := auth.UserValidation{
 		Request:    request,
-		UserID:     id,
 		Permission: permissions.ReadUsers,
 		Identifier: config.Values.Auth0.Identifier,
 		Key:        user.Username,
