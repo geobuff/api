@@ -31,7 +31,6 @@ var GetScores = http.HandlerFunc(func(writer http.ResponseWriter, request *http.
 
 	uv := auth.UserValidation{
 		Request:    request,
-		UserID:     userID,
 		Permission: permissions.ReadScores,
 		Identifier: config.Values.Auth0.Identifier,
 		Key:        user.Username,
@@ -75,7 +74,6 @@ var CreateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 	uv := auth.UserValidation{
 		Request:    request,
-		UserID:     score.UserID,
 		Permission: permissions.WriteScores,
 		Identifier: config.Values.Auth0.Identifier,
 		Key:        user.Username,
@@ -128,7 +126,6 @@ var UpdateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 	uv := auth.UserValidation{
 		Request:    request,
-		UserID:     score.UserID,
 		Permission: permissions.WriteScores,
 		Identifier: config.Values.Auth0.Identifier,
 		Key:        user.Username,
@@ -173,7 +170,6 @@ var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 	uv := auth.UserValidation{
 		Request:    request,
-		UserID:     score.UserID,
 		Permission: permissions.WriteScores,
 		Identifier: config.Values.Auth0.Identifier,
 		Key:        user.Username,
