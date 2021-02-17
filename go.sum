@@ -9,6 +9,10 @@ github.com/geobuff/auth v0.0.0-20210216021009-c17008f750cb h1:y4I3l0xRz0njqbfFRG
 github.com/geobuff/auth v0.0.0-20210216021009-c17008f750cb/go.mod h1:uq3yofVePh7pxdDXEOe0CDQXzaiGq0NVo9B61eEDTMw=
 github.com/geobuff/auth v0.0.0-20210216204824-0455336ec658 h1:klxJ8P3e4yslWHU+h8sXUOzIUoFzwr/Kda7hC4vq0aw=
 github.com/geobuff/auth v0.0.0-20210216204824-0455336ec658/go.mod h1:uq3yofVePh7pxdDXEOe0CDQXzaiGq0NVo9B61eEDTMw=
+github.com/geobuff/auth v0.0.0-20210217003128-7498195ac281 h1:YYMvm7vCjfQuudK9QlutRXxvpbc8ZSAQTTEtCuIyLWY=
+github.com/geobuff/auth v0.0.0-20210217003128-7498195ac281/go.mod h1:uq3yofVePh7pxdDXEOe0CDQXzaiGq0NVo9B61eEDTMw=
+github.com/geobuff/auth v0.0.0-20210217010710-1dabfcfddd66 h1:AZVoCuWJ2y8lNQqv0mW3uoQBgNCYlz3RXWIh+hPWsVo=
+github.com/geobuff/auth v0.0.0-20210217010710-1dabfcfddd66/go.mod h1:uq3yofVePh7pxdDXEOe0CDQXzaiGq0NVo9B61eEDTMw=
 github.com/geobuff/mapping v0.0.0-20210120212647-20a1332431b5 h1:p2xqbkCTCad4FSY1tb94DCmEE5jko/pISoqFulRcqv0=
 github.com/geobuff/mapping v0.0.0-20210120212647-20a1332431b5/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
 github.com/go-martini/martini v0.0.0-20170121215854-22fa46961aab/go.mod h1:/P9AEU963A2AYjv4d1V5eVL1CQbEJq6aCNHDDjibzu8=
