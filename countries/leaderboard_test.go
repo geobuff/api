@@ -134,7 +134,7 @@ func TestGetEntry(t *testing.T) {
 
 	tt := []struct {
 		name                string
-		getLeaderboardEntry func(table string, userID int) (database.LeaderboardEntry, error)
+		getLeaderboardEntry func(table string, userID int) (database.LeaderboardEntryDto, error)
 		userID              string
 		status              int
 	}{
@@ -146,16 +146,16 @@ func TestGetEntry(t *testing.T) {
 		},
 		{
 			name: "valid userId, error on GetLeaderboardEntry",
-			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
-				return database.LeaderboardEntry{}, errors.New("test")
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntryDto, error) {
+				return database.LeaderboardEntryDto{}, errors.New("test")
 			},
 			userID: "1",
 			status: http.StatusInternalServerError,
 		},
 		{
 			name: "happy path",
-			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
-				return database.LeaderboardEntry{}, nil
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntryDto, error) {
+				return database.LeaderboardEntryDto{}, nil
 			},
 			userID: "1",
 			status: http.StatusOK,
@@ -460,7 +460,7 @@ func TestDeleteEntry(t *testing.T) {
 
 	tt := []struct {
 		name                   string
-		getLeaderboardEntry    func(table string, userID int) (database.LeaderboardEntry, error)
+		getLeaderboardEntry    func(table string, userID int) (database.LeaderboardEntryDto, error)
 		getUser                func(id int) (database.User, error)
 		validUser              func(uv auth.UserValidation) (int, error)
 		deleteLeaderboardEntry func(table string, entryID int) error
@@ -478,8 +478,8 @@ func TestDeleteEntry(t *testing.T) {
 		},
 		{
 			name: "valid id, error on GetLeaderboardEntry",
-			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
-				return database.LeaderboardEntry{}, errors.New("test")
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntryDto, error) {
+				return database.LeaderboardEntryDto{}, errors.New("test")
 			},
 			getUser:                func(id int) (database.User, error) { return user, nil },
 			validUser:              auth.ValidUser,
@@ -489,8 +489,8 @@ func TestDeleteEntry(t *testing.T) {
 		},
 		{
 			name: "valid id, entry found, error on GetUser",
-			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
-				return database.LeaderboardEntry{}, nil
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntryDto, error) {
+				return database.LeaderboardEntryDto{}, nil
 			},
 			getUser:                func(id int) (database.User, error) { return database.User{}, errors.New("test") },
 			validUser:              auth.ValidUser,
@@ -500,8 +500,8 @@ func TestDeleteEntry(t *testing.T) {
 		},
 		{
 			name: "valid id, entry found, invalid user",
-			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
-				return database.LeaderboardEntry{}, nil
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntryDto, error) {
+				return database.LeaderboardEntryDto{}, nil
 			},
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
@@ -513,8 +513,8 @@ func TestDeleteEntry(t *testing.T) {
 		},
 		{
 			name: "valid id, entry found, valid user, error on DeleteLeaderboardEntry",
-			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
-				return database.LeaderboardEntry{}, nil
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntryDto, error) {
+				return database.LeaderboardEntryDto{}, nil
 			},
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
@@ -526,8 +526,8 @@ func TestDeleteEntry(t *testing.T) {
 		},
 		{
 			name: "happy path",
-			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntry, error) {
-				return database.LeaderboardEntry{}, nil
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntryDto, error) {
+				return database.LeaderboardEntryDto{}, nil
 			},
 			getUser: func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {

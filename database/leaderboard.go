@@ -15,17 +15,18 @@ type LeaderboardEntry struct {
 	Score       int       `json:"score"`
 	Time        int       `json:"time"`
 	Added       time.Time `json:"added"`
-	Ranking     int       `json:"ranking"`
 }
 
-// LeaderboardEntryDto contains fields more specific to the leaderboard table.
+// LeaderboardEntryDto contains additional fields for display in the leaderboard table.
 type LeaderboardEntryDto struct {
-	ID          int    `json:"id"`
-	UserID      int    `json:"userId"`
-	Username    string `json:"username"`
-	CountryCode string `json:"countryCode"`
-	Score       int    `json:"score"`
-	Time        int    `json:"time"`
+	ID          int       `json:"id"`
+	UserID      int       `json:"userId"`
+	Username    string    `json:"username"`
+	CountryCode string    `json:"countryCode"`
+	Score       int       `json:"score"`
+	Time        int       `json:"time"`
+	Added       time.Time `json:"added"`
+	Ranking     int       `json:"ranking"`
 }
 
 const (
@@ -91,10 +92,10 @@ var GetLeaderboardEntryID = func(table string, filterParams models.GetEntriesFil
 }
 
 // GetLeaderboardEntry returns the leaderboard entry with a given id.
-var GetLeaderboardEntry = func(table string, userID int) (LeaderboardEntry, error) {
-	statement := fmt.Sprintf("SELECT * from (SELECT id, userid, countrycode, score, time, added, RANK () OVER (ORDER BY score desc, time) rank FROM %s) c WHERE c.userid = $1;", table)
-	var entry LeaderboardEntry
-	err := Connection.QueryRow(statement, userID).Scan(&entry.ID, &entry.UserID, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added, &entry.Ranking)
+var GetLeaderboardEntry = func(table string, userID int) (LeaderboardEntryDto, error) {
+	statement := fmt.Sprintf("SELECT * from (SELECT l.id, userid, u.username, countrycode, score, time, added, RANK () OVER (ORDER BY score desc, time) rank FROM %s l JOIN users u on u.id = l.userId) c WHERE c.userid = $1;", table)
+	var entry LeaderboardEntryDto
+	err := Connection.QueryRow(statement, userID).Scan(&entry.ID, &entry.UserID, &entry.Username, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added, &entry.Ranking)
 	return entry, err
 }
 
