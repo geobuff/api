@@ -70,7 +70,7 @@ func getFilterSection(filterParams models.GetEntriesFilterParams) string {
 		return ""
 	}
 
-	result := fmt.Sprintf("WHERE u.username = '%s' ", filterParams.User)
+	result := "WHERE u.username ILIKE '%" + filterParams.User + "%' "
 	switch filterParams.Range {
 	case "day":
 		date := time.Now().AddDate(0, 0, -1)
@@ -84,7 +84,7 @@ func getFilterSection(filterParams models.GetEntriesFilterParams) string {
 
 // GetLeaderboardEntryID returns the first ID for a given page.
 var GetLeaderboardEntryID = func(table string, filterParams models.GetEntriesFilterParams) (int, error) {
-	statement := fmt.Sprintf("SELECT l.id FROM %s l %s ORDER BY score DESC, time LIMIT 1 OFFSET $1;", table, getFilterSection(filterParams))
+	statement := fmt.Sprintf("SELECT l.id FROM %s l JOIN users u on u.id = l.userId %s ORDER BY score DESC, time LIMIT 1 OFFSET $1;", table, getFilterSection(filterParams))
 	var id int
 	err := Connection.QueryRow(statement, (filterParams.Page+1)*filterParams.Limit).Scan(&id)
 	return id, err
