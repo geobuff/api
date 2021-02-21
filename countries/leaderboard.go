@@ -19,8 +19,8 @@ import (
 
 // EntriesDto is used to display a paged result of leaderboard entries.
 type EntriesDto struct {
-	Entries []database.LeaderboardEntry `json:"entries"`
-	HasMore bool                        `json:"hasMore"`
+	Entries []database.LeaderboardEntryDto `json:"entries"`
+	HasMore bool                           `json:"hasMore"`
 }
 
 // GetEntries gets the leaderboard entries for a given page.
