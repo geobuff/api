@@ -28,7 +28,7 @@ func TestGetEntries(t *testing.T) {
 
 	tt := []struct {
 		name                           string
-		getCountriesLeaderboardEntries func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntry, error)
+		getCountriesLeaderboardEntries func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntryDto, error)
 		getLeaderboardEntryID          func(table string, filterParams models.GetEntriesFilterParams) (int, error)
 		body                           string
 		status                         int
@@ -44,7 +44,7 @@ func TestGetEntries(t *testing.T) {
 		},
 		{
 			name: "error on GetLeaderboardEntries",
-			getCountriesLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntry, error) {
+			getCountriesLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntryDto, error) {
 				return nil, errors.New("test")
 			},
 			getLeaderboardEntryID: database.GetLeaderboardEntryID,
@@ -54,8 +54,8 @@ func TestGetEntries(t *testing.T) {
 		},
 		{
 			name: "error on GetLeaderboardEntryID",
-			getCountriesLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntry, error) {
-				return []database.LeaderboardEntry{}, nil
+			getCountriesLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntryDto, error) {
+				return []database.LeaderboardEntryDto{}, nil
 			},
 			getLeaderboardEntryID: func(table string, filterParams models.GetEntriesFilterParams) (int, error) {
 				return 0, errors.New("test")
@@ -66,8 +66,8 @@ func TestGetEntries(t *testing.T) {
 		},
 		{
 			name: "happy path, has more is false",
-			getCountriesLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntry, error) {
-				return []database.LeaderboardEntry{}, nil
+			getCountriesLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntryDto, error) {
+				return []database.LeaderboardEntryDto{}, nil
 			},
 			getLeaderboardEntryID: func(table string, filterParams models.GetEntriesFilterParams) (int, error) { return 0, sql.ErrNoRows },
 			body:                  `{"page": 0, "limit": 10, "range": "", "user": ""}`,
@@ -76,8 +76,8 @@ func TestGetEntries(t *testing.T) {
 		},
 		{
 			name: "happy path, has more is true",
-			getCountriesLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntry, error) {
-				return []database.LeaderboardEntry{}, nil
+			getCountriesLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]database.LeaderboardEntryDto, error) {
+				return []database.LeaderboardEntryDto{}, nil
 			},
 			getLeaderboardEntryID: func(table string, filterParams models.GetEntriesFilterParams) (int, error) { return 1, nil },
 			body:                  `{"page": 0, "limit": 10, "range": "", "user": ""}`,

@@ -18,6 +18,16 @@ type LeaderboardEntry struct {
 	Ranking     int       `json:"ranking"`
 }
 
+// LeaderboardEntryDto contains fields more specific to the leaderboard table.
+type LeaderboardEntryDto struct {
+	ID          int    `json:"id"`
+	UserID      int    `json:"userId"`
+	Username    string `json:"username"`
+	CountryCode string `json:"countryCode"`
+	Score       int    `json:"score"`
+	Time        int    `json:"time"`
+}
+
 const (
 	// CountriesTable is the name of the countries leaderboard table in the database.
 	CountriesTable = "countries_leaderboard"
@@ -27,8 +37,8 @@ const (
 )
 
 // GetLeaderboardEntries returns a page of leaderboard entries.
-var GetLeaderboardEntries = func(table string, filterParams models.GetEntriesFilterParams) ([]LeaderboardEntry, error) {
-	query := fmt.Sprintf("SELECT l.id, userid, countrycode, score, time, added FROM %s l %s ORDER BY score DESC, time LIMIT $1 OFFSET $2;", table, getFilterSection(filterParams))
+var GetLeaderboardEntries = func(table string, filterParams models.GetEntriesFilterParams) ([]LeaderboardEntryDto, error) {
+	query := fmt.Sprintf("SELECT l.id, userid, u.username, countrycode, score, time FROM %s l JOIN users u on u.id = l.userid %s ORDER BY score DESC, time LIMIT $1 OFFSET $2;", table, getFilterSection(filterParams))
 
 	rows, err := Connection.Query(query, filterParams.Limit, filterParams.Page*filterParams.Limit)
 	if err != nil {
@@ -36,10 +46,10 @@ var GetLeaderboardEntries = func(table string, filterParams models.GetEntriesFil
 	}
 	defer rows.Close()
 
-	var entries = []LeaderboardEntry{}
+	var entries = []LeaderboardEntryDto{}
 	for rows.Next() {
-		var entry LeaderboardEntry
-		if err = rows.Scan(&entry.ID, &entry.UserID, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added); err != nil {
+		var entry LeaderboardEntryDto
+		if err = rows.Scan(&entry.ID, &entry.UserID, &entry.Username, &entry.CountryCode, &entry.Score, &entry.Time); err != nil {
 			return nil, err
 		}
 		entries = append(entries, entry)
@@ -60,7 +70,7 @@ func getFilterSection(filterParams models.GetEntriesFilterParams) string {
 		return ""
 	}
 
-	result := fmt.Sprintf("JOIN users u on u.id = l.userid WHERE u.username = '%s' ", filterParams.User)
+	result := fmt.Sprintf("WHERE u.username = '%s' ", filterParams.User)
 	switch filterParams.Range {
 	case "day":
 		date := time.Now().AddDate(0, 0, -1)
