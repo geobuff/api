@@ -145,7 +145,15 @@ func TestGetEntry(t *testing.T) {
 			status:              http.StatusBadRequest,
 		},
 		{
-			name: "valid userId, error on GetLeaderboardEntry",
+			name: "valid userId, no rows found",
+			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntryDto, error) {
+				return database.LeaderboardEntryDto{}, sql.ErrNoRows
+			},
+			userID: "1",
+			status: http.StatusNotFound,
+		},
+		{
+			name: "valid userId, unknown error on GetLeaderboardEntry",
 			getLeaderboardEntry: func(table string, userID int) (database.LeaderboardEntryDto, error) {
 				return database.LeaderboardEntryDto{}, errors.New("test")
 			},
