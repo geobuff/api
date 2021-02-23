@@ -66,14 +66,15 @@ func GetEntry(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	entry, err := database.GetLeaderboardEntry(database.CountriesTable, userID)
-	if err != nil {
+	switch entry, err := database.GetLeaderboardEntry(database.CountriesTable, userID); err {
+	case sql.ErrNoRows:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
+	case nil:
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(entry)
+	default:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
 	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(entry)
 }
 
 // CreateEntry creates a new leaderboard entry.
