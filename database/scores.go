@@ -31,11 +31,19 @@ var GetScores = func(userID int) ([]Score, error) {
 	return scores, rows.Err()
 }
 
-// GetScore return a score with the matching id.
+// GetScore returns a score with the matching id.
 var GetScore = func(id int) (Score, error) {
 	statement := "SELECT * FROM scores WHERE id = $1;"
 	var score Score
 	err := Connection.QueryRow(statement, id).Scan(&score.ID, &score.UserID, &score.QuizID, &score.Score, &score.Time, &score.Added)
+	return score, err
+}
+
+// GetUserScore returns a score matching a user and quiz ID.
+var GetUserScore = func(userID, quizID int) (Score, error) {
+	statement := "SELECT * FROM scores WHERE userid = $1 AND quizid = $2;"
+	var score Score
+	err := Connection.QueryRow(statement, userID, quizID).Scan(&score.ID, &score.UserID, &score.QuizID, &score.Score, &score.Time, &score.Added)
 	return score, err
 }
 

@@ -1,6 +1,7 @@
 package scores
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -49,6 +50,49 @@ var GetScores = http.HandlerFunc(func(writer http.ResponseWriter, request *http.
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(scores)
+})
+
+// GetScore gets a user's score for a particular quiz.
+var GetScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	quizID, err := strconv.Atoi(mux.Vars(request)["quizId"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	user, err := database.GetUser(userID)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	uv := auth.UserValidation{
+		Request:    request,
+		Permission: permissions.ReadScores,
+		Identifier: config.Values.Auth0.Identifier,
+		Key:        user.Username,
+	}
+
+	if code, err := auth.ValidUser(uv); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	switch score, err := database.GetUserScore(userID, quizID); err {
+	case sql.ErrNoRows:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
+	case nil:
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(score)
+	default:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+	}
 })
 
 // CreateScore creates a new score.
