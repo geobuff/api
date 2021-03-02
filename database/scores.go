@@ -50,6 +50,14 @@ var GetScore = func(id int) (ScoreDto, error) {
 	return score, err
 }
 
+// GetUserScore returns a score matching a user and quiz ID.
+var GetUserScore = func(userID, quizID int) (Score, error) {
+	statement := "SELECT * FROM scores WHERE userid = $1 AND quizid = $2;"
+	var score Score
+	err := Connection.QueryRow(statement, userID, quizID).Scan(&score.ID, &score.UserID, &score.QuizID, &score.Score, &score.Time, &score.Added)
+	return score, err
+}
+
 // InsertScore inserts a score entry into the scores table.
 var InsertScore = func(score Score) (int, error) {
 	statement := "INSERT INTO scores (userId, quizId, score, time, added) VALUES ($1, $2, $3, $4, $5) RETURNING id;"
