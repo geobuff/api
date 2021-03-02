@@ -12,18 +12,29 @@ type Score struct {
 	Added  time.Time `json:"added"`
 }
 
+// ScoreDto provides us with additional fields used in the user profile.
+type ScoreDto struct {
+	ID       int       `json:"id"`
+	UserID   int       `json:"userId"`
+	QuizID   int       `json:"quizId"`
+	QuizName string    `json:"quizName"`
+	Score    int       `json:"score"`
+	Time     int       `json:"time"`
+	Added    time.Time `json:"added"`
+}
+
 // GetScores returns all scores for a given user.
-var GetScores = func(userID int) ([]Score, error) {
-	rows, err := Connection.Query("SELECT * FROM scores WHERE userId = $1;", userID)
+var GetScores = func(userID int) ([]ScoreDto, error) {
+	rows, err := Connection.Query("SELECT s.id, s.userid, q.id, q.name, s.score, s.time, s.added FROM scores s JOIN quizzes q ON q.id = s.quizid WHERE userId = $1;", userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var scores = []Score{}
+	var scores = []ScoreDto{}
 	for rows.Next() {
-		var score Score
-		if err = rows.Scan(&score.ID, &score.UserID, &score.QuizID, &score.Score, &score.Time, &score.Added); err != nil {
+		var score ScoreDto
+		if err = rows.Scan(&score.ID, &score.UserID, &score.QuizID, &score.QuizName, &score.Score, &score.Time, &score.Added); err != nil {
 			return nil, err
 		}
 		scores = append(scores, score)
@@ -32,10 +43,10 @@ var GetScores = func(userID int) ([]Score, error) {
 }
 
 // GetScore return a score with the matching id.
-var GetScore = func(id int) (Score, error) {
-	statement := "SELECT * FROM scores WHERE id = $1;"
-	var score Score
-	err := Connection.QueryRow(statement, id).Scan(&score.ID, &score.UserID, &score.QuizID, &score.Score, &score.Time, &score.Added)
+var GetScore = func(id int) (ScoreDto, error) {
+	statement := "SELECT s.id, s.userid, q.id, q.name, s.score, s.time, s.added FROM scores s JOIN quizzes q ON q.id = s.quizid WHERE id = $1;"
+	var score ScoreDto
+	err := Connection.QueryRow(statement, id).Scan(&score.ID, &score.UserID, &score.QuizID, &score.QuizName, &score.Score, &score.Time, &score.Added)
 	return score, err
 }
 
