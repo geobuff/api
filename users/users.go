@@ -98,7 +98,7 @@ func GetUserID(writer http.ResponseWriter, request *http.Request) {
 	username := mux.Vars(request)["username"]
 	switch id, err := database.GetUserID(username); err {
 	case sql.ErrNoRows:
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
 	case nil:
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(id)
