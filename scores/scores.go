@@ -86,7 +86,7 @@ var GetScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 
 	switch score, err := database.GetUserScore(userID, quizID); err {
 	case sql.ErrNoRows:
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
 	case nil:
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(score)

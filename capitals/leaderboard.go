@@ -68,7 +68,7 @@ func GetEntry(writer http.ResponseWriter, request *http.Request) {
 
 	switch entry, err := database.GetLeaderboardEntry(database.CapitalsTable, userID); err {
 	case sql.ErrNoRows:
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNotFound)
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
 	case nil:
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entry)

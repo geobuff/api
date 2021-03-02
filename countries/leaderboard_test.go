@@ -150,7 +150,7 @@ func TestGetEntry(t *testing.T) {
 				return database.LeaderboardEntryDto{}, sql.ErrNoRows
 			},
 			userID: "1",
-			status: http.StatusNotFound,
+			status: http.StatusNoContent,
 		},
 		{
 			name: "valid userId, unknown error on GetLeaderboardEntry",

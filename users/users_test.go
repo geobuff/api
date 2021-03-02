@@ -261,7 +261,7 @@ func TestGetUserID(t *testing.T) {
 			name:      "error on GetUserID",
 			getUserID: func(username string) (int, error) { return 0, sql.ErrNoRows },
 			username:  "testing",
-			status:    http.StatusNotFound,
+			status:    http.StatusNoContent,
 		},
 		{
 			name:      "happy path",
