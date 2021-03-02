@@ -34,3 +34,11 @@ var GetQuiz = func(id int) (Quiz, error) {
 	err := Connection.QueryRow(statement, id).Scan(&quiz.ID, &quiz.Name, &quiz.MaxScore, &quiz.Enabled)
 	return quiz, err
 }
+
+// GetQuizID gets the quiz id based on name.
+func GetQuizID(name string) (int, error) {
+	statement := "SELECT id FROM quizzes WHERE name ILIKE '%" + name + "%';"
+	var id int
+	err := Connection.QueryRow(statement).Scan(&id)
+	return id, err
+}

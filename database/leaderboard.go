@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/geobuff/api/models"
@@ -22,6 +23,8 @@ type LeaderboardEntryDto struct {
 	ID          int       `json:"id"`
 	UserID      int       `json:"userId"`
 	Username    string    `json:"username"`
+	QuizID      int       `json:"quizId"`
+	QuizName    string    `json:"quizName"`
 	CountryCode string    `json:"countryCode"`
 	Score       int       `json:"score"`
 	Time        int       `json:"time"`
@@ -93,9 +96,15 @@ var GetLeaderboardEntryID = func(table string, filterParams models.GetEntriesFil
 
 // GetLeaderboardEntry returns the leaderboard entry with a given id.
 var GetLeaderboardEntry = func(table string, userID int) (LeaderboardEntryDto, error) {
-	statement := fmt.Sprintf("SELECT * from (SELECT l.id, userid, u.username, countrycode, score, time, added, RANK () OVER (ORDER BY score desc, time) rank FROM %s l JOIN users u on u.id = l.userId) c WHERE c.userid = $1;", table)
+	statement := fmt.Sprintf("SELECT * from (SELECT l.id, userid, u.username, q.id, q.name, countrycode, score, time, added, RANK () OVER (ORDER BY score desc, time) rank FROM %s l JOIN users u on u.id = l.userId JOIN quizzes q on q.id = $1) c WHERE c.userid = $2;", table)
 	var entry LeaderboardEntryDto
-	err := Connection.QueryRow(statement, userID).Scan(&entry.ID, &entry.UserID, &entry.Username, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added, &entry.Ranking)
+	name := strings.Split(table, "_")[0]
+	quizID, err := GetQuizID(name)
+	if err != nil {
+		return entry, err
+	}
+
+	err = Connection.QueryRow(statement, quizID, userID).Scan(&entry.ID, &entry.UserID, &entry.Username, &entry.QuizID, &entry.QuizName, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added, &entry.Ranking)
 	return entry, err
 }
 

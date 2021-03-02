@@ -36,7 +36,7 @@ func TestGetScores(t *testing.T) {
 		name      string
 		getUser   func(id int) (database.User, error)
 		validUser func(uv auth.UserValidation) (int, error)
-		getScores func(userID int) ([]database.Score, error)
+		getScores func(userID int) ([]database.ScoreDto, error)
 		userID    string
 		status    int
 	}{
@@ -72,7 +72,7 @@ func TestGetScores(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			getScores: func(userID int) ([]database.Score, error) { return nil, errors.New("test") },
+			getScores: func(userID int) ([]database.ScoreDto, error) { return nil, errors.New("test") },
 			userID:    "1",
 			status:    http.StatusInternalServerError,
 		},
@@ -82,7 +82,7 @@ func TestGetScores(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			getScores: func(userID int) ([]database.Score, error) { return []database.Score{}, nil },
+			getScores: func(userID int) ([]database.ScoreDto, error) { return []database.ScoreDto{}, nil },
 			userID:    "1",
 			status:    http.StatusOK,
 		},
@@ -389,7 +389,7 @@ func TestDeleteScore(t *testing.T) {
 
 	tt := []struct {
 		name        string
-		getScore    func(id int) (database.Score, error)
+		getScore    func(id int) (database.ScoreDto, error)
 		getUser     func(id int) (database.User, error)
 		validUser   func(uv auth.UserValidation) (int, error)
 		deleteScore func(scoreID int) error
@@ -407,7 +407,7 @@ func TestDeleteScore(t *testing.T) {
 		},
 		{
 			name:        "valid id, error on GetScore",
-			getScore:    func(id int) (database.Score, error) { return database.Score{}, errors.New("test") },
+			getScore:    func(id int) (database.ScoreDto, error) { return database.ScoreDto{}, errors.New("test") },
 			getUser:     func(id int) (database.User, error) { return user, nil },
 			validUser:   auth.ValidUser,
 			deleteScore: database.DeleteScore,
@@ -416,7 +416,7 @@ func TestDeleteScore(t *testing.T) {
 		},
 		{
 			name:        "valid id, error on GetUser",
-			getScore:    func(id int) (database.Score, error) { return database.Score{}, nil },
+			getScore:    func(id int) (database.ScoreDto, error) { return database.ScoreDto{}, nil },
 			getUser:     func(id int) (database.User, error) { return database.User{}, errors.New("test") },
 			validUser:   auth.ValidUser,
 			deleteScore: database.DeleteScore,
@@ -425,7 +425,7 @@ func TestDeleteScore(t *testing.T) {
 		},
 		{
 			name:     "valid id, score found, invalid user",
-			getScore: func(id int) (database.Score, error) { return database.Score{}, nil },
+			getScore: func(id int) (database.ScoreDto, error) { return database.ScoreDto{}, nil },
 			getUser:  func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
@@ -436,7 +436,7 @@ func TestDeleteScore(t *testing.T) {
 		},
 		{
 			name:     "valid id, score found, valid user, error on DeleteScore",
-			getScore: func(id int) (database.Score, error) { return database.Score{}, nil },
+			getScore: func(id int) (database.ScoreDto, error) { return database.ScoreDto{}, nil },
 			getUser:  func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
@@ -447,7 +447,7 @@ func TestDeleteScore(t *testing.T) {
 		},
 		{
 			name:     "happy path",
-			getScore: func(id int) (database.Score, error) { return database.Score{}, nil },
+			getScore: func(id int) (database.ScoreDto, error) { return database.ScoreDto{}, nil },
 			getUser:  func(id int) (database.User, error) { return user, nil },
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
