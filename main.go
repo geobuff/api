@@ -68,6 +68,7 @@ func router() http.Handler {
 
 	// Score endpoints.
 	router.Handle("/api/scores/{userId}", jwtMiddleware.Handler(scores.GetScores)).Methods("GET")
+	router.Handle("/api/scores/{userId}/{quizId}", jwtMiddleware.Handler(scores.GetScore)).Methods("GET")
 	router.Handle("/api/scores", jwtMiddleware.Handler(scores.CreateScore)).Methods("POST")
 	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.UpdateScore)).Methods("PUT")
 	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.DeleteScore)).Methods("DELETE")
