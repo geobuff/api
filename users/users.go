@@ -71,21 +71,21 @@ var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
-	user, err := database.GetUser(id)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
 	uv := auth.UserValidation{
 		Request:    request,
 		Permission: permissions.ReadUsers,
 		Identifier: config.Values.Auth0.Identifier,
-		Key:        user.Username,
+		Key:        fmt.Sprint(id),
 	}
 
 	if code, err := auth.ValidUser(uv); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	user, err := database.GetUser(id)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -150,21 +150,21 @@ var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 		return
 	}
 
-	user, err := database.GetUser(id)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
 	uv := auth.UserValidation{
 		Request:    request,
 		Permission: permissions.ReadUsers,
 		Identifier: config.Values.Auth0.Identifier,
-		Key:        user.Username,
+		Key:        fmt.Sprint(id),
 	}
 
 	if code, err := auth.ValidUser(uv); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	user, err := database.GetUser(id)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
