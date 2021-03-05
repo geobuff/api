@@ -4,6 +4,7 @@ package database
 type User struct {
 	ID       int    `json:"id"`
 	Username string `json:"username"`
+	XP       int    `json:"xp"`
 }
 
 // GetUsers returns a page of users.
@@ -17,7 +18,7 @@ var GetUsers = func(limit int, offset int) ([]User, error) {
 	var users = []User{}
 	for rows.Next() {
 		var user User
-		if err = rows.Scan(&user.ID, &user.Username); err != nil {
+		if err = rows.Scan(&user.ID, &user.Username, &user.XP); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -45,7 +46,7 @@ var GetUserID = func(username string) (int, error) {
 var GetUser = func(id int) (User, error) {
 	statement := "SELECT * FROM users WHERE id = $1;"
 	var user User
-	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.Username)
+	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.Username, &user.XP)
 	return user, err
 }
 
