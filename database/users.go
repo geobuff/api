@@ -2,8 +2,10 @@ package database
 
 // User is the database object for a user entry.
 type User struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
+	ID          int    `json:"id"`
+	Username    string `json:"username"`
+	CountryCode string `json:"countryCode"`
+	XP          int    `json:"xp"`
 }
 
 // GetUsers returns a page of users.
@@ -17,7 +19,7 @@ var GetUsers = func(limit int, offset int) ([]User, error) {
 	var users = []User{}
 	for rows.Next() {
 		var user User
-		if err = rows.Scan(&user.ID, &user.Username); err != nil {
+		if err = rows.Scan(&user.ID, &user.Username, &user.CountryCode, &user.XP); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -45,15 +47,15 @@ var GetUserID = func(username string) (int, error) {
 var GetUser = func(id int) (User, error) {
 	statement := "SELECT * FROM users WHERE id = $1;"
 	var user User
-	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.Username)
+	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.Username, &user.CountryCode, &user.XP)
 	return user, err
 }
 
 // InsertUser inserts a new user into the users table.
 var InsertUser = func(user User) (int, error) {
-	statement := "INSERT INTO users (username) VALUES ($1) RETURNING id;"
+	statement := "INSERT INTO users (username, countrycode, xp) VALUES ($1, $2, $3) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, user.Username).Scan(&id)
+	err := Connection.QueryRow(statement, user.Username, user.CountryCode, 0).Scan(&id)
 	return id, err
 }
 

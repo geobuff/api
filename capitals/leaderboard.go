@@ -92,17 +92,11 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	user, err := database.GetUser(newEntry.UserID)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
 	uv := auth.UserValidation{
 		Request:    request,
 		Permission: permissions.WriteLeaderboard,
 		Identifier: config.Values.Auth0.Identifier,
-		Key:        user.Username,
+		Key:        fmt.Sprint(newEntry.UserID),
 	}
 
 	if code, err := auth.ValidUser(uv); err != nil {
@@ -144,17 +138,11 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	user, err := database.GetUser(updatedEntry.UserID)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
 	uv := auth.UserValidation{
 		Request:    request,
 		Permission: permissions.WriteLeaderboard,
 		Identifier: config.Values.Auth0.Identifier,
-		Key:        user.Username,
+		Key:        fmt.Sprint(updatedEntry.UserID),
 	}
 
 	if code, err := auth.ValidUser(uv); err != nil {
@@ -188,17 +176,11 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	user, err := database.GetUser(entry.UserID)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
 	uv := auth.UserValidation{
 		Request:    request,
 		Permission: permissions.WriteLeaderboard,
 		Identifier: config.Values.Auth0.Identifier,
-		Key:        user.Username,
+		Key:        fmt.Sprint(entry.UserID),
 	}
 
 	if code, err := auth.ValidUser(uv); err != nil {

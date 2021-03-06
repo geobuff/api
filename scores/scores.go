@@ -24,17 +24,11 @@ var GetScores = http.HandlerFunc(func(writer http.ResponseWriter, request *http.
 		return
 	}
 
-	user, err := database.GetUser(userID)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
 	uv := auth.UserValidation{
 		Request:    request,
 		Permission: permissions.ReadScores,
 		Identifier: config.Values.Auth0.Identifier,
-		Key:        user.Username,
+		Key:        fmt.Sprint(userID),
 	}
 
 	if code, err := auth.ValidUser(uv); err != nil {
@@ -66,17 +60,11 @@ var GetScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 		return
 	}
 
-	user, err := database.GetUser(userID)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
 	uv := auth.UserValidation{
 		Request:    request,
 		Permission: permissions.ReadScores,
 		Identifier: config.Values.Auth0.Identifier,
-		Key:        user.Username,
+		Key:        fmt.Sprint(userID),
 	}
 
 	if code, err := auth.ValidUser(uv); err != nil {
@@ -110,17 +98,11 @@ var CreateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	user, err := database.GetUser(score.UserID)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
 	uv := auth.UserValidation{
 		Request:    request,
 		Permission: permissions.WriteScores,
 		Identifier: config.Values.Auth0.Identifier,
-		Key:        user.Username,
+		Key:        fmt.Sprint(score.UserID),
 	}
 
 	if code, err := auth.ValidUser(uv); err != nil {
@@ -162,17 +144,11 @@ var UpdateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	user, err := database.GetUser(score.UserID)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
 	uv := auth.UserValidation{
 		Request:    request,
 		Permission: permissions.WriteScores,
 		Identifier: config.Values.Auth0.Identifier,
-		Key:        user.Username,
+		Key:        fmt.Sprint(score.UserID),
 	}
 
 	if code, err := auth.ValidUser(uv); err != nil {
@@ -206,17 +182,11 @@ var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	user, err := database.GetUser(score.UserID)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
 	uv := auth.UserValidation{
 		Request:    request,
 		Permission: permissions.WriteScores,
 		Identifier: config.Values.Auth0.Identifier,
-		Key:        user.Username,
+		Key:        fmt.Sprint(score.UserID),
 	}
 
 	if code, err := auth.ValidUser(uv); err != nil {
