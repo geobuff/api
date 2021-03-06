@@ -59,6 +59,13 @@ var InsertUser = func(user User) (int, error) {
 	return id, err
 }
 
+// UpdateUser updates a user entry.
+var UpdateUser = func(user User) error {
+	statement := "UPDATE users set username = $2, countryCode = $3, xp = $4 WHERE id = $1 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, user.ID, user.Username, user.CountryCode, user.XP).Scan(&id)
+}
+
 // DeleteUser deletes a users scores, leaderboard entries and then the user entry in the users table.
 var DeleteUser = func(userID int) error {
 	scoresStatement := "DELETE FROM scores WHERE userId = $1;"
