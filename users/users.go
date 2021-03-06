@@ -142,6 +142,49 @@ func CreateUser(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(newUser)
 }
 
+// UpdateUser creates a new user entry.
+var UpdateUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(request)["id"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	uv := auth.UserValidation{
+		Request:    request,
+		Permission: permissions.WriteUsers,
+		Identifier: config.Values.Auth0.Identifier,
+		Key:        fmt.Sprint(id),
+	}
+
+	if code, err := auth.ValidUser(uv); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var updatedUser database.User
+	err = json.Unmarshal(requestBody, &updatedUser)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	updatedUser.ID = id
+	if err = database.UpdateUser(updatedUser); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(updatedUser)
+})
+
 // DeleteUser deletes an existing user entry.
 var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])

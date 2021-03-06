@@ -64,6 +64,7 @@ func router() http.Handler {
 	router.Handle("/api/users/{id}", jwtMiddleware.Handler(users.GetUser)).Methods("GET")
 	router.HandleFunc("/api/users/id/{username}", users.GetUserID).Methods("GET")
 	router.HandleFunc("/api/users", users.CreateUser).Methods("POST")
+	router.HandleFunc("/api/users/{id}", users.UpdateUser).Methods("PUT")
 	router.Handle("/api/users/{id}", jwtMiddleware.Handler(users.DeleteUser)).Methods("DELETE")
 
 	// Score endpoints.
