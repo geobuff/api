@@ -52,9 +52,9 @@ var GetUser = func(id int) (User, error) {
 
 // InsertUser inserts a new user into the users table.
 var InsertUser = func(user User) (int, error) {
-	statement := "INSERT INTO users (username) VALUES ($1) RETURNING id;"
+	statement := "INSERT INTO users (username, countrycode) VALUES ($1, $2) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, user.Username).Scan(&id)
+	err := Connection.QueryRow(statement, user.Username, user.CountryCode).Scan(&id)
 	return id, err
 }
 

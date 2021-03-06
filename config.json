@@ -1,17 +1,18 @@
 {
     "database": {
-        "host": "",
+        "host": "localhost",
         "port": 5432,
-        "user": "",
-        "password": "",
-        "name": ""
+        "user": "postgres",
+        "password": "06qEejFLI59sy",
+        "name": "countries"
     },
     "auth0": {
-        "audience": "",
-        "issuer": ""
+        "audience": "https://dev-geobuff-api.com",
+        "issuer": "https://dev-geobuff.au.auth0.com/",
+        "identifier": "http://geobuff.com/id"
     },
     "cors": {
-        "origins": [],
-        "methods": []
+        "origins": ["http://localhost:3000"],
+        "methods": ["GET", "POST"]
     }
 }
