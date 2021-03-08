@@ -95,7 +95,7 @@ var GetLeaderboardEntryID = func(table string, filterParams models.GetEntriesFil
 
 // GetLeaderboardEntry returns the leaderboard entry with a given id.
 var GetLeaderboardEntry = func(table string, userID int) (LeaderboardEntryDto, error) {
-	statement := fmt.Sprintf("SELECT * from (SELECT l.id, userid, u.username, q.id, q.name, u.countrycode, score, time, added, RANK () OVER (ORDER BY score desc, time) rank FROM %s l JOIN users u on u.id = l.userId JOIN quizzes q on q.id = $1) c WHERE c.userid = $2;", table)
+	statement := fmt.Sprintf("SELECT * from (SELECT l.id, userid, u.username, q.id, q.name, u.countrycode, score, l.time, added, RANK () OVER (ORDER BY score desc, l.time) rank FROM %s l JOIN users u on u.id = l.userId JOIN quizzes q on q.id = $1) c WHERE c.userid = $2;", table)
 	var entry LeaderboardEntryDto
 	name := strings.Split(table, "_")[0]
 	quizID, err := GetQuizID(name)
