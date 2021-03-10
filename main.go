@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/capitals"
 	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/countries"
@@ -62,10 +63,14 @@ func router() http.Handler {
 	// User endpoints.
 	router.Handle("/api/users", jwtMiddleware.Handler(users.GetUsers)).Methods("GET")
 	router.Handle("/api/users/{id}", jwtMiddleware.Handler(users.GetUser)).Methods("GET")
+	router.Handle("/api/users/badges/{id}", jwtMiddleware.Handler(users.GetUserBadges)).Methods("GET")
 	router.HandleFunc("/api/users/id/{username}", users.GetUserID).Methods("GET")
 	router.HandleFunc("/api/users", users.CreateUser).Methods("POST")
 	router.HandleFunc("/api/users/{id}", users.UpdateUser).Methods("PUT")
 	router.Handle("/api/users/{id}", jwtMiddleware.Handler(users.DeleteUser)).Methods("DELETE")
+
+	// Badge endpoints.
+	router.HandleFunc("/api/badges", badges.GetBadges).Methods("GET")
 
 	// Score endpoints.
 	router.Handle("/api/scores/{userId}", jwtMiddleware.Handler(scores.GetScores)).Methods("GET")
