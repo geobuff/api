@@ -1,4 +1,4 @@
-package capitals
+package mappings
 
 import (
 	"encoding/json"
@@ -9,16 +9,22 @@ import (
 	"testing"
 
 	"github.com/geobuff/mapping"
+	"github.com/gorilla/mux"
 )
 
-func TestGetCapitals(t *testing.T) {
+func TestGetMapping(t *testing.T) {
+	key := "countries"
 	request, err := http.NewRequest("GET", "", nil)
 	if err != nil {
 		t.Fatalf("could not create GET request: %v", err)
 	}
 
+	request = mux.SetURLVars(request, map[string]string{
+		"key": key,
+	})
+
 	writer := httptest.NewRecorder()
-	GetCapitals(writer, request)
+	GetMapping(writer, request)
 	result := writer.Result()
 	defer result.Body.Close()
 
@@ -34,10 +40,10 @@ func TestGetCapitals(t *testing.T) {
 	var parsed []mapping.Mapping
 	err = json.Unmarshal(body, &parsed)
 	if err != nil {
-		t.Fatalf("could not unmarshal response body: %v", err)
+		t.Errorf("could not unmarshal response body: %v", err)
 	}
 
-	if !reflect.DeepEqual(parsed, mapping.WorldCapitals) {
-		t.Fatalf("response body does not match expected map")
+	if !reflect.DeepEqual(parsed, mapping.Mappings[key]) {
+		t.Fatalf("response body does not match expected list of mappings")
 	}
 }
