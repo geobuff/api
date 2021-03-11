@@ -18,7 +18,8 @@ type Quiz struct {
 
 // GetQuizzes returns all quizzes.
 var GetQuizzes = func(filter string) ([]Quiz, error) {
-	rows, err := Connection.Query("SELECT * FROM quizzes WHERE name ILIKE '%" + filter + "%';")
+	statement := "SELECT * FROM quizzes WHERE name ILIKE '%' || $1 || '%';"
+	rows, err := Connection.Query(statement, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -45,8 +46,8 @@ var GetQuiz = func(id int) (Quiz, error) {
 
 // GetQuizID gets the quiz id based on name.
 func GetQuizID(name string) (int, error) {
-	statement := "SELECT id FROM quizzes WHERE name ILIKE '%" + name + "%';"
+	statement := "SELECT id FROM quizzes WHERE name ILIKE '%' || $1 || '%';"
 	var id int
-	err := Connection.QueryRow(statement).Scan(&id)
+	err := Connection.QueryRow(statement, name).Scan(&id)
 	return id, err
 }
