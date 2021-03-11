@@ -40,7 +40,7 @@ var GetQuizzes = func(filter string) ([]Quiz, error) {
 var GetQuiz = func(id int) (Quiz, error) {
 	statement := "SELECT * FROM quizzes WHERE id = $1;"
 	var quiz Quiz
-	err := Connection.QueryRow(statement, id).Scan(&quiz.ID, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasLeaderboard, &quiz.Enabled)
+	err := Connection.QueryRow(statement, id).Scan(&quiz.ID, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.Enabled)
 	return quiz, err
 }
 
