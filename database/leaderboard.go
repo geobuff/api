@@ -41,9 +41,9 @@ const (
 
 // GetLeaderboardEntries returns a page of leaderboard entries.
 var GetLeaderboardEntries = func(table string, filterParams models.GetEntriesFilterParams) ([]LeaderboardEntryDto, error) {
-	query := fmt.Sprintf("SELECT l.id, userid, u.username, u.countrycode, score, time FROM %s l JOIN users u on u.id = l.userid %s ORDER BY score DESC, time LIMIT $1 OFFSET $2;", table, getFilterSection(filterParams))
+	query := "SELECT l.id, userid, u.username, u.countrycode, score, time FROM " + table + " l JOIN users u on u.id = l.userid WHERE u.username ILIKE '%' || $1 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT $2 OFFSET $3;"
 
-	rows, err := Connection.Query(query, filterParams.Limit, filterParams.Page*filterParams.Limit)
+	rows, err := Connection.Query(query, filterParams.User, filterParams.Limit, filterParams.Page*filterParams.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -60,36 +60,24 @@ var GetLeaderboardEntries = func(table string, filterParams models.GetEntriesFil
 	return entries, rows.Err()
 }
 
-func getFilterSection(filterParams models.GetEntriesFilterParams) string {
-	if filterParams.User == "" {
-		switch filterParams.Range {
-		case "day":
-			date := time.Now().AddDate(0, 0, -1)
-			return fmt.Sprintf("WHERE added > '%v-%v-%v' ", date.Year(), date.Month(), date.Day())
-		case "week":
-			date := time.Now().AddDate(0, 0, -8)
-			return fmt.Sprintf("WHERE added > '%v-%v-%v' ", date.Year(), date.Month(), date.Day())
-		}
-		return ""
-	}
-
-	result := "WHERE u.username ILIKE '%" + filterParams.User + "%' "
-	switch filterParams.Range {
+func getRangeFilter(rangeFilter string) string {
+	switch rangeFilter {
 	case "day":
 		date := time.Now().AddDate(0, 0, -1)
-		return result + fmt.Sprintf("AND added > '%v-%v-%v' ", date.Year(), date.Month(), date.Day())
+		return fmt.Sprintf("AND added > '%v-%v-%v' ", date.Year(), date.Month(), date.Day())
 	case "week":
 		date := time.Now().AddDate(0, 0, -8)
-		return result + fmt.Sprintf("AND added > '%v-%v-%v' ", date.Year(), date.Month(), date.Day())
+		return fmt.Sprintf("AND added > '%v-%v-%v' ", date.Year(), date.Month(), date.Day())
+	default:
+		return ""
 	}
-	return result
 }
 
 // GetLeaderboardEntryID returns the first ID for a given page.
 var GetLeaderboardEntryID = func(table string, filterParams models.GetEntriesFilterParams) (int, error) {
-	statement := fmt.Sprintf("SELECT l.id FROM %s l JOIN users u on u.id = l.userId %s ORDER BY score DESC, time LIMIT 1 OFFSET $1;", table, getFilterSection(filterParams))
+	query := "SELECT l.id FROM " + table + " l JOIN users u on u.id = l.userid WHERE u.username ILIKE '%' || $1 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT 1 OFFSET $2;"
 	var id int
-	err := Connection.QueryRow(statement, (filterParams.Page+1)*filterParams.Limit).Scan(&id)
+	err := Connection.QueryRow(query, filterParams.User, (filterParams.Page+1)*filterParams.Limit).Scan(&id)
 	return id, err
 }
 
