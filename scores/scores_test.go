@@ -2,6 +2,7 @@ package scores
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -120,6 +121,124 @@ func TestGetScores(t *testing.T) {
 				}
 
 				var parsed []database.Score
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestGetScore(t *testing.T) {
+	savedValidUser := auth.ValidUser
+	savedGetUserScore := database.GetUserScore
+	savedConfigValues := config.Values
+
+	defer func() {
+		auth.ValidUser = savedValidUser
+		database.GetUserScore = savedGetUserScore
+		config.Values = savedConfigValues
+	}()
+
+	tt := []struct {
+		name         string
+		validUser    func(uv auth.UserValidation) (int, error)
+		getUserScore func(userID, quizID int) (database.Score, error)
+		userID       string
+		quizID       string
+		status       int
+	}{
+		{
+			name:         "invalid user id value",
+			validUser:    auth.ValidUser,
+			getUserScore: database.GetUserScore,
+			userID:       "testing",
+			quizID:       "1",
+			status:       http.StatusBadRequest,
+		},
+		{
+			name:         "valid id, invalid quiz id value",
+			validUser:    auth.ValidUser,
+			getUserScore: database.GetUserScore,
+			userID:       "1",
+			quizID:       "testing",
+			status:       http.StatusBadRequest,
+		},
+		{
+			name: "valid id's, invalid user",
+			validUser: func(uv auth.UserValidation) (int, error) {
+				return http.StatusUnauthorized, errors.New("test")
+			},
+			getUserScore: database.GetUserScore,
+			userID:       "1",
+			quizID:       "1",
+			status:       http.StatusUnauthorized,
+		},
+		{
+			name: "valid id's, valid user, error on GetUserScore",
+			validUser: func(uv auth.UserValidation) (int, error) {
+				return http.StatusOK, nil
+			},
+			getUserScore: func(userID, quizID int) (database.Score, error) { return database.Score{}, errors.New("test") },
+			userID:       "1",
+			quizID:       "1",
+			status:       http.StatusInternalServerError,
+		},
+		{
+			name: "valid id's, valid user, no rows on GetUserScore",
+			validUser: func(uv auth.UserValidation) (int, error) {
+				return http.StatusOK, nil
+			},
+			getUserScore: func(userID, quizID int) (database.Score, error) { return database.Score{}, sql.ErrNoRows },
+			userID:       "1",
+			quizID:       "1",
+			status:       http.StatusNoContent,
+		},
+		{
+			name: "happy path",
+			validUser: func(uv auth.UserValidation) (int, error) {
+				return http.StatusOK, nil
+			},
+			getUserScore: func(userID, quizID int) (database.Score, error) { return database.Score{}, nil },
+			userID:       "1",
+			quizID:       "1",
+			status:       http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			auth.ValidUser = tc.validUser
+			database.GetUserScore = tc.getUserScore
+			config.Values = &config.Config{}
+
+			request, err := http.NewRequest("GET", "", nil)
+			if err != nil {
+				t.Fatalf("could not create GET request: %v", err)
+			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"userId": tc.userID,
+				"quizId": tc.quizID,
+			})
+
+			writer := httptest.NewRecorder()
+			GetScore(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusOK {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.Score
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)

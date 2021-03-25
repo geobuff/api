@@ -9,7 +9,7 @@ type UserBadge struct {
 }
 
 // GetUserBadges gets all badge entries for a user.
-func GetUserBadges(userID int) ([]UserBadge, error) {
+var GetUserBadges = func(userID int) ([]UserBadge, error) {
 	query := "SELECT * FROM userbadges WHERE userId = $1;"
 	rows, err := Connection.Query(query, userID)
 	if err != nil {
