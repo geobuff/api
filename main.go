@@ -81,19 +81,19 @@ func router() http.Handler {
 	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.UpdateScore)).Methods("PUT")
 	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.DeleteScore)).Methods("DELETE")
 
-	// Countries endpoints.
-	router.HandleFunc("/api/countries/leaderboard/all", countries.GetEntries).Methods("POST")
-	router.HandleFunc("/api/countries/leaderboard/{userId}", countries.GetEntry).Methods("GET")
-	router.Handle("/api/countries/leaderboard", jwtMiddleware.Handler(countries.CreateEntry)).Methods("POST")
-	router.Handle("/api/countries/leaderboard/{id}", jwtMiddleware.Handler(countries.UpdateEntry)).Methods("PUT")
-	router.Handle("/api/countries/leaderboard/{id}", jwtMiddleware.Handler(countries.DeleteEntry)).Methods("DELETE")
+	// World Countries endpoints.
+	router.HandleFunc("/api/world-countries/leaderboard/all", countries.GetEntries).Methods("POST")
+	router.HandleFunc("/api/world-countries/leaderboard/{userId}", countries.GetEntry).Methods("GET")
+	router.Handle("/api/world-countries/leaderboard", jwtMiddleware.Handler(countries.CreateEntry)).Methods("POST")
+	router.Handle("/api/world-countries/leaderboard/{id}", jwtMiddleware.Handler(countries.UpdateEntry)).Methods("PUT")
+	router.Handle("/api/world-countries/leaderboard/{id}", jwtMiddleware.Handler(countries.DeleteEntry)).Methods("DELETE")
 
-	// Capitals endpoints.
-	router.HandleFunc("/api/capitals/leaderboard/all", capitals.GetEntries).Methods("POST")
-	router.HandleFunc("/api/capitals/leaderboard/{userId}", capitals.GetEntry).Methods("GET")
-	router.Handle("/api/capitals/leaderboard", jwtMiddleware.Handler(capitals.CreateEntry)).Methods("POST")
-	router.Handle("/api/capitals/leaderboard/{id}", jwtMiddleware.Handler(capitals.UpdateEntry)).Methods("PUT")
-	router.Handle("/api/capitals/leaderboard/{id}", jwtMiddleware.Handler(capitals.DeleteEntry)).Methods("DELETE")
+	// World Capitals endpoints.
+	router.HandleFunc("/api/world-capitals/leaderboard/all", capitals.GetEntries).Methods("POST")
+	router.HandleFunc("/api/world-capitals/leaderboard/{userId}", capitals.GetEntry).Methods("GET")
+	router.Handle("/api/world-capitals/leaderboard", jwtMiddleware.Handler(capitals.CreateEntry)).Methods("POST")
+	router.Handle("/api/world-capitals/leaderboard/{id}", jwtMiddleware.Handler(capitals.UpdateEntry)).Methods("PUT")
+	router.Handle("/api/world-capitals/leaderboard/{id}", jwtMiddleware.Handler(capitals.DeleteEntry)).Methods("DELETE")
 
 	return router
 }

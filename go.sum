@@ -29,6 +29,8 @@ github.com/geobuff/mapping v0.0.0-20210316005435-47a379597bc3 h1:KgL4J0jUy15BsSs
 github.com/geobuff/mapping v0.0.0-20210316005435-47a379597bc3/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
 github.com/geobuff/mapping v0.0.0-20210316023440-a1e0e154200c h1:behIPHq0woPzthz0IQJXg4by4gOi1qdqUQYOaYHgQuI=
 github.com/geobuff/mapping v0.0.0-20210316023440-a1e0e154200c/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
+github.com/geobuff/mapping v0.0.0-20210325040305-83c333cadcc7 h1:YuTZko/aQ5QmpkN2LOOCxGrHUYUlHkI7oe6UwTk0cQg=
+github.com/geobuff/mapping v0.0.0-20210325040305-83c333cadcc7/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
 github.com/go-martini/martini v0.0.0-20170121215854-22fa46961aab/go.mod h1:/P9AEU963A2AYjv4d1V5eVL1CQbEJq6aCNHDDjibzu8=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=

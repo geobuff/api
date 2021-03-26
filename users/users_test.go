@@ -143,65 +143,63 @@ func TestGetUsers(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	savedGetUser := database.GetUser
 	savedValidUser := auth.ValidUser
+	savedGetUser := database.GetUser
 	savedConfigValues := config.Values
 
 	defer func() {
-		database.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
+		database.GetUser = savedGetUser
 		config.Values = savedConfigValues
 	}()
 
-	user := database.User{
-		Username: "testing",
-	}
-
 	tt := []struct {
 		name      string
-		getUser   func(id int) (database.User, error)
 		validUser func(uv auth.UserValidation) (int, error)
+		getUser   func(id int) (database.User, error)
 		id        string
 		status    int
 	}{
 		{
 			name:      "invalid id",
-			getUser:   database.GetUser,
 			validUser: auth.ValidUser,
+			getUser:   database.GetUser,
 			id:        "testing",
 			status:    http.StatusBadRequest,
 		},
 		{
-			name:      "valid id, valid user, error on GetUser",
-			getUser:   func(id int) (database.User, error) { return database.User{}, errors.New("test") },
-			validUser: auth.ValidUser,
-			id:        "1",
-			status:    http.StatusInternalServerError,
-		},
-		{
-			name:    "valid id, invalid user",
-			getUser: func(id int) (database.User, error) { return user, nil },
+			name: "valid id, invalid user",
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
-			id:     "1",
-			status: http.StatusUnauthorized,
+			getUser: database.GetUser,
+			id:      "1",
+			status:  http.StatusUnauthorized,
 		},
 		{
-			name:    "happy path",
-			getUser: func(id int) (database.User, error) { return user, nil },
+			name: "valid id, valid user, error on GetUser",
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			id:     "1",
-			status: http.StatusOK,
+			getUser: func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			id:      "1",
+			status:  http.StatusInternalServerError,
+		},
+		{
+			name: "happy path",
+			validUser: func(uv auth.UserValidation) (int, error) {
+				return http.StatusOK, nil
+			},
+			getUser: func(id int) (database.User, error) { return database.User{}, nil },
+			id:      "1",
+			status:  http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			database.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
+			database.GetUser = tc.getUser
 			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("GET", "", nil)
@@ -300,6 +298,94 @@ func TestGetUserID(t *testing.T) {
 				}
 
 				var parsed int
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestGetUserBadges(t *testing.T) {
+	savedValidUser := auth.ValidUser
+	savedGetUserBadges := database.GetUserBadges
+	savedConfigValues := config.Values
+
+	defer func() {
+		auth.ValidUser = savedValidUser
+		database.GetUserBadges = savedGetUserBadges
+		config.Values = savedConfigValues
+	}()
+
+	tt := []struct {
+		name          string
+		validUser     func(uv auth.UserValidation) (int, error)
+		getUserBadges func(userID int) ([]database.UserBadge, error)
+		id            string
+		status        int
+	}{
+		{
+			name:          "invalid id",
+			validUser:     auth.ValidUser,
+			getUserBadges: database.GetUserBadges,
+			id:            "testing",
+			status:        http.StatusBadRequest,
+		},
+		{
+			name:          "valid id, invalid user",
+			validUser:     func(uv auth.UserValidation) (int, error) { return http.StatusUnauthorized, errors.New("Test") },
+			getUserBadges: database.GetUserBadges,
+			id:            "1",
+			status:        http.StatusUnauthorized,
+		},
+		{
+			name:          "valid user, error on GetUserBadges",
+			validUser:     func(uv auth.UserValidation) (int, error) { return http.StatusOK, nil },
+			getUserBadges: func(userID int) ([]database.UserBadge, error) { return nil, errors.New("Test") },
+			id:            "1",
+			status:        http.StatusInternalServerError,
+		},
+		{
+			name:          "happy path",
+			validUser:     func(uv auth.UserValidation) (int, error) { return http.StatusOK, nil },
+			getUserBadges: func(userID int) ([]database.UserBadge, error) { return []database.UserBadge{}, nil },
+			id:            "1",
+			status:        http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			auth.ValidUser = tc.validUser
+			database.GetUserBadges = tc.getUserBadges
+			config.Values = &config.Config{}
+
+			request, err := http.NewRequest("GET", "", nil)
+			if err != nil {
+				t.Fatalf("could not create GET request: %v", err)
+			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"id": tc.id,
+			})
+
+			writer := httptest.NewRecorder()
+			GetUserBadges(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusOK {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed []database.Badge
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
@@ -410,73 +496,172 @@ func TestCreateUser(t *testing.T) {
 	}
 }
 
-func TestDeleteUser(t *testing.T) {
-	savedGetUser := database.GetUser
+func TestUpdateUser(t *testing.T) {
 	savedValidUser := auth.ValidUser
+	savedUpdateUser := database.UpdateUser
+	savedConfigValues := config.Values
+
+	defer func() {
+		auth.ValidUser = savedValidUser
+		database.UpdateUser = savedUpdateUser
+		config.Values = savedConfigValues
+	}()
+
+	tt := []struct {
+		name       string
+		validUser  func(uv auth.UserValidation) (int, error)
+		updateUser func(user database.User) error
+		id         string
+		body       string
+		status     int
+	}{
+		{
+			name:       "invalid id",
+			validUser:  auth.ValidUser,
+			updateUser: database.UpdateUser,
+			id:         "testing",
+			body:       "",
+			status:     http.StatusBadRequest,
+		},
+		{
+			name:       "valid id, invalid user",
+			validUser:  func(uv auth.UserValidation) (int, error) { return http.StatusUnauthorized, errors.New("test") },
+			updateUser: database.UpdateUser,
+			id:         "1",
+			body:       "",
+			status:     http.StatusUnauthorized,
+		},
+		{
+			name:       "valid user, error on unmarshal",
+			validUser:  func(uv auth.UserValidation) (int, error) { return http.StatusOK, nil },
+			updateUser: database.UpdateUser,
+			id:         "1",
+			body:       "testing",
+			status:     http.StatusBadRequest,
+		},
+		{
+			name:       "valid user, valid body, error on UpdateUser",
+			validUser:  func(uv auth.UserValidation) (int, error) { return http.StatusOK, nil },
+			updateUser: func(user database.User) error { return errors.New("test") },
+			id:         "1",
+			body:       `{"username":"mrscrub"}`,
+			status:     http.StatusInternalServerError,
+		},
+		{
+			name:       "happy path",
+			validUser:  func(uv auth.UserValidation) (int, error) { return http.StatusOK, nil },
+			updateUser: func(user database.User) error { return nil },
+			id:         "1",
+			body:       `{"username":"mrscrub"}`,
+			status:     http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			auth.ValidUser = tc.validUser
+			database.UpdateUser = tc.updateUser
+			config.Values = &config.Config{}
+
+			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
+			if err != nil {
+				t.Fatalf("could not create PUT request: %v", err)
+			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"id": tc.id,
+			})
+
+			writer := httptest.NewRecorder()
+			UpdateUser(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusOK {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed database.User
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	savedValidUser := auth.ValidUser
+	savedGetUser := database.GetUser
 	savedDeleteUser := database.DeleteUser
 	savedConfigValues := config.Values
 
 	defer func() {
-		database.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
+		database.GetUser = savedGetUser
 		database.DeleteUser = savedDeleteUser
 		config.Values = savedConfigValues
 	}()
 
-	user := database.User{
-		Username: "testing",
-	}
-
 	tt := []struct {
 		name       string
-		getUser    func(id int) (database.User, error)
 		validUser  func(uv auth.UserValidation) (int, error)
+		getUser    func(id int) (database.User, error)
 		deleteUser func(id int) error
 		id         string
 		status     int
 	}{
 		{
 			name:       "invalid id",
-			getUser:    database.GetUser,
 			validUser:  auth.ValidUser,
+			getUser:    database.GetUser,
 			deleteUser: database.DeleteUser,
 			id:         "testing",
 			status:     http.StatusBadRequest,
 		},
 		{
-			name:       "valid id, error on GetUser",
-			getUser:    func(id int) (database.User, error) { return database.User{}, errors.New("test") },
-			validUser:  auth.ValidUser,
-			deleteUser: database.DeleteUser,
-			id:         "1",
-			status:     http.StatusInternalServerError,
-		},
-		{
-			name:    "valid id, invalid user",
-			getUser: func(id int) (database.User, error) { return user, nil },
+			name: "valid id, invalid user",
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
+			getUser:    database.GetUser,
 			deleteUser: database.DeleteUser,
 			id:         "1",
 			status:     http.StatusUnauthorized,
 		},
 		{
-			name:    "valid id, valid user, error on DeleteUser",
-			getUser: func(id int) (database.User, error) { return user, nil },
+			name: "valid user, error on GetUser",
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
+			getUser:    func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			deleteUser: database.DeleteUser,
+			id:         "1",
+			status:     http.StatusInternalServerError,
+		},
+		{
+			name: "valid id, valid user, error on DeleteUser",
+			validUser: func(uv auth.UserValidation) (int, error) {
+				return http.StatusOK, nil
+			},
+			getUser:    func(id int) (database.User, error) { return database.User{}, nil },
 			deleteUser: func(id int) error { return errors.New("test") },
 			id:         "1",
 			status:     http.StatusInternalServerError,
 		},
 		{
-			name:    "happy path",
-			getUser: func(id int) (database.User, error) { return user, nil },
+			name: "happy path",
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
+			getUser:    func(id int) (database.User, error) { return database.User{}, nil },
 			deleteUser: func(id int) error { return nil },
 			id:         "1",
 			status:     http.StatusOK,
