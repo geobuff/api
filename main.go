@@ -45,6 +45,7 @@ func handler(router http.Handler) http.Handler {
 	corsOptions := cors.New(cors.Options{
 		AllowedOrigins: config.Values.Cors.Origins,
 		AllowedMethods: config.Values.Cors.Methods,
+		AllowedHeaders: []string{"*"},
 		Debug:          true,
 	})
 
