@@ -14,18 +14,20 @@ type Score struct {
 
 // ScoreDto provides us with additional fields used in the user profile.
 type ScoreDto struct {
-	ID       int       `json:"id"`
-	UserID   int       `json:"userId"`
-	QuizID   int       `json:"quizId"`
-	QuizName string    `json:"quizName"`
-	Score    int       `json:"score"`
-	Time     int       `json:"time"`
-	Added    time.Time `json:"added"`
+	ID           int       `json:"id"`
+	UserID       int       `json:"userId"`
+	QuizID       int       `json:"quizId"`
+	QuizName     string    `json:"quizName"`
+	QuizImageUrl string    `json:"quizImageUrl"`
+	QuizMaxScore int       `json:"quizMaxScore"`
+	Score        int       `json:"score"`
+	Time         int       `json:"time"`
+	Added        time.Time `json:"added"`
 }
 
 // GetScores returns all scores for a given user.
 var GetScores = func(userID int) ([]ScoreDto, error) {
-	rows, err := Connection.Query("SELECT s.id, s.userid, q.id, q.name, s.score, s.time, s.added FROM scores s JOIN quizzes q ON q.id = s.quizid WHERE userId = $1;", userID)
+	rows, err := Connection.Query("SELECT s.id, s.userid, q.id, q.name, q.imageUrl, q.maxScore, s.score, s.time, s.added FROM scores s JOIN quizzes q ON q.id = s.quizid WHERE userId = $1;", userID)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +36,7 @@ var GetScores = func(userID int) ([]ScoreDto, error) {
 	var scores = []ScoreDto{}
 	for rows.Next() {
 		var score ScoreDto
-		if err = rows.Scan(&score.ID, &score.UserID, &score.QuizID, &score.QuizName, &score.Score, &score.Time, &score.Added); err != nil {
+		if err = rows.Scan(&score.ID, &score.UserID, &score.QuizID, &score.QuizName, &score.QuizImageUrl, &score.QuizMaxScore, &score.Score, &score.Time, &score.Added); err != nil {
 			return nil, err
 		}
 		scores = append(scores, score)
@@ -44,9 +46,9 @@ var GetScores = func(userID int) ([]ScoreDto, error) {
 
 // GetScore return a score with the matching id.
 var GetScore = func(id int) (ScoreDto, error) {
-	statement := "SELECT s.id, s.userid, q.id, q.name, s.score, s.time, s.added FROM scores s JOIN quizzes q ON q.id = s.quizid WHERE id = $1;"
+	statement := "SELECT s.id, s.userid, q.id, q.name, q.imageUrl, q.maxScore, s.score, s.time, s.added FROM scores s JOIN quizzes q ON q.id = s.quizid WHERE id = $1;"
 	var score ScoreDto
-	err := Connection.QueryRow(statement, id).Scan(&score.ID, &score.UserID, &score.QuizID, &score.QuizName, &score.Score, &score.Time, &score.Added)
+	err := Connection.QueryRow(statement, id).Scan(&score.ID, &score.UserID, &score.QuizID, &score.QuizName, &score.QuizImageUrl, &score.QuizMaxScore, &score.Score, &score.Time, &score.Added)
 	return score, err
 }
 
