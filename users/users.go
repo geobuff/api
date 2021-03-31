@@ -107,36 +107,6 @@ func GetUserID(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// GetUserBadges gets a user's badge entries.
-var GetUserBadges = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(request)["id"])
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
-	uv := auth.UserValidation{
-		Request:    request,
-		Permission: permissions.ReadUsers,
-		Identifier: config.Values.Auth0.Identifier,
-		Key:        fmt.Sprint(id),
-	}
-
-	if code, err := auth.ValidUser(uv); err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), code)
-		return
-	}
-
-	badges, err := database.GetUserBadges(id)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(badges)
-})
-
 // CreateUser creates a new user entry.
 func CreateUser(writer http.ResponseWriter, request *http.Request) {
 	if entry, err := database.GetKey("auth0"); err != nil {
