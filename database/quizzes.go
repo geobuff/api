@@ -3,6 +3,7 @@ package database
 // Quiz is the database object for a quiz entry.
 type Quiz struct {
 	ID             int    `json:"id"`
+	BadgeGroup     int    `json:"badgeGroup"`
 	Name           string `json:"name"`
 	MaxScore       int    `json:"maxScore"`
 	Time           int    `json:"time"`
@@ -29,7 +30,7 @@ var GetQuizzes = func(filter string) ([]Quiz, error) {
 	var quizzes = []Quiz{}
 	for rows.Next() {
 		var quiz Quiz
-		if err = rows.Scan(&quiz.ID, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled); err != nil {
+		if err = rows.Scan(&quiz.ID, &quiz.BadgeGroup, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled); err != nil {
 			return nil, err
 		}
 		quizzes = append(quizzes, quiz)
@@ -41,7 +42,7 @@ var GetQuizzes = func(filter string) ([]Quiz, error) {
 var GetQuiz = func(id int) (Quiz, error) {
 	statement := "SELECT * FROM quizzes WHERE id = $1;"
 	var quiz Quiz
-	err := Connection.QueryRow(statement, id).Scan(&quiz.ID, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
+	err := Connection.QueryRow(statement, id).Scan(&quiz.ID, &quiz.BadgeGroup, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
 	return quiz, err
 }
 
