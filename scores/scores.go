@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/geobuff/api/config"
-	"github.com/geobuff/api/database"
 	"github.com/geobuff/api/permissions"
+	"github.com/geobuff/api/repo"
 	"github.com/geobuff/auth"
 	"github.com/gorilla/mux"
 )
@@ -36,7 +36,7 @@ var GetScores = http.HandlerFunc(func(writer http.ResponseWriter, request *http.
 		return
 	}
 
-	scores, err := database.GetScores(userID)
+	scores, err := repo.GetScores(userID)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -72,7 +72,7 @@ var GetScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 		return
 	}
 
-	switch score, err := database.GetUserScore(userID, quizID); err {
+	switch score, err := repo.GetUserScore(userID, quizID); err {
 	case sql.ErrNoRows:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
 	case nil:
@@ -91,7 +91,7 @@ var CreateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	var score database.Score
+	var score repo.Score
 	err = json.Unmarshal(requestBody, &score)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -111,7 +111,7 @@ var CreateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 	}
 
 	score.Added = time.Now()
-	id, err := database.InsertScore(score)
+	id, err := repo.InsertScore(score)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -137,7 +137,7 @@ var UpdateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	var score database.Score
+	var score repo.Score
 	err = json.Unmarshal(requestBody, &score)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -158,7 +158,7 @@ var UpdateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 	score.ID = id
 	score.Added = time.Now()
-	err = database.UpdateScore(score)
+	err = repo.UpdateScore(score)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -176,7 +176,7 @@ var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	score, err := database.GetScore(id)
+	score, err := repo.GetScore(id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -194,7 +194,7 @@ var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	err = database.DeleteScore(id)
+	err = repo.DeleteScore(id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return

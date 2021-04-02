@@ -8,9 +8,9 @@ import (
 	"github.com/geobuff/api/capitals"
 	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/countries"
-	"github.com/geobuff/api/database"
 	"github.com/geobuff/api/mappings"
 	"github.com/geobuff/api/quizzes"
+	"github.com/geobuff/api/repo"
 	"github.com/geobuff/api/scores"
 	"github.com/geobuff/api/users"
 	"github.com/geobuff/auth"
@@ -28,13 +28,13 @@ func main() {
 		panic(err)
 	}
 
-	err = database.OpenConnection()
+	err = repo.OpenConnection()
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("successfully connected to database")
 
-	driver, err := postgres.WithInstance(database.Connection, &postgres.Config{})
+	driver, err := postgres.WithInstance(repo.Connection, &postgres.Config{})
 	m, err := migrate.NewWithDatabaseInstance("file://db/migrations", "postgres", driver)
 
 	if err != nil {

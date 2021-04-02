@@ -6,36 +6,36 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/geobuff/api/database"
+	"github.com/geobuff/api/repo"
 )
 
 func TestGetBadges(t *testing.T) {
-	savedGetBadges := database.GetBadges
+	savedGetBadges := repo.GetBadges
 
 	defer func() {
-		database.GetBadges = savedGetBadges
+		repo.GetBadges = savedGetBadges
 	}()
 
 	tt := []struct {
 		name      string
-		getBadges func() ([]database.Badge, error)
+		getBadges func() ([]repo.Badge, error)
 		status    int
 	}{
 		{
 			name:      "error on GetBadges",
-			getBadges: func() ([]database.Badge, error) { return nil, errors.New("Test") },
+			getBadges: func() ([]repo.Badge, error) { return nil, errors.New("Test") },
 			status:    http.StatusInternalServerError,
 		},
 		{
 			name:      "happy path",
-			getBadges: func() ([]database.Badge, error) { return []database.Badge{}, nil },
+			getBadges: func() ([]repo.Badge, error) { return []repo.Badge{}, nil },
 			status:    http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			database.GetBadges = tc.getBadges
+			repo.GetBadges = tc.getBadges
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {

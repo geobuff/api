@@ -1,4 +1,4 @@
-package database
+package repo
 
 // User is the database object for a user entry.
 type User struct {

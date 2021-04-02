@@ -12,26 +12,26 @@ import (
 	"testing"
 
 	"github.com/geobuff/api/config"
-	"github.com/geobuff/api/database"
+	"github.com/geobuff/api/repo"
 	"github.com/geobuff/auth"
 	"github.com/gorilla/mux"
 )
 
 func TestGetUsers(t *testing.T) {
 	savedHasPermission := auth.HasPermission
-	savedGetUsers := database.GetUsers
-	savedGetUserID := database.GetFirstID
+	savedGetUsers := repo.GetUsers
+	savedGetUserID := repo.GetFirstID
 
 	defer func() {
 		auth.HasPermission = savedHasPermission
-		database.GetUsers = savedGetUsers
-		database.GetFirstID = savedGetUserID
+		repo.GetUsers = savedGetUsers
+		repo.GetFirstID = savedGetUserID
 	}()
 
 	tt := []struct {
 		name          string
 		hasPermission func(up auth.UserPermission) (bool, error)
-		getUsers      func(limit int, offset int) ([]database.User, error)
+		getUsers      func(limit int, offset int) ([]repo.User, error)
 		getUserID     func(limit int, offset int) (int, error)
 		page          string
 		status        int
@@ -40,8 +40,8 @@ func TestGetUsers(t *testing.T) {
 		{
 			name:          "invalid page parameter",
 			hasPermission: auth.HasPermission,
-			getUsers:      database.GetUsers,
-			getUserID:     database.GetFirstID,
+			getUsers:      repo.GetUsers,
+			getUserID:     repo.GetFirstID,
 			page:          "testing",
 			status:        http.StatusBadRequest,
 			hasMore:       false,
@@ -49,8 +49,8 @@ func TestGetUsers(t *testing.T) {
 		{
 			name:          "valid page parameter, error on HasPermission",
 			hasPermission: auth.HasPermission,
-			getUsers:      database.GetUsers,
-			getUserID:     database.GetFirstID,
+			getUsers:      repo.GetUsers,
+			getUserID:     repo.GetFirstID,
 			page:          "0",
 			status:        http.StatusInternalServerError,
 			hasMore:       false,
@@ -58,8 +58,8 @@ func TestGetUsers(t *testing.T) {
 		{
 			name:          "valid page parameter, invalid permissions",
 			hasPermission: func(up auth.UserPermission) (bool, error) { return false, nil },
-			getUsers:      database.GetUsers,
-			getUserID:     database.GetFirstID,
+			getUsers:      repo.GetUsers,
+			getUserID:     repo.GetFirstID,
 			page:          "0",
 			status:        http.StatusUnauthorized,
 			hasMore:       false,
@@ -67,8 +67,8 @@ func TestGetUsers(t *testing.T) {
 		{
 			name:          "valid page parameter, valid permissions, error on GetUsers",
 			hasPermission: func(up auth.UserPermission) (bool, error) { return true, nil },
-			getUsers:      func(limit int, offset int) ([]database.User, error) { return nil, errors.New("test") },
-			getUserID:     database.GetFirstID,
+			getUsers:      func(limit int, offset int) ([]repo.User, error) { return nil, errors.New("test") },
+			getUserID:     repo.GetFirstID,
 			page:          "0",
 			status:        http.StatusInternalServerError,
 			hasMore:       false,
@@ -76,7 +76,7 @@ func TestGetUsers(t *testing.T) {
 		{
 			name:          "valid page parameter, valid permissions, error on GetUserID",
 			hasPermission: func(up auth.UserPermission) (bool, error) { return true, nil },
-			getUsers:      func(limit int, offset int) ([]database.User, error) { return []database.User{}, nil },
+			getUsers:      func(limit int, offset int) ([]repo.User, error) { return []repo.User{}, nil },
 			getUserID:     func(limit int, offset int) (int, error) { return 0, errors.New("test") },
 			page:          "0",
 			status:        http.StatusInternalServerError,
@@ -85,7 +85,7 @@ func TestGetUsers(t *testing.T) {
 		{
 			name:          "happy path, has more is false",
 			hasPermission: func(up auth.UserPermission) (bool, error) { return true, nil },
-			getUsers:      func(limit int, offset int) ([]database.User, error) { return []database.User{}, nil },
+			getUsers:      func(limit int, offset int) ([]repo.User, error) { return []repo.User{}, nil },
 			getUserID:     func(limit int, offset int) (int, error) { return 0, sql.ErrNoRows },
 			page:          "0",
 			status:        http.StatusOK,
@@ -94,7 +94,7 @@ func TestGetUsers(t *testing.T) {
 		{
 			name:          "happy path, has more is true",
 			hasPermission: func(up auth.UserPermission) (bool, error) { return true, nil },
-			getUsers:      func(limit int, offset int) ([]database.User, error) { return []database.User{}, nil },
+			getUsers:      func(limit int, offset int) ([]repo.User, error) { return []repo.User{}, nil },
 			getUserID:     func(limit int, offset int) (int, error) { return 1, nil },
 			page:          "0",
 			status:        http.StatusOK,
@@ -105,8 +105,8 @@ func TestGetUsers(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			auth.HasPermission = tc.hasPermission
-			database.GetUsers = tc.getUsers
-			database.GetFirstID = tc.getUserID
+			repo.GetUsers = tc.getUsers
+			repo.GetFirstID = tc.getUserID
 
 			request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/users?page=%v", tc.page), nil)
 			if err != nil {
@@ -144,26 +144,26 @@ func TestGetUsers(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	savedValidUser := auth.ValidUser
-	savedGetUser := database.GetUser
+	savedGetUser := repo.GetUser
 	savedConfigValues := config.Values
 
 	defer func() {
 		auth.ValidUser = savedValidUser
-		database.GetUser = savedGetUser
+		repo.GetUser = savedGetUser
 		config.Values = savedConfigValues
 	}()
 
 	tt := []struct {
 		name      string
 		validUser func(uv auth.UserValidation) (int, error)
-		getUser   func(id int) (database.User, error)
+		getUser   func(id int) (repo.User, error)
 		id        string
 		status    int
 	}{
 		{
 			name:      "invalid id",
 			validUser: auth.ValidUser,
-			getUser:   database.GetUser,
+			getUser:   repo.GetUser,
 			id:        "testing",
 			status:    http.StatusBadRequest,
 		},
@@ -172,7 +172,7 @@ func TestGetUser(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
-			getUser: database.GetUser,
+			getUser: repo.GetUser,
 			id:      "1",
 			status:  http.StatusUnauthorized,
 		},
@@ -181,7 +181,7 @@ func TestGetUser(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			getUser: func(id int) (database.User, error) { return database.User{}, errors.New("test") },
+			getUser: func(id int) (repo.User, error) { return repo.User{}, errors.New("test") },
 			id:      "1",
 			status:  http.StatusInternalServerError,
 		},
@@ -190,7 +190,7 @@ func TestGetUser(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			getUser: func(id int) (database.User, error) { return database.User{}, nil },
+			getUser: func(id int) (repo.User, error) { return repo.User{}, nil },
 			id:      "1",
 			status:  http.StatusOK,
 		},
@@ -199,7 +199,7 @@ func TestGetUser(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			auth.ValidUser = tc.validUser
-			database.GetUser = tc.getUser
+			repo.GetUser = tc.getUser
 			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("GET", "", nil)
@@ -226,7 +226,7 @@ func TestGetUser(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.User
+				var parsed repo.User
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
@@ -237,10 +237,10 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestGetUserID(t *testing.T) {
-	savedGetUserID := database.GetUserID
+	savedGetUserID := repo.GetUserID
 
 	defer func() {
-		database.GetUserID = savedGetUserID
+		repo.GetUserID = savedGetUserID
 	}()
 
 	tt := []struct {
@@ -271,7 +271,7 @@ func TestGetUserID(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			database.GetUserID = tc.getUserID
+			repo.GetUserID = tc.getUserID
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -308,15 +308,15 @@ func TestGetUserID(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
-	savedGetKey := database.GetKey
-	savedInsertUser := database.InsertUser
+	savedGetKey := repo.GetKey
+	savedInsertUser := repo.InsertUser
 
 	defer func() {
-		database.GetKey = savedGetKey
-		database.InsertUser = savedInsertUser
+		repo.GetKey = savedGetKey
+		repo.InsertUser = savedInsertUser
 	}()
 
-	key := database.Key{
+	key := repo.Key{
 		ID:   1,
 		Name: "valid key",
 		Key:  "testkey123",
@@ -324,48 +324,48 @@ func TestCreateUser(t *testing.T) {
 
 	tt := []struct {
 		name       string
-		getKey     func(name string) (database.Key, error)
-		insertUser func(user database.User) (int, error)
+		getKey     func(name string) (repo.Key, error)
+		insertUser func(user repo.User) (int, error)
 		key        string
 		body       string
 		status     int
 	}{
 		{
 			name:       "error on GetKey",
-			getKey:     func(name string) (database.Key, error) { return database.Key{}, errors.New("test") },
-			insertUser: database.InsertUser,
+			getKey:     func(name string) (repo.Key, error) { return repo.Key{}, errors.New("test") },
+			insertUser: repo.InsertUser,
 			key:        "testkey123",
 			body:       "",
 			status:     http.StatusInternalServerError,
 		},
 		{
 			name:       "invalid key",
-			getKey:     func(name string) (database.Key, error) { return key, nil },
-			insertUser: database.InsertUser,
+			getKey:     func(name string) (repo.Key, error) { return key, nil },
+			insertUser: repo.InsertUser,
 			key:        "password1",
 			body:       "",
 			status:     http.StatusUnauthorized,
 		},
 		{
 			name:       "valid key, invalid body",
-			getKey:     func(name string) (database.Key, error) { return key, nil },
-			insertUser: database.InsertUser,
+			getKey:     func(name string) (repo.Key, error) { return key, nil },
+			insertUser: repo.InsertUser,
 			key:        "testkey123",
 			body:       `testing`,
 			status:     http.StatusBadRequest,
 		},
 		{
 			name:       "valid key, valid body, error on InsertUser",
-			getKey:     func(name string) (database.Key, error) { return key, nil },
-			insertUser: func(user database.User) (int, error) { return 0, errors.New("test") },
+			getKey:     func(name string) (repo.Key, error) { return key, nil },
+			insertUser: func(user repo.User) (int, error) { return 0, errors.New("test") },
 			key:        "testkey123",
 			body:       `{"username":"mrscrub"}`,
 			status:     http.StatusInternalServerError,
 		},
 		{
 			name:       "happy path",
-			getKey:     func(name string) (database.Key, error) { return key, nil },
-			insertUser: func(user database.User) (int, error) { return 1, nil },
+			getKey:     func(name string) (repo.Key, error) { return key, nil },
+			insertUser: func(user repo.User) (int, error) { return 1, nil },
 			key:        "testkey123",
 			body:       `{"username":"mrscrub"}`,
 			status:     http.StatusCreated,
@@ -374,8 +374,8 @@ func TestCreateUser(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			database.GetKey = tc.getKey
-			database.InsertUser = tc.insertUser
+			repo.GetKey = tc.getKey
+			repo.InsertUser = tc.insertUser
 
 			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
@@ -398,7 +398,7 @@ func TestCreateUser(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.User
+				var parsed repo.User
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
@@ -410,19 +410,19 @@ func TestCreateUser(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	savedValidUser := auth.ValidUser
-	savedUpdateUser := database.UpdateUser
+	savedUpdateUser := repo.UpdateUser
 	savedConfigValues := config.Values
 
 	defer func() {
 		auth.ValidUser = savedValidUser
-		database.UpdateUser = savedUpdateUser
+		repo.UpdateUser = savedUpdateUser
 		config.Values = savedConfigValues
 	}()
 
 	tt := []struct {
 		name       string
 		validUser  func(uv auth.UserValidation) (int, error)
-		updateUser func(user database.User) error
+		updateUser func(user repo.User) error
 		id         string
 		body       string
 		status     int
@@ -430,7 +430,7 @@ func TestUpdateUser(t *testing.T) {
 		{
 			name:       "invalid id",
 			validUser:  auth.ValidUser,
-			updateUser: database.UpdateUser,
+			updateUser: repo.UpdateUser,
 			id:         "testing",
 			body:       "",
 			status:     http.StatusBadRequest,
@@ -438,7 +438,7 @@ func TestUpdateUser(t *testing.T) {
 		{
 			name:       "valid id, invalid user",
 			validUser:  func(uv auth.UserValidation) (int, error) { return http.StatusUnauthorized, errors.New("test") },
-			updateUser: database.UpdateUser,
+			updateUser: repo.UpdateUser,
 			id:         "1",
 			body:       "",
 			status:     http.StatusUnauthorized,
@@ -446,7 +446,7 @@ func TestUpdateUser(t *testing.T) {
 		{
 			name:       "valid user, error on unmarshal",
 			validUser:  func(uv auth.UserValidation) (int, error) { return http.StatusOK, nil },
-			updateUser: database.UpdateUser,
+			updateUser: repo.UpdateUser,
 			id:         "1",
 			body:       "testing",
 			status:     http.StatusBadRequest,
@@ -454,7 +454,7 @@ func TestUpdateUser(t *testing.T) {
 		{
 			name:       "valid user, valid body, error on UpdateUser",
 			validUser:  func(uv auth.UserValidation) (int, error) { return http.StatusOK, nil },
-			updateUser: func(user database.User) error { return errors.New("test") },
+			updateUser: func(user repo.User) error { return errors.New("test") },
 			id:         "1",
 			body:       `{"username":"mrscrub"}`,
 			status:     http.StatusInternalServerError,
@@ -462,7 +462,7 @@ func TestUpdateUser(t *testing.T) {
 		{
 			name:       "happy path",
 			validUser:  func(uv auth.UserValidation) (int, error) { return http.StatusOK, nil },
-			updateUser: func(user database.User) error { return nil },
+			updateUser: func(user repo.User) error { return nil },
 			id:         "1",
 			body:       `{"username":"mrscrub"}`,
 			status:     http.StatusOK,
@@ -472,7 +472,7 @@ func TestUpdateUser(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			auth.ValidUser = tc.validUser
-			database.UpdateUser = tc.updateUser
+			repo.UpdateUser = tc.updateUser
 			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
@@ -499,7 +499,7 @@ func TestUpdateUser(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.User
+				var parsed repo.User
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
@@ -511,21 +511,21 @@ func TestUpdateUser(t *testing.T) {
 
 func TestDeleteUser(t *testing.T) {
 	savedValidUser := auth.ValidUser
-	savedGetUser := database.GetUser
-	savedDeleteUser := database.DeleteUser
+	savedGetUser := repo.GetUser
+	savedDeleteUser := repo.DeleteUser
 	savedConfigValues := config.Values
 
 	defer func() {
 		auth.ValidUser = savedValidUser
-		database.GetUser = savedGetUser
-		database.DeleteUser = savedDeleteUser
+		repo.GetUser = savedGetUser
+		repo.DeleteUser = savedDeleteUser
 		config.Values = savedConfigValues
 	}()
 
 	tt := []struct {
 		name       string
 		validUser  func(uv auth.UserValidation) (int, error)
-		getUser    func(id int) (database.User, error)
+		getUser    func(id int) (repo.User, error)
 		deleteUser func(id int) error
 		id         string
 		status     int
@@ -533,8 +533,8 @@ func TestDeleteUser(t *testing.T) {
 		{
 			name:       "invalid id",
 			validUser:  auth.ValidUser,
-			getUser:    database.GetUser,
-			deleteUser: database.DeleteUser,
+			getUser:    repo.GetUser,
+			deleteUser: repo.DeleteUser,
 			id:         "testing",
 			status:     http.StatusBadRequest,
 		},
@@ -543,8 +543,8 @@ func TestDeleteUser(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
-			getUser:    database.GetUser,
-			deleteUser: database.DeleteUser,
+			getUser:    repo.GetUser,
+			deleteUser: repo.DeleteUser,
 			id:         "1",
 			status:     http.StatusUnauthorized,
 		},
@@ -553,8 +553,8 @@ func TestDeleteUser(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			getUser:    func(id int) (database.User, error) { return database.User{}, errors.New("test") },
-			deleteUser: database.DeleteUser,
+			getUser:    func(id int) (repo.User, error) { return repo.User{}, errors.New("test") },
+			deleteUser: repo.DeleteUser,
 			id:         "1",
 			status:     http.StatusInternalServerError,
 		},
@@ -563,7 +563,7 @@ func TestDeleteUser(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			getUser:    func(id int) (database.User, error) { return database.User{}, nil },
+			getUser:    func(id int) (repo.User, error) { return repo.User{}, nil },
 			deleteUser: func(id int) error { return errors.New("test") },
 			id:         "1",
 			status:     http.StatusInternalServerError,
@@ -573,7 +573,7 @@ func TestDeleteUser(t *testing.T) {
 			validUser: func(uv auth.UserValidation) (int, error) {
 				return http.StatusOK, nil
 			},
-			getUser:    func(id int) (database.User, error) { return database.User{}, nil },
+			getUser:    func(id int) (repo.User, error) { return repo.User{}, nil },
 			deleteUser: func(id int) error { return nil },
 			id:         "1",
 			status:     http.StatusOK,
@@ -582,9 +582,9 @@ func TestDeleteUser(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			database.GetUser = tc.getUser
+			repo.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
-			database.DeleteUser = tc.deleteUser
+			repo.DeleteUser = tc.deleteUser
 			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("DELETE", "", nil)
@@ -611,7 +611,7 @@ func TestDeleteUser(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.User
+				var parsed repo.User
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)

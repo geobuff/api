@@ -5,17 +5,17 @@ import (
 	"testing"
 
 	"github.com/geobuff/api/config"
-	"github.com/geobuff/api/database"
+	"github.com/geobuff/api/repo"
 )
 
 func TestMain(t *testing.T) {
 	savedLoad := config.Load
-	savedOpenConnection := database.OpenConnection
+	savedOpenConnection := repo.OpenConnection
 	savedServe := serve
 
 	defer func() {
 		config.Load = savedLoad
-		database.OpenConnection = savedOpenConnection
+		repo.OpenConnection = savedOpenConnection
 		serve = savedServe
 	}()
 
@@ -28,11 +28,11 @@ func TestMain(t *testing.T) {
 		{
 			name:           "error on config.Load",
 			load:           func(fileName string) error { return errors.New("test") },
-			openConnection: database.OpenConnection,
+			openConnection: repo.OpenConnection,
 			serve:          serve,
 		},
 		{
-			name:           "error on database.OpenConnection",
+			name:           "error on repo.OpenConnection",
 			load:           func(fileName string) error { return nil },
 			openConnection: func() error { return errors.New("test") },
 			serve:          serve,
@@ -48,7 +48,7 @@ func TestMain(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			config.Load = tc.load
-			database.OpenConnection = tc.openConnection
+			repo.OpenConnection = tc.openConnection
 			serve = tc.serve
 
 			defer func() {
