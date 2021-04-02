@@ -14,6 +14,9 @@ import (
 	"github.com/geobuff/api/scores"
 	"github.com/geobuff/api/users"
 	"github.com/geobuff/auth"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"github.com/rs/cors"
@@ -29,7 +32,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Successfully connected to database!")
+	fmt.Println("successfully connected to database")
+
+	driver, err := postgres.WithInstance(database.Connection, &postgres.Config{})
+	m, err := migrate.NewWithDatabaseInstance("file://db/migrations", "postgres", driver)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		panic(err)
+	}
+	fmt.Println("successfully ran database migrations")
 
 	err = serve()
 	if err != nil {
