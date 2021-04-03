@@ -1,4 +1,4 @@
-package database
+package repo
 
 // Key is the database object for a key entry.
 type Key struct {

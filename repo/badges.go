@@ -1,4 +1,4 @@
-package database
+package repo
 
 // Badge is the database object for a badge entry.
 type Badge struct {

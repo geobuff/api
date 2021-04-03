@@ -8,37 +8,37 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/geobuff/api/database"
+	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
 )
 
 func TestGetQuizzes(t *testing.T) {
-	savedGetQuizzes := database.GetQuizzes
+	savedGetQuizzes := repo.GetQuizzes
 
 	defer func() {
-		database.GetQuizzes = savedGetQuizzes
+		repo.GetQuizzes = savedGetQuizzes
 	}()
 
 	tt := []struct {
 		Name       string
-		getQuizzes func(filter string) ([]database.Quiz, error)
+		getQuizzes func(filter string) ([]repo.Quiz, error)
 		status     int
 	}{
 		{
 			Name:       "error on getQuizzes",
-			getQuizzes: func(filter string) ([]database.Quiz, error) { return nil, errors.New("test") },
+			getQuizzes: func(filter string) ([]repo.Quiz, error) { return nil, errors.New("test") },
 			status:     http.StatusInternalServerError,
 		},
 		{
 			Name:       "happy path",
-			getQuizzes: func(filter string) ([]database.Quiz, error) { return []database.Quiz{}, nil },
+			getQuizzes: func(filter string) ([]repo.Quiz, error) { return []repo.Quiz{}, nil },
 			status:     http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			database.GetQuizzes = tc.getQuizzes
+			repo.GetQuizzes = tc.getQuizzes
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -60,7 +60,7 @@ func TestGetQuizzes(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed []database.Quiz
+				var parsed []repo.Quiz
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
@@ -71,41 +71,41 @@ func TestGetQuizzes(t *testing.T) {
 }
 
 func TestGetQuiz(t *testing.T) {
-	savedGetQuiz := database.GetQuiz
+	savedGetQuiz := repo.GetQuiz
 
 	defer func() {
-		database.GetQuiz = savedGetQuiz
+		repo.GetQuiz = savedGetQuiz
 	}()
 
 	tt := []struct {
 		Name    string
-		getQuiz func(id int) (database.Quiz, error)
+		getQuiz func(id int) (repo.Quiz, error)
 		id      string
 		status  int
 	}{
 		{
 			Name:    "invalid id",
 			id:      "testing",
-			getQuiz: database.GetQuiz,
+			getQuiz: repo.GetQuiz,
 			status:  http.StatusBadRequest,
 		},
 		{
 			Name:    "valid id, error on getQuizzes",
 			id:      "1",
-			getQuiz: func(id int) (database.Quiz, error) { return database.Quiz{}, errors.New("test") },
+			getQuiz: func(id int) (repo.Quiz, error) { return repo.Quiz{}, errors.New("test") },
 			status:  http.StatusInternalServerError,
 		},
 		{
 			Name:    "happy path",
 			id:      "1",
-			getQuiz: func(id int) (database.Quiz, error) { return database.Quiz{}, nil },
+			getQuiz: func(id int) (repo.Quiz, error) { return repo.Quiz{}, nil },
 			status:  http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			database.GetQuiz = tc.getQuiz
+			repo.GetQuiz = tc.getQuiz
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -131,7 +131,7 @@ func TestGetQuiz(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed database.Quiz
+				var parsed repo.Quiz
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)

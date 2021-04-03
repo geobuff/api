@@ -10,17 +10,17 @@ import (
 	"time"
 
 	"github.com/geobuff/api/config"
-	"github.com/geobuff/api/database"
 	"github.com/geobuff/api/models"
 	"github.com/geobuff/api/permissions"
+	"github.com/geobuff/api/repo"
 	"github.com/geobuff/auth"
 	"github.com/gorilla/mux"
 )
 
 // EntriesDto is used to display a paged result of leaderboard entries.
 type EntriesDto struct {
-	Entries []database.LeaderboardEntryDto `json:"entries"`
-	HasMore bool                           `json:"hasMore"`
+	Entries []repo.LeaderboardEntryDto `json:"entries"`
+	HasMore bool                       `json:"hasMore"`
 }
 
 // GetEntries gets the leaderboard entries for a given page.
@@ -38,13 +38,13 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	entries, err := database.GetLeaderboardEntries(database.CapitalsTable, filterParams)
+	entries, err := repo.GetLeaderboardEntries(repo.CapitalsTable, filterParams)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
-	switch _, err := database.GetLeaderboardEntryID(database.CapitalsTable, filterParams); err {
+	switch _, err := repo.GetLeaderboardEntryID(repo.CapitalsTable, filterParams); err {
 	case sql.ErrNoRows:
 		entriesDto := EntriesDto{entries, false}
 		writer.Header().Set("Content-Type", "application/json")
@@ -66,7 +66,7 @@ func GetEntry(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	switch entry, err := database.GetLeaderboardEntry(database.CapitalsTable, userID); err {
+	switch entry, err := repo.GetLeaderboardEntry(repo.CapitalsTable, userID); err {
 	case sql.ErrNoRows:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
 	case nil:
@@ -85,7 +85,7 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	var newEntry database.LeaderboardEntry
+	var newEntry repo.LeaderboardEntry
 	err = json.Unmarshal(requestBody, &newEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -105,7 +105,7 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 	}
 
 	newEntry.Added = time.Now()
-	id, err := database.InsertLeaderboardEntry(database.CapitalsTable, newEntry)
+	id, err := repo.InsertLeaderboardEntry(repo.CapitalsTable, newEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -131,7 +131,7 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	var updatedEntry database.LeaderboardEntry
+	var updatedEntry repo.LeaderboardEntry
 	err = json.Unmarshal(requestBody, &updatedEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -152,7 +152,7 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 	updatedEntry.ID = id
 	updatedEntry.Added = time.Now()
-	err = database.UpdateLeaderboardEntry(database.CapitalsTable, updatedEntry)
+	err = repo.UpdateLeaderboardEntry(repo.CapitalsTable, updatedEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -170,7 +170,7 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	entry, err := database.GetLeaderboardEntry(database.CapitalsTable, id)
+	entry, err := repo.GetLeaderboardEntry(repo.CapitalsTable, id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -188,7 +188,7 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	err = database.DeleteLeaderboardEntry(database.CapitalsTable, entry.ID)
+	err = repo.DeleteLeaderboardEntry(repo.CapitalsTable, entry.ID)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return

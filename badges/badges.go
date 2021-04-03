@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/geobuff/api/database"
+	"github.com/geobuff/api/repo"
 )
 
 // GetBadges returns all badges.
 func GetBadges(writer http.ResponseWriter, request *http.Request) {
-	badges, err := database.GetBadges()
+	badges, err := repo.GetBadges()
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return

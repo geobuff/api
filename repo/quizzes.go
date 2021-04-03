@@ -1,4 +1,4 @@
-package database
+package repo
 
 // Quiz is the database object for a quiz entry.
 type Quiz struct {

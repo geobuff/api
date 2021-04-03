@@ -9,16 +9,16 @@ import (
 	"strconv"
 
 	"github.com/geobuff/api/config"
-	"github.com/geobuff/api/database"
 	"github.com/geobuff/api/permissions"
+	"github.com/geobuff/api/repo"
 	"github.com/geobuff/auth"
 	"github.com/gorilla/mux"
 )
 
 // PageDto is used to display a paged result of user entries.
 type PageDto struct {
-	Users   []database.User `json:"users"`
-	HasMore bool            `json:"hasMore"`
+	Users   []repo.User `json:"users"`
+	HasMore bool        `json:"hasMore"`
 }
 
 // GetUsers gets the user entries for a given page.
@@ -43,13 +43,13 @@ var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 		return
 	}
 
-	users, err := database.GetUsers(10, page*10)
+	users, err := repo.GetUsers(10, page*10)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
-	switch _, err := database.GetFirstID(1, (page+1)*10); err {
+	switch _, err := repo.GetFirstID(1, (page+1)*10); err {
 	case sql.ErrNoRows:
 		entriesDto := PageDto{users, false}
 		writer.Header().Set("Content-Type", "application/json")
@@ -83,7 +83,7 @@ var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
-	user, err := database.GetUser(id)
+	user, err := repo.GetUser(id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -96,7 +96,7 @@ var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Re
 // GetUserID gets a user's id by username.
 func GetUserID(writer http.ResponseWriter, request *http.Request) {
 	username := mux.Vars(request)["username"]
-	switch id, err := database.GetUserID(username); err {
+	switch id, err := repo.GetUserID(username); err {
 	case sql.ErrNoRows:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
 	case nil:
@@ -109,7 +109,7 @@ func GetUserID(writer http.ResponseWriter, request *http.Request) {
 
 // CreateUser creates a new user entry.
 func CreateUser(writer http.ResponseWriter, request *http.Request) {
-	if entry, err := database.GetKey("auth0"); err != nil {
+	if entry, err := repo.GetKey("auth0"); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	} else if entry.Key != request.Header.Get("x-api-key") {
@@ -123,14 +123,14 @@ func CreateUser(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var newUser database.User
+	var newUser repo.User
 	err = json.Unmarshal(requestBody, &newUser)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
-	id, err := database.InsertUser(newUser)
+	id, err := repo.InsertUser(newUser)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -168,7 +168,7 @@ var UpdateUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 		return
 	}
 
-	var updatedUser database.User
+	var updatedUser repo.User
 	err = json.Unmarshal(requestBody, &updatedUser)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -176,7 +176,7 @@ var UpdateUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 	}
 
 	updatedUser.ID = id
-	if err = database.UpdateUser(updatedUser); err != nil {
+	if err = repo.UpdateUser(updatedUser); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
@@ -205,13 +205,13 @@ var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 		return
 	}
 
-	user, err := database.GetUser(id)
+	user, err := repo.GetUser(id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
-	err = database.DeleteUser(id)
+	err = repo.DeleteUser(id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
