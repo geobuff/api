@@ -6,8 +6,14 @@ CREATE TABLE badges (
     total INTEGER NOT NULL
 );
 
+CREATE TABLE quiztype (
+    id SERIAL PRIMARY KEY,
+    name text UNIQUE NOT NULL
+);
+
 CREATE TABLE quizzes (
     id SERIAL PRIMARY KEY,
+    type INTEGER references quiztype(id) NOT NULL,
     badgeGroup INTEGER references badges(id),
     name text NOT NULL,
     maxScore INTEGER NOT NULL,
