@@ -4,40 +4,44 @@ version: 2.1
 workflows:
   build_application:
     jobs:
-      build:
-        working_directory: ~/repo
-        docker:
-          - image: circleci/golang:1.15.8
-        steps:
-          - checkout
-          - restore_cache:
-              keys:
-                - go-mod-v4-{{ checksum "go.sum" }}
-          - run:
-              name: Install Dependencies
-              command: go mod download
-          - save_cache:
-              key: go-mod-v4-{{ checksum "go.sum" }}
-              paths:
-                - "/go/pkg/mod"
-          - run:
-              name: Run tests
-              command: |
-                mkdir -p /tmp/test-reports
-                gotestsum --junitfile /tmp/test-reports/unit-tests.xml
-          - store_test_results:
-              path: /tmp/test-reports
-
+      - build
   deploy_application:
     jobs:
-      deploy:
-        docker:
-          - image: google/cloud-sdk
-            auth:
-              username: geobuff
-              password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
-        steps:
-          - run: |
-              echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
-              gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
-              gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+      - deploy
+
+jobs:
+  build:
+    working_directory: ~/repo
+    docker:
+      - image: circleci/golang:1.15.8
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v4-{{ checksum "go.sum" }}
+      - run:
+          name: Install Dependencies
+          command: go mod download
+      - save_cache:
+          key: go-mod-v4-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+      - run:
+          name: Run tests
+          command: |
+            mkdir -p /tmp/test-reports
+            gotestsum --junitfile /tmp/test-reports/unit-tests.xml
+      - store_test_results:
+          path: /tmp/test-reports
+  deploy:
+    docker:
+      - image: google/cloud-sdk
+        auth:
+          username: geobuff
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - run: |
+          echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+          gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+          gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+          gcloud app deploy
