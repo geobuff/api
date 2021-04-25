@@ -38,9 +38,13 @@ jobs:
           gcloud app deploy ~/api/app.yaml
 
 workflows:
+  version: 2
   build-app:
     jobs:
       - build
   google_cloud_deploy:
     jobs:
-      - deploy
+      - deploy:
+         filters:
+            branches:
+              only: develop
