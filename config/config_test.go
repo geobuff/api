@@ -6,25 +6,25 @@ func TestLoad(t *testing.T) {
 	tt := []struct {
 		name     string
 		filename string
-		err      string
+		err      bool
 	}{
 		{
 			name:     "valid filename",
 			filename: "../config.json",
-			err:      "",
+			err:      false,
 		},
 		{
 			name:     "invalid filename",
 			filename: "test.json",
-			err:      "open test.json: The system cannot find the file specified.",
+			err:      true,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			err := Load(tc.filename)
-			if err != nil && err.Error() != tc.err {
-				t.Fatalf("expected error %v; got %v", tc.err, err.Error())
+			if err != nil && tc.err {
+				t.Fatal("expected error; got none")
 			}
 		})
 	}
