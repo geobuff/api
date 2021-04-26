@@ -9,30 +9,16 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/geobuff/api/config"
-	"github.com/geobuff/api/permissions"
+	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/auth"
 	"github.com/gorilla/mux"
 )
 
 // GetScores returns all scores for a given user.
-var GetScores = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+func GetScores(writer http.ResponseWriter, request *http.Request) {
 	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
-	uv := auth.UserValidation{
-		Request:    request,
-		Permission: permissions.ReadScores,
-		Identifier: config.Values.Auth0.Identifier,
-		Key:        fmt.Sprint(userID),
-	}
-
-	if code, err := auth.ValidUser(uv); err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
 
@@ -44,10 +30,10 @@ var GetScores = http.HandlerFunc(func(writer http.ResponseWriter, request *http.
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(scores)
-})
+}
 
 // GetScore gets a user's score for a particular quiz.
-var GetScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+func GetScore(writer http.ResponseWriter, request *http.Request) {
 	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -60,18 +46,6 @@ var GetScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 		return
 	}
 
-	uv := auth.UserValidation{
-		Request:    request,
-		Permission: permissions.ReadScores,
-		Identifier: config.Values.Auth0.Identifier,
-		Key:        fmt.Sprint(userID),
-	}
-
-	if code, err := auth.ValidUser(uv); err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), code)
-		return
-	}
-
 	switch score, err := repo.GetUserScore(userID, quizID); err {
 	case sql.ErrNoRows:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
@@ -81,10 +55,10 @@ var GetScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 	default:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 	}
-})
+}
 
 // CreateScore creates a new score.
-var CreateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+func CreateScore(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -98,14 +72,7 @@ var CreateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	uv := auth.UserValidation{
-		Request:    request,
-		Permission: permissions.WriteScores,
-		Identifier: config.Values.Auth0.Identifier,
-		Key:        fmt.Sprint(score.UserID),
-	}
-
-	if code, err := auth.ValidUser(uv); err != nil {
+	if code, err := auth.ValidUser(request, score.UserID); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -121,10 +88,10 @@ var CreateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 	writer.WriteHeader(http.StatusCreated)
 	score.ID = id
 	json.NewEncoder(writer).Encode(score)
-})
+}
 
 // UpdateScore updates an existing score.
-var UpdateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+func UpdateScore(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -144,14 +111,7 @@ var UpdateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	uv := auth.UserValidation{
-		Request:    request,
-		Permission: permissions.WriteScores,
-		Identifier: config.Values.Auth0.Identifier,
-		Key:        fmt.Sprint(score.UserID),
-	}
-
-	if code, err := auth.ValidUser(uv); err != nil {
+	if code, err := auth.ValidUser(request, score.UserID); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -166,10 +126,10 @@ var UpdateScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(score)
-})
+}
 
 // DeleteScore deletes an existing score entry.
-var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+func DeleteScore(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -182,14 +142,7 @@ var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	uv := auth.UserValidation{
-		Request:    request,
-		Permission: permissions.WriteScores,
-		Identifier: config.Values.Auth0.Identifier,
-		Key:        fmt.Sprint(score.UserID),
-	}
-
-	if code, err := auth.ValidUser(uv); err != nil {
+	if code, err := auth.ValidUser(request, score.UserID); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -202,4 +155,4 @@ var DeleteScore = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(score)
-})
+}

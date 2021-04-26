@@ -32,8 +32,12 @@ CREATE TABLE quizzes (
 CREATE TABLE users (
     id SERIAL PRIMARY KEY, 
     username text UNIQUE NOT NULL,
-    countryCode text,
-    xp BIGINT
+    email text NOT NULL,
+    passwordHash text NOT NULL,
+    countryCode text NOT NULL,
+    xp BIGINT NOT NULL,
+    isPremium BOOLEAN NOT NULL,
+    isAdmin BOOLEAN NOT NULL
 );
 
 CREATE TABLE keys (
@@ -113,5 +117,3 @@ INSERT INTO quizzes (type, badgeGroup, name, maxScore, time, mapSVG, imageUrl, v
 (2, 6, 'Flags of Germany', 16, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e9-1f1ea.svg', 'flags', 'germany-states', 'flags-of-germany', FALSE, FALSE, TRUE, FALSE),
 (2, 5, 'Flags of Japan', 47, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ef-1f1f5.svg', 'flags', 'japan-prefectures', 'flags-of-japan', FALSE, FALSE, TRUE, FALSE),
 (2, 7, 'Flags of the US', 50, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1f8.svg', 'flags', 'us-states', 'flags-of-the-us', FALSE, FALSE, TRUE, FALSE);
-
-INSERT INTO keys (name, key) values ('auth0', '');

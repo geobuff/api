@@ -9,11 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/geobuff/api/config"
+	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/models"
-	"github.com/geobuff/api/permissions"
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/auth"
 	"github.com/gorilla/mux"
 )
 
@@ -78,7 +76,7 @@ func GetEntry(writer http.ResponseWriter, request *http.Request) {
 }
 
 // CreateEntry creates a new leaderboard entry.
-var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+func CreateEntry(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -92,14 +90,7 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	uv := auth.UserValidation{
-		Request:    request,
-		Permission: permissions.WriteLeaderboard,
-		Identifier: config.Values.Auth0.Identifier,
-		Key:        fmt.Sprint(newEntry.UserID),
-	}
-
-	if code, err := auth.ValidUser(uv); err != nil {
+	if code, err := auth.ValidUser(request, newEntry.UserID); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -115,10 +106,10 @@ var CreateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 	writer.WriteHeader(http.StatusCreated)
 	newEntry.ID = id
 	json.NewEncoder(writer).Encode(newEntry)
-})
+}
 
 // UpdateEntry updates an existing leaderboard entry.
-var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+func UpdateEntry(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -138,14 +129,7 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	uv := auth.UserValidation{
-		Request:    request,
-		Permission: permissions.WriteLeaderboard,
-		Identifier: config.Values.Auth0.Identifier,
-		Key:        fmt.Sprint(updatedEntry.UserID),
-	}
-
-	if code, err := auth.ValidUser(uv); err != nil {
+	if code, err := auth.ValidUser(request, updatedEntry.UserID); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -160,10 +144,10 @@ var UpdateEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(updatedEntry)
-})
+}
 
 // DeleteEntry deletes an existing leaderboard entry.
-var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+func DeleteEntry(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -176,14 +160,7 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	uv := auth.UserValidation{
-		Request:    request,
-		Permission: permissions.WriteLeaderboard,
-		Identifier: config.Values.Auth0.Identifier,
-		Key:        fmt.Sprint(entry.UserID),
-	}
-
-	if code, err := auth.ValidUser(uv); err != nil {
+	if code, err := auth.ValidUser(request, entry.UserID); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -196,4 +173,4 @@ var DeleteEntry = http.HandlerFunc(func(writer http.ResponseWriter, request *htt
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(entry)
-})
+}

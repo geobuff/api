@@ -10,79 +10,39 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/auth"
 	"github.com/gorilla/mux"
 )
 
 func TestGetScores(t *testing.T) {
-	savedGetUser := repo.GetUser
-	savedValidUser := auth.ValidUser
 	savedGetScores := repo.GetScores
-	savedConfigValues := config.Values
 
 	defer func() {
-		repo.GetUser = savedGetUser
-		auth.ValidUser = savedValidUser
 		repo.GetScores = savedGetScores
-		config.Values = savedConfigValues
 	}()
-
-	user := repo.User{
-		Username: "testing",
-	}
 
 	tt := []struct {
 		name      string
-		getUser   func(id int) (repo.User, error)
-		validUser func(uv auth.UserValidation) (int, error)
 		getScores func(userID int) ([]repo.ScoreDto, error)
 		userID    string
 		status    int
 	}{
 		{
 			name:      "invalid id value",
-			getUser:   repo.GetUser,
-			validUser: auth.ValidUser,
 			getScores: repo.GetScores,
 			userID:    "testing",
 			status:    http.StatusBadRequest,
 		},
 		{
-			name:      "valid id, error on GetUser",
-			getUser:   func(id int) (repo.User, error) { return repo.User{}, errors.New("test") },
-			validUser: auth.ValidUser,
-			getScores: repo.GetScores,
-			userID:    "1",
-			status:    http.StatusInternalServerError,
-		},
-		{
-			name:    "valid id, invalid user",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
-				return http.StatusUnauthorized, errors.New("test")
-			},
-			getScores: repo.GetScores,
-			userID:    "1",
-			status:    http.StatusUnauthorized,
-		},
-		{
-			name:    "valid id, valid user, error on GetScores",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
-				return http.StatusOK, nil
-			},
+			name:      "valid id, error on GetScores",
 			getScores: func(userID int) ([]repo.ScoreDto, error) { return nil, errors.New("test") },
 			userID:    "1",
 			status:    http.StatusInternalServerError,
 		},
 		{
-			name:    "happy path",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
-				return http.StatusOK, nil
-			},
+			name:      "happy path",
 			getScores: func(userID int) ([]repo.ScoreDto, error) { return []repo.ScoreDto{}, nil },
 			userID:    "1",
 			status:    http.StatusOK,
@@ -91,10 +51,7 @@ func TestGetScores(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			repo.GetUser = tc.getUser
-			auth.ValidUser = tc.validUser
 			repo.GetScores = tc.getScores
-			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -131,19 +88,14 @@ func TestGetScores(t *testing.T) {
 }
 
 func TestGetScore(t *testing.T) {
-	savedValidUser := auth.ValidUser
 	savedGetUserScore := repo.GetUserScore
-	savedConfigValues := config.Values
 
 	defer func() {
-		auth.ValidUser = savedValidUser
 		repo.GetUserScore = savedGetUserScore
-		config.Values = savedConfigValues
 	}()
 
 	tt := []struct {
 		name         string
-		validUser    func(uv auth.UserValidation) (int, error)
 		getUserScore func(userID, quizID int) (repo.Score, error)
 		userID       string
 		quizID       string
@@ -151,7 +103,6 @@ func TestGetScore(t *testing.T) {
 	}{
 		{
 			name:         "invalid user id value",
-			validUser:    auth.ValidUser,
 			getUserScore: repo.GetUserScore,
 			userID:       "testing",
 			quizID:       "1",
@@ -159,47 +110,27 @@ func TestGetScore(t *testing.T) {
 		},
 		{
 			name:         "valid id, invalid quiz id value",
-			validUser:    auth.ValidUser,
 			getUserScore: repo.GetUserScore,
 			userID:       "1",
 			quizID:       "testing",
 			status:       http.StatusBadRequest,
 		},
 		{
-			name: "valid id's, invalid user",
-			validUser: func(uv auth.UserValidation) (int, error) {
-				return http.StatusUnauthorized, errors.New("test")
-			},
-			getUserScore: repo.GetUserScore,
-			userID:       "1",
-			quizID:       "1",
-			status:       http.StatusUnauthorized,
-		},
-		{
-			name: "valid id's, valid user, error on GetUserScore",
-			validUser: func(uv auth.UserValidation) (int, error) {
-				return http.StatusOK, nil
-			},
+			name:         "valid id's, error on GetUserScore",
 			getUserScore: func(userID, quizID int) (repo.Score, error) { return repo.Score{}, errors.New("test") },
 			userID:       "1",
 			quizID:       "1",
 			status:       http.StatusInternalServerError,
 		},
 		{
-			name: "valid id's, valid user, no rows on GetUserScore",
-			validUser: func(uv auth.UserValidation) (int, error) {
-				return http.StatusOK, nil
-			},
+			name:         "valid id's, no rows on GetUserScore",
 			getUserScore: func(userID, quizID int) (repo.Score, error) { return repo.Score{}, sql.ErrNoRows },
 			userID:       "1",
 			quizID:       "1",
 			status:       http.StatusNoContent,
 		},
 		{
-			name: "happy path",
-			validUser: func(uv auth.UserValidation) (int, error) {
-				return http.StatusOK, nil
-			},
+			name:         "happy path",
 			getUserScore: func(userID, quizID int) (repo.Score, error) { return repo.Score{}, nil },
 			userID:       "1",
 			quizID:       "1",
@@ -209,9 +140,7 @@ func TestGetScore(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			auth.ValidUser = tc.validUser
 			repo.GetUserScore = tc.getUserScore
-			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -261,14 +190,14 @@ func TestCreateScore(t *testing.T) {
 		config.Values = savedConfigValues
 	}()
 
-	user := repo.User{
+	user := repo.UserDto{
 		Username: "testing",
 	}
 
 	tt := []struct {
 		name        string
-		getUser     func(id int) (repo.User, error)
-		validUser   func(uv auth.UserValidation) (int, error)
+		getUser     func(id int) (repo.UserDto, error)
+		validUser   func(request *http.Request, id int) (int, error)
 		insertScore func(score repo.Score) (int, error)
 		body        string
 		status      int
@@ -283,7 +212,7 @@ func TestCreateScore(t *testing.T) {
 		},
 		{
 			name:        "valid body, error on GetUser",
-			getUser:     func(id int) (repo.User, error) { return repo.User{}, errors.New("test") },
+			getUser:     func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
 			validUser:   auth.ValidUser,
 			insertScore: repo.InsertScore,
 			body:        `{"userId":1,"quizId":1,"score":1}`,
@@ -291,8 +220,8 @@ func TestCreateScore(t *testing.T) {
 		},
 		{
 			name:    "valid body, invalid user",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			insertScore: repo.InsertScore,
@@ -301,8 +230,8 @@ func TestCreateScore(t *testing.T) {
 		},
 		{
 			name:    "valid body, valid user, error on InsertScore",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
 			insertScore: func(score repo.Score) (int, error) { return 0, errors.New("test") },
@@ -311,8 +240,8 @@ func TestCreateScore(t *testing.T) {
 		},
 		{
 			name:    "happy path",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
 			insertScore: func(score repo.Score) (int, error) { return 1, nil },
@@ -371,14 +300,14 @@ func TestUpdateScore(t *testing.T) {
 		config.Values = savedConfigValues
 	}()
 
-	user := repo.User{
+	user := repo.UserDto{
 		Username: "testing",
 	}
 
 	tt := []struct {
 		name        string
-		getUser     func(id int) (repo.User, error)
-		validUser   func(uv auth.UserValidation) (int, error)
+		getUser     func(id int) (repo.UserDto, error)
+		validUser   func(request *http.Request, id int) (int, error)
 		updateScore func(score repo.Score) error
 		id          string
 		body        string
@@ -395,7 +324,7 @@ func TestUpdateScore(t *testing.T) {
 		},
 		{
 			name:        "valid id, invalid body",
-			getUser:     func(id int) (repo.User, error) { return user, nil },
+			getUser:     func(id int) (repo.UserDto, error) { return user, nil },
 			validUser:   auth.ValidUser,
 			updateScore: repo.UpdateScore,
 			id:          "1",
@@ -404,7 +333,7 @@ func TestUpdateScore(t *testing.T) {
 		},
 		{
 			name:        "valid id, valid body, error on GetUser",
-			getUser:     func(id int) (repo.User, error) { return repo.User{}, errors.New("test") },
+			getUser:     func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
 			validUser:   auth.ValidUser,
 			updateScore: repo.UpdateScore,
 			id:          "1",
@@ -413,8 +342,8 @@ func TestUpdateScore(t *testing.T) {
 		},
 		{
 			name:    "valid id, valid body, invalid user",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			updateScore: repo.UpdateScore,
@@ -424,8 +353,8 @@ func TestUpdateScore(t *testing.T) {
 		},
 		{
 			name:    "valid id, valid body, valid user, error on UpdateScore",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
 			updateScore: func(score repo.Score) error { return errors.New("test") },
@@ -435,8 +364,8 @@ func TestUpdateScore(t *testing.T) {
 		},
 		{
 			name:    "happy path",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
 			updateScore: func(score repo.Score) error { return nil },
@@ -502,15 +431,15 @@ func TestDeleteScore(t *testing.T) {
 		config.Values = savedConfigValues
 	}()
 
-	user := repo.User{
+	user := repo.UserDto{
 		Username: "testing",
 	}
 
 	tt := []struct {
 		name        string
 		getScore    func(id int) (repo.ScoreDto, error)
-		getUser     func(id int) (repo.User, error)
-		validUser   func(uv auth.UserValidation) (int, error)
+		getUser     func(id int) (repo.UserDto, error)
+		validUser   func(request *http.Request, id int) (int, error)
 		deleteScore func(scoreID int) error
 		id          string
 		status      int
@@ -527,7 +456,7 @@ func TestDeleteScore(t *testing.T) {
 		{
 			name:        "valid id, error on GetScore",
 			getScore:    func(id int) (repo.ScoreDto, error) { return repo.ScoreDto{}, errors.New("test") },
-			getUser:     func(id int) (repo.User, error) { return user, nil },
+			getUser:     func(id int) (repo.UserDto, error) { return user, nil },
 			validUser:   auth.ValidUser,
 			deleteScore: repo.DeleteScore,
 			id:          "1",
@@ -536,7 +465,7 @@ func TestDeleteScore(t *testing.T) {
 		{
 			name:        "valid id, error on GetUser",
 			getScore:    func(id int) (repo.ScoreDto, error) { return repo.ScoreDto{}, nil },
-			getUser:     func(id int) (repo.User, error) { return repo.User{}, errors.New("test") },
+			getUser:     func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
 			validUser:   auth.ValidUser,
 			deleteScore: repo.DeleteScore,
 			id:          "1",
@@ -545,8 +474,8 @@ func TestDeleteScore(t *testing.T) {
 		{
 			name:     "valid id, score found, invalid user",
 			getScore: func(id int) (repo.ScoreDto, error) { return repo.ScoreDto{}, nil },
-			getUser:  func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser:  func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			deleteScore: repo.DeleteScore,
@@ -556,8 +485,8 @@ func TestDeleteScore(t *testing.T) {
 		{
 			name:     "valid id, score found, valid user, error on DeleteScore",
 			getScore: func(id int) (repo.ScoreDto, error) { return repo.ScoreDto{}, nil },
-			getUser:  func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser:  func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
 			deleteScore: func(scoreID int) error { return errors.New("test") },
@@ -567,8 +496,8 @@ func TestDeleteScore(t *testing.T) {
 		{
 			name:     "happy path",
 			getScore: func(id int) (repo.ScoreDto, error) { return repo.ScoreDto{}, nil },
-			getUser:  func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser:  func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
 			deleteScore: func(scoreID int) error { return nil },
