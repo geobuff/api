@@ -17,11 +17,6 @@ type Config struct {
 		Password string `json:"password"`
 		Name     string `json:"name"`
 	} `json:"database"`
-	Auth0 struct {
-		Audience   string `json:"audience"`
-		Issuer     string `json:"issuer"`
-		Identifier string `json:"identifier"`
-	} `json:"auth0"`
 	Cors struct {
 		Origins []string `json:"origins"`
 		Methods []string `json:"methods"`
