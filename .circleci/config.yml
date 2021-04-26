@@ -26,6 +26,7 @@ jobs:
       - store_test_results:
           path: /tmp/test-reports
   deploy:
+    working_directory: ~/repo
     docker:
       - image: google/cloud-sdk
         auth:
@@ -35,7 +36,7 @@ jobs:
       - run: |
           echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
           gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
-          gcloud app deploy ~/repo
+          gcloud app deploy
 
 workflows:
   version: 2
