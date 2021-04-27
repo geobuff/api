@@ -8,12 +8,11 @@ import (
 	"net/http"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/repo"
 
 	"golang.org/x/crypto/bcrypt"
 )
-
-var signingKey = []byte("kirbyisascrub")
 
 type CustomClaims struct {
 	UserID      int    `json:"userId"`
@@ -191,7 +190,7 @@ func getToken(request *http.Request) (string, error) {
 
 func getClaims(tokenString string) (*CustomClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return signingKey, nil
+		return config.Values.Auth.SigningKey, nil
 	})
 
 	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
@@ -211,7 +210,7 @@ func buildToken(user repo.User) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(signingKey)
+	return token.SignedString(config.Values.Auth.SigningKey)
 }
 
 func hashPassword(password []byte) (string, error) {

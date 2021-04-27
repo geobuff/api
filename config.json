@@ -6,6 +6,9 @@
         "password": "E'Z_1V.6M?r:$BX.jo3T",
         "name": "dev"
     },
+    "auth": {
+        "signingKey": "kirbyisascrub"
+    },
     "cors": {
         "origins": ["http://localhost:3000", "https://dev.geobuff.com"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
