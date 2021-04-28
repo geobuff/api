@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/capitals"
 	"github.com/geobuff/api/config"
@@ -13,7 +14,6 @@ import (
 	"github.com/geobuff/api/repo"
 	"github.com/geobuff/api/scores"
 	"github.com/geobuff/api/users"
-	"github.com/geobuff/auth"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -68,7 +68,6 @@ func handler(router http.Handler) http.Handler {
 }
 
 func router() http.Handler {
-	jwtMiddleware := auth.GetJwtMiddleware(config.Values.Auth0.Audience, config.Values.Auth0.Issuer)
 	router := mux.NewRouter()
 
 	// Quiz endpoints.
@@ -78,37 +77,39 @@ func router() http.Handler {
 	// Mapping endpoints.
 	router.HandleFunc("/api/mappings/{key}", mappings.GetMapping).Methods("GET")
 
+	// Auth endpoints.
+	router.HandleFunc("/api/auth/login", auth.Login).Methods("POST")
+	router.HandleFunc("/api/auth/register", auth.Register).Methods("POST")
+
 	// User endpoints.
-	router.Handle("/api/users", jwtMiddleware.Handler(users.GetUsers)).Methods("GET")
-	router.Handle("/api/users/{id}", jwtMiddleware.Handler(users.GetUser)).Methods("GET")
-	router.HandleFunc("/api/users/id/{username}", users.GetUserID).Methods("GET")
-	router.HandleFunc("/api/users", users.CreateUser).Methods("POST")
+	router.HandleFunc("/api/users", users.GetUsers).Methods("GET")
+	router.HandleFunc("/api/users/{id}", users.GetUser).Methods("GET")
 	router.HandleFunc("/api/users/{id}", users.UpdateUser).Methods("PUT")
-	router.Handle("/api/users/{id}", jwtMiddleware.Handler(users.DeleteUser)).Methods("DELETE")
+	router.HandleFunc("/api/users/{id}", users.DeleteUser).Methods("DELETE")
 
 	// Badge endpoints.
 	router.HandleFunc("/api/badges", badges.GetBadges).Methods("GET")
 
 	// Score endpoints.
-	router.Handle("/api/scores/{userId}", jwtMiddleware.Handler(scores.GetScores)).Methods("GET")
-	router.Handle("/api/scores/{userId}/{quizId}", jwtMiddleware.Handler(scores.GetScore)).Methods("GET")
-	router.Handle("/api/scores", jwtMiddleware.Handler(scores.CreateScore)).Methods("POST")
-	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.UpdateScore)).Methods("PUT")
-	router.Handle("/api/scores/{id}", jwtMiddleware.Handler(scores.DeleteScore)).Methods("DELETE")
+	router.HandleFunc("/api/scores/{userId}", scores.GetScores).Methods("GET")
+	router.HandleFunc("/api/scores/{userId}/{quizId}", scores.GetScore).Methods("GET")
+	router.HandleFunc("/api/scores", scores.CreateScore).Methods("POST")
+	router.HandleFunc("/api/scores/{id}", scores.UpdateScore).Methods("PUT")
+	router.HandleFunc("/api/scores/{id}", scores.DeleteScore).Methods("DELETE")
 
 	// World Countries endpoints.
 	router.HandleFunc("/api/world-countries/leaderboard/all", countries.GetEntries).Methods("POST")
 	router.HandleFunc("/api/world-countries/leaderboard/{userId}", countries.GetEntry).Methods("GET")
-	router.Handle("/api/world-countries/leaderboard", jwtMiddleware.Handler(countries.CreateEntry)).Methods("POST")
-	router.Handle("/api/world-countries/leaderboard/{id}", jwtMiddleware.Handler(countries.UpdateEntry)).Methods("PUT")
-	router.Handle("/api/world-countries/leaderboard/{id}", jwtMiddleware.Handler(countries.DeleteEntry)).Methods("DELETE")
+	router.HandleFunc("/api/world-countries/leaderboard", countries.CreateEntry).Methods("POST")
+	router.HandleFunc("/api/world-countries/leaderboard/{id}", countries.UpdateEntry).Methods("PUT")
+	router.HandleFunc("/api/world-countries/leaderboard/{id}", countries.DeleteEntry).Methods("DELETE")
 
 	// World Capitals endpoints.
 	router.HandleFunc("/api/world-capitals/leaderboard/all", capitals.GetEntries).Methods("POST")
 	router.HandleFunc("/api/world-capitals/leaderboard/{userId}", capitals.GetEntry).Methods("GET")
-	router.Handle("/api/world-capitals/leaderboard", jwtMiddleware.Handler(capitals.CreateEntry)).Methods("POST")
-	router.Handle("/api/world-capitals/leaderboard/{id}", jwtMiddleware.Handler(capitals.UpdateEntry)).Methods("PUT")
-	router.Handle("/api/world-capitals/leaderboard/{id}", jwtMiddleware.Handler(capitals.DeleteEntry)).Methods("DELETE")
+	router.HandleFunc("/api/world-capitals/leaderboard", capitals.CreateEntry).Methods("POST")
+	router.HandleFunc("/api/world-capitals/leaderboard/{id}", capitals.UpdateEntry).Methods("PUT")
+	router.HandleFunc("/api/world-capitals/leaderboard/{id}", capitals.DeleteEntry).Methods("DELETE")
 
 	return router
 }

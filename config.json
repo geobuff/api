@@ -6,10 +6,8 @@
         "password": "E'Z_1V.6M?r:$BX.jo3T",
         "name": "dev"
     },
-    "auth0": {
-        "audience": "https://dev-geobuff-api.com",
-        "issuer": "https://dev-geobuff.au.auth0.com",
-        "identifier": "http://geobuff.com/id"
+    "auth": {
+        "signingKey": "kirbyisascrub"
     },
     "cors": {
         "origins": ["http://localhost:3000", "https://dev.geobuff.com"],

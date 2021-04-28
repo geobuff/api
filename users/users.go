@@ -8,21 +8,19 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/geobuff/api/config"
-	"github.com/geobuff/api/permissions"
+	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/auth"
 	"github.com/gorilla/mux"
 )
 
 // PageDto is used to display a paged result of user entries.
 type PageDto struct {
-	Users   []repo.User `json:"users"`
-	HasMore bool        `json:"hasMore"`
+	Users   []repo.UserDto `json:"users"`
+	HasMore bool           `json:"hasMore"`
 }
 
 // GetUsers gets the user entries for a given page.
-var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+func GetUsers(writer http.ResponseWriter, request *http.Request) {
 	pageParam := request.URL.Query().Get("page")
 	page, err := strconv.Atoi(pageParam)
 	if err != nil {
@@ -30,16 +28,8 @@ var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 		return
 	}
 
-	up := auth.UserPermission{
-		Request:    request,
-		Permission: permissions.ReadUsers,
-	}
-
-	if hasPermission, err := auth.HasPermission(up); err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	} else if !hasPermission {
-		http.Error(writer, "invalid permissions to make request", http.StatusUnauthorized)
+	if code, err := auth.IsAdmin(request); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
 
@@ -61,24 +51,17 @@ var GetUsers = http.HandlerFunc(func(writer http.ResponseWriter, request *http.R
 	default:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 	}
-})
+}
 
 // GetUser gets a user entry by id.
-var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+func GetUser(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
-	uv := auth.UserValidation{
-		Request:    request,
-		Permission: permissions.ReadUsers,
-		Identifier: config.Values.Auth0.Identifier,
-		Key:        fmt.Sprint(id),
-	}
-
-	if code, err := auth.ValidUser(uv); err != nil {
+	if code, err := auth.ValidUser(request, id); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -91,73 +74,17 @@ var GetUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Re
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(user)
-})
-
-// GetUserID gets a user's id by username.
-func GetUserID(writer http.ResponseWriter, request *http.Request) {
-	username := mux.Vars(request)["username"]
-	switch id, err := repo.GetUserID(username); err {
-	case sql.ErrNoRows:
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
-	case nil:
-		writer.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(writer).Encode(id)
-	default:
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-	}
-}
-
-// CreateUser creates a new user entry.
-func CreateUser(writer http.ResponseWriter, request *http.Request) {
-	if entry, err := repo.GetKey("auth0"); err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	} else if entry.Key != request.Header.Get("x-api-key") {
-		http.Error(writer, fmt.Sprintf("%v\n", "invalid api key"), http.StatusUnauthorized)
-		return
-	}
-
-	requestBody, err := ioutil.ReadAll(request.Body)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
-	var newUser repo.User
-	err = json.Unmarshal(requestBody, &newUser)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
-	id, err := repo.InsertUser(newUser)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(http.StatusCreated)
-	newUser.ID = id
-	json.NewEncoder(writer).Encode(newUser)
 }
 
 // UpdateUser creates a new user entry.
-var UpdateUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
-	uv := auth.UserValidation{
-		Request:    request,
-		Permission: permissions.WriteUsers,
-		Identifier: config.Values.Auth0.Identifier,
-		Key:        fmt.Sprint(id),
-	}
-
-	if code, err := auth.ValidUser(uv); err != nil {
+	if code, err := auth.ValidUser(request, id); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -183,24 +110,17 @@ var UpdateUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(updatedUser)
-})
+}
 
 // DeleteUser deletes an existing user entry.
-var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+func DeleteUser(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
-	uv := auth.UserValidation{
-		Request:    request,
-		Permission: permissions.ReadUsers,
-		Identifier: config.Values.Auth0.Identifier,
-		Key:        fmt.Sprint(id),
-	}
-
-	if code, err := auth.ValidUser(uv); err != nil {
+	if code, err := auth.ValidUser(request, id); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
@@ -219,4 +139,4 @@ var DeleteUser = http.HandlerFunc(func(writer http.ResponseWriter, request *http
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(user)
-})
+}

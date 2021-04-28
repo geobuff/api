@@ -10,10 +10,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/models"
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/auth"
 	"github.com/gorilla/mux"
 )
 
@@ -221,14 +221,14 @@ func TestCreateEntry(t *testing.T) {
 		config.Values = savedConfigValues
 	}()
 
-	user := repo.User{
+	user := repo.UserDto{
 		Username: "testing",
 	}
 
 	tt := []struct {
 		name                   string
-		getUser                func(id int) (repo.User, error)
-		validUser              func(uv auth.UserValidation) (int, error)
+		getUser                func(id int) (repo.UserDto, error)
+		validUser              func(request *http.Request, id int) (int, error)
 		insertLeaderboardEntry func(table string, entry repo.LeaderboardEntry) (int, error)
 		body                   string
 		status                 int
@@ -243,7 +243,7 @@ func TestCreateEntry(t *testing.T) {
 		},
 		{
 			name:                   "valid body, error on GetUser",
-			getUser:                func(id int) (repo.User, error) { return repo.User{}, errors.New("test") },
+			getUser:                func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
 			validUser:              auth.ValidUser,
 			insertLeaderboardEntry: repo.InsertLeaderboardEntry,
 			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
@@ -251,8 +251,8 @@ func TestCreateEntry(t *testing.T) {
 		},
 		{
 			name:    "valid body, invalid user",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			insertLeaderboardEntry: repo.InsertLeaderboardEntry,
@@ -261,8 +261,8 @@ func TestCreateEntry(t *testing.T) {
 		},
 		{
 			name:    "valid body, valid user, error on InsertLeaderboardEntry",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
 			insertLeaderboardEntry: func(table string, entry repo.LeaderboardEntry) (int, error) { return 0, errors.New("test") },
@@ -271,8 +271,8 @@ func TestCreateEntry(t *testing.T) {
 		},
 		{
 			name:    "happy path",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
 			insertLeaderboardEntry: func(table string, entry repo.LeaderboardEntry) (int, error) { return 1, nil },
@@ -331,14 +331,14 @@ func TestUpdateEntry(t *testing.T) {
 		config.Values = savedConfigValues
 	}()
 
-	user := repo.User{
+	user := repo.UserDto{
 		Username: "testing",
 	}
 
 	tt := []struct {
 		name                   string
-		getUser                func(id int) (repo.User, error)
-		validUser              func(uv auth.UserValidation) (int, error)
+		getUser                func(id int) (repo.UserDto, error)
+		validUser              func(request *http.Request, id int) (int, error)
 		updateLeaderboardEntry func(table string, entry repo.LeaderboardEntry) error
 		id                     string
 		body                   string
@@ -355,7 +355,7 @@ func TestUpdateEntry(t *testing.T) {
 		},
 		{
 			name:                   "valid id, invalid body",
-			getUser:                func(id int) (repo.User, error) { return user, nil },
+			getUser:                func(id int) (repo.UserDto, error) { return user, nil },
 			validUser:              auth.ValidUser,
 			updateLeaderboardEntry: repo.UpdateLeaderboardEntry,
 			id:                     "1",
@@ -364,7 +364,7 @@ func TestUpdateEntry(t *testing.T) {
 		},
 		{
 			name:                   "valid id, valid body, error on GetUser",
-			getUser:                func(id int) (repo.User, error) { return repo.User{}, errors.New("test") },
+			getUser:                func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
 			validUser:              auth.ValidUser,
 			updateLeaderboardEntry: repo.UpdateLeaderboardEntry,
 			id:                     "1",
@@ -373,8 +373,8 @@ func TestUpdateEntry(t *testing.T) {
 		},
 		{
 			name:    "valid id, valid body, invalid user",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			updateLeaderboardEntry: repo.UpdateLeaderboardEntry,
@@ -384,8 +384,8 @@ func TestUpdateEntry(t *testing.T) {
 		},
 		{
 			name:    "valid id, valid body, valid user, error on UpdateLeaderboardEntry",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
 			updateLeaderboardEntry: func(table string, entry repo.LeaderboardEntry) error { return errors.New("test") },
@@ -395,8 +395,8 @@ func TestUpdateEntry(t *testing.T) {
 		},
 		{
 			name:    "happy path",
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
 			updateLeaderboardEntry: func(table string, entry repo.LeaderboardEntry) error { return nil },
@@ -462,15 +462,15 @@ func TestDeleteEntry(t *testing.T) {
 		config.Values = savedConfigValues
 	}()
 
-	user := repo.User{
+	user := repo.UserDto{
 		Username: "testing",
 	}
 
 	tt := []struct {
 		name                   string
 		getLeaderboardEntry    func(table string, userID int) (repo.LeaderboardEntryDto, error)
-		getUser                func(id int) (repo.User, error)
-		validUser              func(uv auth.UserValidation) (int, error)
+		getUser                func(id int) (repo.UserDto, error)
+		validUser              func(request *http.Request, id int) (int, error)
 		deleteLeaderboardEntry func(table string, entryID int) error
 		id                     string
 		status                 int
@@ -489,7 +489,7 @@ func TestDeleteEntry(t *testing.T) {
 			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
 				return repo.LeaderboardEntryDto{}, errors.New("test")
 			},
-			getUser:                func(id int) (repo.User, error) { return user, nil },
+			getUser:                func(id int) (repo.UserDto, error) { return user, nil },
 			validUser:              auth.ValidUser,
 			deleteLeaderboardEntry: repo.DeleteLeaderboardEntry,
 			id:                     "1",
@@ -500,7 +500,7 @@ func TestDeleteEntry(t *testing.T) {
 			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
 				return repo.LeaderboardEntryDto{}, nil
 			},
-			getUser:                func(id int) (repo.User, error) { return repo.User{}, errors.New("test") },
+			getUser:                func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
 			validUser:              auth.ValidUser,
 			deleteLeaderboardEntry: repo.DeleteLeaderboardEntry,
 			id:                     "1",
@@ -511,8 +511,8 @@ func TestDeleteEntry(t *testing.T) {
 			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
 				return repo.LeaderboardEntryDto{}, nil
 			},
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
 			deleteLeaderboardEntry: repo.DeleteLeaderboardEntry,
@@ -524,8 +524,8 @@ func TestDeleteEntry(t *testing.T) {
 			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
 				return repo.LeaderboardEntryDto{}, nil
 			},
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
 			deleteLeaderboardEntry: func(table string, entryID int) error { return errors.New("test") },
@@ -537,8 +537,8 @@ func TestDeleteEntry(t *testing.T) {
 			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
 				return repo.LeaderboardEntryDto{}, nil
 			},
-			getUser: func(id int) (repo.User, error) { return user, nil },
-			validUser: func(uv auth.UserValidation) (int, error) {
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
 			deleteLeaderboardEntry: func(table string, entryID int) error { return nil },
