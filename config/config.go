@@ -24,6 +24,7 @@ type Config struct {
 		Origins []string `json:"origins"`
 		Methods []string `json:"methods"`
 	} `json:"cors"`
+	SiteUrl string `json:"siteUrl"`
 }
 
 // Load reads the configuration from the config file and loads into our public Values variable.

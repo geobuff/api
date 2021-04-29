@@ -1,28 +1,28 @@
 CREATE TABLE badges (
     id SERIAL PRIMARY KEY,
-    name text NOT NULL,
-    description text NOT NULL,
-    icon text NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    icon TEXT NOT NULL,
     total INTEGER NOT NULL
 );
 
 CREATE TABLE quiztype (
     id SERIAL PRIMARY KEY,
-    name text UNIQUE NOT NULL
+    name TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE quizzes (
     id SERIAL PRIMARY KEY,
     type INTEGER references quiztype(id) NOT NULL,
     badgeGroup INTEGER references badges(id),
-    name text NOT NULL,
+    name TEXT NOT NULL,
     maxScore INTEGER NOT NULL,
     time INTEGER NOT NULL,
-    mapSVG text NOT NULL,
-    imageUrl text NOT NULL,
-    verb text NOT NULL,
-    apiPath text NOT NULL,
-    route text NOT NULL,
+    mapSVG TEXT NOT NULL,
+    imageUrl TEXT NOT NULL,
+    verb TEXT NOT NULL,
+    apiPath TEXT NOT NULL,
+    route TEXT NOT NULL,
     hasLeaderboard BOOLEAN NOT NULL,
     hasGrouping BOOLEAN NOT NULL,
     hasFlags BOOLEAN NOT NULL,
@@ -31,13 +31,15 @@ CREATE TABLE quizzes (
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY, 
-    username text UNIQUE NOT NULL,
-    email text NOT NULL,
-    passwordHash text NOT NULL,
-    countryCode text NOT NULL,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT NOT NULL,
+    passwordHash TEXT NOT NULL,
+    countryCode TEXT NOT NULL,
     xp BIGINT NOT NULL,
     isPremium BOOLEAN NOT NULL,
-    isAdmin BOOLEAN NOT NULL
+    isAdmin BOOLEAN NOT NULL,
+    passwordResetToken TEXT,
+    passwordResetExpiry DATE
 );
 
 CREATE TABLE scores (
@@ -76,7 +78,7 @@ INSERT INTO badges (name, description, icon, total) values
 ('AmazonBuff', 'Complete all South America quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f483.svg', 3),
 ('PacificBuff', 'Complete all Oceania quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3dd.svg', 3);
 
-INSERT INTO quiztype (name) values ('MAP'), ('FLAG');
+INSERT INTO quiztype (name) values ('Map'), ('Flag');
 
 INSERT INTO quizzes (type, badgeGroup, name, maxScore, time, mapSVG, imageUrl, verb, apiPath, route, hasLeaderboard, hasGrouping, hasFlags, enabled) values
 (1, 3, 'Countries of the World', 197, 900, 'WorldCountries', '/world-map-header.svg', 'countries', 'world-countries', 'countries-of-the-world', TRUE, TRUE, TRUE, TRUE),

@@ -1,16 +1,19 @@
 package auth
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/geobuff/api/config"
+	"github.com/geobuff/api/email"
 	"github.com/geobuff/api/repo"
-
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -34,6 +37,10 @@ type RegisterDto struct {
 	Email       string `json:"email"`
 	CountryCode string `json:"countryCode"`
 	Password    string `json:"password"`
+}
+
+type PasswordResetDto struct {
+	Email string `json:"email"`
 }
 
 // Login verifies a user before returning a token with relevant information.
@@ -144,6 +151,48 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(token)
 }
 
+// SendResetToken sends a password reset email if the user is valid.
+func SendResetToken(writer http.ResponseWriter, request *http.Request) {
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var passwordResetDto PasswordResetDto
+	err = json.Unmarshal(requestBody, &passwordResetDto)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	user, err := repo.GetUserUsingEmail(passwordResetDto.Email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(writer, fmt.Sprintf("User with email %s does not exist.\n", passwordResetDto.Email), http.StatusBadRequest)
+			return
+		}
+
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	guid := uuid.New().String()
+	expiryDate := time.Now().AddDate(0, 0, 1)
+	err = repo.SetPasswordResetValues(user.ID, guid, expiryDate)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	resetLink := fmt.Sprintf("%s/reset-password/%d/%s", config.Values.SiteUrl, user.ID, guid)
+	err = email.SendResetToken(passwordResetDto.Email, resetLink)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+}
+
 var ValidUser = func(request *http.Request, id int) (int, error) {
 	token, err := getToken(request)
 	if err != nil {
@@ -210,7 +259,7 @@ func buildToken(user repo.User) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(config.Values.Auth.SigningKey)
+	return token.SignedString([]byte(config.Values.Auth.SigningKey))
 }
 
 func hashPassword(password []byte) (string, error) {

@@ -12,5 +12,6 @@
     "cors": {
         "origins": ["http://localhost:3000", "https://dev.geobuff.com"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-    }
+    },
+    "siteUrl": "http://localhost:3000"
 }
