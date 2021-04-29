@@ -19,11 +19,13 @@ type Config struct {
 	} `json:"database"`
 	Auth struct {
 		SigningKey string `json:"signingKey"`
+		Issuer     string `json:"issuer"`
 	} `json:"auth"`
 	Cors struct {
 		Origins []string `json:"origins"`
 		Methods []string `json:"methods"`
 	} `json:"cors"`
+	SiteUrl string `json:"siteUrl"`
 }
 
 // Load reads the configuration from the config file and loads into our public Values variable.

@@ -1,31 +1,40 @@
 package repo
 
+import (
+	"database/sql"
+	"time"
+)
+
 // User is the database object for a user entry.
 type User struct {
-	ID           int    `json:"id"`
-	Username     string `json:"username"`
-	Email        string `json:"email"`
-	PasswordHash string `json:"passwordHash"`
-	CountryCode  string `json:"countryCode"`
-	XP           int    `json:"xp"`
-	IsAdmin      bool   `json:"isAdmin"`
-	IsPremium    bool   `json:"isPremium"`
+	ID                  int            `json:"id"`
+	Username            string         `json:"username"`
+	Email               string         `json:"email"`
+	PasswordHash        string         `json:"passwordHash"`
+	CountryCode         string         `json:"countryCode"`
+	XP                  int            `json:"xp"`
+	IsAdmin             bool           `json:"isAdmin"`
+	IsPremium           bool           `json:"isPremium"`
+	PasswordResetToken  sql.NullString `json:"passwordResetToken"`
+	PasswordResetExpiry sql.NullTime   `json:"passwordResetExpiry"`
 }
 
 // UserDto is the dto for a user entry.
 type UserDto struct {
-	ID          int    `json:"id"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	CountryCode string `json:"countryCode"`
-	XP          int    `json:"xp"`
-	IsAdmin     bool   `json:"isAdmin"`
-	IsPremium   bool   `json:"isPremium"`
+	ID                  int            `json:"id"`
+	Username            string         `json:"username"`
+	Email               string         `json:"email"`
+	CountryCode         string         `json:"countryCode"`
+	XP                  int            `json:"xp"`
+	IsAdmin             bool           `json:"isAdmin"`
+	IsPremium           bool           `json:"isPremium"`
+	PasswordResetToken  sql.NullString `json:"passwordResetToken"`
+	PasswordResetExpiry sql.NullTime   `json:"passwordResetExpiry"`
 }
 
 // GetUsers returns a page of users.
 var GetUsers = func(limit int, offset int) ([]UserDto, error) {
-	rows, err := Connection.Query("SELECT * FROM users LIMIT $1 OFFSET $2;", limit, offset)
+	rows, err := Connection.Query("SELECT id, username, email, countrycode, xp, isadmin, ispremium, passwordresettoken, passwordresetexpiry FROM users LIMIT $1 OFFSET $2;", limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +43,7 @@ var GetUsers = func(limit int, offset int) ([]UserDto, error) {
 	var users = []UserDto{}
 	for rows.Next() {
 		var user UserDto
-		if err = rows.Scan(&user.ID, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium); err != nil {
+		if err = rows.Scan(&user.ID, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -52,9 +61,9 @@ var GetFirstID = func(limit int, offset int) (int, error) {
 
 // GetUser returns the user with a given id.
 var GetUser = func(id int) (UserDto, error) {
-	statement := "SELECT * FROM users WHERE id = $1;"
+	statement := "SELECT id, username, email, countrycode, xp, isadmin, ispremium, passwordresettoken, passwordresetexpiry FROM users WHERE id = $1;"
 	var user UserDto
-	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium)
+	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry)
 	return user, err
 }
 
@@ -62,7 +71,7 @@ var GetUser = func(id int) (UserDto, error) {
 var GetUserUsingEmail = func(email string) (User, error) {
 	statement := "SELECT * FROM users WHERE email = $1;"
 	var user User
-	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium)
+	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry)
 	return user, err
 }
 
@@ -70,7 +79,7 @@ var GetUserUsingEmail = func(email string) (User, error) {
 var InsertUser = func(user User) (User, error) {
 	statement := "INSERT INTO users (username, email, passwordHash, countrycode, xp, isAdmin, isPremium) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;"
 	var newUser User
-	err := Connection.QueryRow(statement, user.Username, user.Email, user.PasswordHash, user.CountryCode, 0, false, false).Scan(&newUser.ID, &newUser.Username, &newUser.Email, &newUser.PasswordHash, &newUser.CountryCode, &newUser.XP, &newUser.IsAdmin, &newUser.IsPremium)
+	err := Connection.QueryRow(statement, user.Username, user.Email, user.PasswordHash, user.CountryCode, 0, false, false).Scan(&newUser.ID, &newUser.Username, &newUser.Email, &newUser.PasswordHash, &newUser.CountryCode, &newUser.XP, &newUser.IsAdmin, &newUser.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry)
 	return newUser, err
 }
 
@@ -104,4 +113,16 @@ var EmailExists = func(email string) (bool, error) {
 	var count int
 	err := Connection.QueryRow(statement, email).Scan(&count)
 	return count > 0, err
+}
+
+var SetPasswordResetValues = func(userID int, resetToken string, expiryDate time.Time) error {
+	statement := "UPDATE users set passwordResetToken = $2, passwordResetExpiry = $3 WHERE id = $1 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, userID, resetToken, expiryDate).Scan(&id)
+}
+
+func ResetPassword(userID int, passwordHash string) error {
+	statement := "UPDATE users set passwordhash = $2, passwordResetToken = null, passwordResetExpiry = null WHERE id = $1 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, userID, passwordHash).Scan(&id)
 }
