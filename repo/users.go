@@ -21,18 +21,20 @@ type User struct {
 
 // UserDto is the dto for a user entry.
 type UserDto struct {
-	ID          int    `json:"id"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	CountryCode string `json:"countryCode"`
-	XP          int    `json:"xp"`
-	IsAdmin     bool   `json:"isAdmin"`
-	IsPremium   bool   `json:"isPremium"`
+	ID                  int            `json:"id"`
+	Username            string         `json:"username"`
+	Email               string         `json:"email"`
+	CountryCode         string         `json:"countryCode"`
+	XP                  int            `json:"xp"`
+	IsAdmin             bool           `json:"isAdmin"`
+	IsPremium           bool           `json:"isPremium"`
+	PasswordResetToken  sql.NullString `json:"passwordResetToken"`
+	PasswordResetExpiry sql.NullTime   `json:"passwordResetExpiry"`
 }
 
 // GetUsers returns a page of users.
 var GetUsers = func(limit int, offset int) ([]UserDto, error) {
-	rows, err := Connection.Query("SELECT * FROM users LIMIT $1 OFFSET $2;", limit, offset)
+	rows, err := Connection.Query("SELECT id, username, email, countrycode, xp, isadmin, ispremium, passwordresettoken, passwordresetexpiry FROM users LIMIT $1 OFFSET $2;", limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +43,7 @@ var GetUsers = func(limit int, offset int) ([]UserDto, error) {
 	var users = []UserDto{}
 	for rows.Next() {
 		var user UserDto
-		if err = rows.Scan(&user.ID, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium); err != nil {
+		if err = rows.Scan(&user.ID, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -59,9 +61,9 @@ var GetFirstID = func(limit int, offset int) (int, error) {
 
 // GetUser returns the user with a given id.
 var GetUser = func(id int) (UserDto, error) {
-	statement := "SELECT * FROM users WHERE id = $1;"
+	statement := "SELECT id, username, email, countrycode, xp, isadmin, ispremium, passwordresettoken, passwordresetexpiry FROM users WHERE id = $1;"
 	var user UserDto
-	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium)
+	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry)
 	return user, err
 }
 

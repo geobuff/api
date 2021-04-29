@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -14,6 +15,7 @@ import (
 	"github.com/geobuff/api/email"
 	"github.com/geobuff/api/repo"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -191,6 +193,33 @@ func SendResetToken(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
+}
+
+func ResetTokenValid(writer http.ResponseWriter, request *http.Request) {
+	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	user, err := repo.GetUser(userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(writer, fmt.Sprintf("User with id %d does not exist.\n", userID), http.StatusBadRequest)
+			return
+		}
+
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	valid := resetTokenValid(user.PasswordResetToken, mux.Vars(request)["token"], user.PasswordResetExpiry)
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(valid)
+}
+
+func resetTokenValid(userToken sql.NullString, requestToken string, expiry sql.NullTime) bool {
+	return userToken.Valid && expiry.Valid && userToken.String == requestToken && expiry.Time.Sub(time.Now()) > 0
 }
 
 var ValidUser = func(request *http.Request, id int) (int, error) {
