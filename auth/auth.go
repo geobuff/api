@@ -45,6 +45,12 @@ type PasswordResetDto struct {
 	Email string `json:"email"`
 }
 
+type ResetTokenUpdateDto struct {
+	UserID   int    `json:"userId"`
+	Token    string `json:"token"`
+	Password string `json:"password"`
+}
+
 // Login verifies a user before returning a token with relevant information.
 func Login(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
@@ -195,6 +201,7 @@ func SendResetToken(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+// ResetTokenValid checks if a token matches the user's database token.
 func ResetTokenValid(writer http.ResponseWriter, request *http.Request) {
 	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
 	if err != nil {
@@ -216,6 +223,55 @@ func ResetTokenValid(writer http.ResponseWriter, request *http.Request) {
 	valid := resetTokenValid(user.PasswordResetToken, mux.Vars(request)["token"], user.PasswordResetExpiry)
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(valid)
+}
+
+// UpdatePasswordUsingToken updates the users password using the email reset token.
+func UpdatePasswordUsingToken(writer http.ResponseWriter, request *http.Request) {
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var resetTokenUpdateDto ResetTokenUpdateDto
+	err = json.Unmarshal(requestBody, &resetTokenUpdateDto)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	user, err := repo.GetUser(resetTokenUpdateDto.UserID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(writer, fmt.Sprintf("User with id %d does not exist.\n", resetTokenUpdateDto.UserID), http.StatusBadRequest)
+			return
+		}
+
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	if !resetTokenValid(user.PasswordResetToken, resetTokenUpdateDto.Token, user.PasswordResetExpiry) {
+		http.Error(writer, "Password reset token is not valid.", http.StatusBadRequest)
+		return
+	}
+
+	passwordHash, err := hashPassword([]byte(resetTokenUpdateDto.Password))
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	err = repo.ResetPassword(user.ID, passwordHash)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	user.PasswordResetToken = sql.NullString{}
+	user.PasswordResetExpiry = sql.NullTime{}
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(user)
 }
 
 func resetTokenValid(userToken sql.NullString, requestToken string, expiry sql.NullTime) bool {

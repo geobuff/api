@@ -120,3 +120,9 @@ var SetPasswordResetValues = func(userID int, resetToken string, expiryDate time
 	var id int
 	return Connection.QueryRow(statement, userID, resetToken, expiryDate).Scan(&id)
 }
+
+func ResetPassword(userID int, passwordHash string) error {
+	statement := "UPDATE users set passwordhash = $2, passwordResetToken = null, passwordResetExpiry = null WHERE id = $1 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, userID, passwordHash).Scan(&id)
+}
