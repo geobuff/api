@@ -7,7 +7,8 @@
         "name": "dev"
     },
     "auth": {
-        "signingKey": "kirbyisascrub"
+        "signingKey": "kirbyisascrub",
+        "issuer": "https://geobuff-311806.ts.r.appspot.com"
     },
     "cors": {
         "origins": ["http://localhost:3000", "https://dev.geobuff.com"],

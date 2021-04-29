@@ -19,6 +19,7 @@ type Config struct {
 	} `json:"database"`
 	Auth struct {
 		SigningKey string `json:"signingKey"`
+		Issuer     string `json:"issuer"`
 	} `json:"auth"`
 	Cors struct {
 		Origins []string `json:"origins"`

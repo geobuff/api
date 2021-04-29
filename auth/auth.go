@@ -341,6 +341,11 @@ func buildToken(user repo.User) (string, error) {
 		XP:          user.XP,
 		IsAdmin:     user.IsAdmin,
 		IsPremium:   user.IsPremium,
+		StandardClaims: jwt.StandardClaims{
+			IssuedAt:  time.Now().Unix(),
+			ExpiresAt: time.Now().AddDate(0, 0, 3).Unix(),
+			Issuer:    config.Values.Auth.Issuer,
+		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
