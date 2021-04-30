@@ -6,9 +6,8 @@ import (
 
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/badges"
-	"github.com/geobuff/api/capitals"
 	"github.com/geobuff/api/config"
-	"github.com/geobuff/api/countries"
+	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
@@ -100,19 +99,13 @@ func router() http.Handler {
 	router.HandleFunc("/api/scores/{id}", scores.UpdateScore).Methods("PUT")
 	router.HandleFunc("/api/scores/{id}", scores.DeleteScore).Methods("DELETE")
 
-	// World Countries endpoints.
-	router.HandleFunc("/api/world-countries/leaderboard/all", countries.GetEntries).Methods("POST")
-	router.HandleFunc("/api/world-countries/leaderboard/{userId}", countries.GetEntry).Methods("GET")
-	router.HandleFunc("/api/world-countries/leaderboard", countries.CreateEntry).Methods("POST")
-	router.HandleFunc("/api/world-countries/leaderboard/{id}", countries.UpdateEntry).Methods("PUT")
-	router.HandleFunc("/api/world-countries/leaderboard/{id}", countries.DeleteEntry).Methods("DELETE")
-
-	// World Capitals endpoints.
-	router.HandleFunc("/api/world-capitals/leaderboard/all", capitals.GetEntries).Methods("POST")
-	router.HandleFunc("/api/world-capitals/leaderboard/{userId}", capitals.GetEntry).Methods("GET")
-	router.HandleFunc("/api/world-capitals/leaderboard", capitals.CreateEntry).Methods("POST")
-	router.HandleFunc("/api/world-capitals/leaderboard/{id}", capitals.UpdateEntry).Methods("PUT")
-	router.HandleFunc("/api/world-capitals/leaderboard/{id}", capitals.DeleteEntry).Methods("DELETE")
+	// Leaderboard endpoints.
+	router.HandleFunc("/api/leaderboard/all/{quizId}", leaderboard.GetEntries).Methods("POST")
+	router.HandleFunc("/api/leaderboard/{userId}", leaderboard.GetUserEntries).Methods("GET")
+	router.HandleFunc("/api/leaderboard/{quizId}/{userId}", leaderboard.GetEntry).Methods("GET")
+	router.HandleFunc("/api/leaderboard", leaderboard.CreateEntry).Methods("POST")
+	router.HandleFunc("/api/leaderboard/{id}", leaderboard.UpdateEntry).Methods("PUT")
+	router.HandleFunc("/api/leaderboard/{id}", leaderboard.DeleteEntry).Methods("DELETE")
 
 	return router
 }

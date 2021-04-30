@@ -1,4 +1,4 @@
-package capitals
+package leaderboard
 
 import (
 	"bytes"

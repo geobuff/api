@@ -51,16 +51,9 @@ CREATE TABLE scores (
     added DATE NOT NULL
 );
 
-CREATE TABLE countries_leaderboard (
-    id SERIAL PRIMARY KEY, 
-    userId INTEGER references users(id) NOT NULL,
-    score INTEGER NOT NULL, 
-    time INTEGER NOT NULL,
-    added DATE NOT NULL
-);
-
-CREATE TABLE capitals_leaderboard (
-    id SERIAL PRIMARY KEY, 
+CREATE TABLE leaderboard (
+    id SERIAL PRIMARY KEY,
+    quizId INTEGER references quizzes(id) NOT NULL,
     userId INTEGER references users(id) NOT NULL,
     score INTEGER NOT NULL, 
     time INTEGER NOT NULL,
