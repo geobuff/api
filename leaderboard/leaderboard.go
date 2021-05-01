@@ -1,4 +1,4 @@
-package capitals
+package leaderboard
 
 import (
 	"database/sql"
@@ -23,6 +23,12 @@ type EntriesDto struct {
 
 // GetEntries gets the leaderboard entries for a given page.
 func GetEntries(writer http.ResponseWriter, request *http.Request) {
+	quizID, err := strconv.Atoi(mux.Vars(request)["quizId"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -36,13 +42,13 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	entries, err := repo.GetLeaderboardEntries(repo.CapitalsTable, filterParams)
+	entries, err := repo.GetLeaderboardEntries(quizID, filterParams)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
-	switch _, err := repo.GetLeaderboardEntryID(repo.CapitalsTable, filterParams); err {
+	switch _, err := repo.GetLeaderboardEntryID(quizID, filterParams); err {
 	case sql.ErrNoRows:
 		entriesDto := EntriesDto{entries, false}
 		writer.Header().Set("Content-Type", "application/json")
@@ -56,15 +62,40 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// GetEntry gets a leaderboard entry by user id.
-func GetEntry(writer http.ResponseWriter, request *http.Request) {
+// GetUserEntries gets all leaderboard entrie for a user.
+func GetUserEntries(writer http.ResponseWriter, request *http.Request) {
 	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
-	switch entry, err := repo.GetLeaderboardEntry(repo.CapitalsTable, userID); err {
+	switch entries, err := repo.GetUserLeaderboardEntries(userID); err {
+	case sql.ErrNoRows:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
+	case nil:
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(entries)
+	default:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+	}
+}
+
+// GetEntry gets a leaderboard entry by quiz and user id.
+func GetEntry(writer http.ResponseWriter, request *http.Request) {
+	quizID, err := strconv.Atoi(mux.Vars(request)["quizId"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	switch entry, err := repo.GetLeaderboardEntry(quizID, userID); err {
 	case sql.ErrNoRows:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
 	case nil:
@@ -96,7 +127,7 @@ func CreateEntry(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	newEntry.Added = time.Now()
-	id, err := repo.InsertLeaderboardEntry(repo.CapitalsTable, newEntry)
+	id, err := repo.InsertLeaderboardEntry(newEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -136,7 +167,7 @@ func UpdateEntry(writer http.ResponseWriter, request *http.Request) {
 
 	updatedEntry.ID = id
 	updatedEntry.Added = time.Now()
-	err = repo.UpdateLeaderboardEntry(repo.CapitalsTable, updatedEntry)
+	err = repo.UpdateLeaderboardEntry(updatedEntry)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -154,7 +185,7 @@ func DeleteEntry(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	entry, err := repo.GetLeaderboardEntry(repo.CapitalsTable, id)
+	entry, err := repo.GetLeaderboardEntryById(id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -165,7 +196,7 @@ func DeleteEntry(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = repo.DeleteLeaderboardEntry(repo.CapitalsTable, entry.ID)
+	err = repo.DeleteLeaderboardEntry(entry.ID)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return

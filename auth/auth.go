@@ -324,7 +324,7 @@ func getToken(request *http.Request) (string, error) {
 
 func getClaims(tokenString string) (*CustomClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return config.Values.Auth.SigningKey, nil
+		return []byte(config.Values.Auth.SigningKey), nil
 	})
 
 	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {

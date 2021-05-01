@@ -4,5 +4,4 @@ DROP TABLE IF EXISTS quizzes CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS userbadges;
 DROP TABLE IF EXISTS scores;
-DROP TABLE IF EXISTS countries_leaderboard;
-DROP TABLE IF EXISTS capitals_leaderboard;
+DROP TABLE IF EXISTS leaderboard;
