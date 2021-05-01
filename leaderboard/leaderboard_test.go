@@ -28,58 +28,73 @@ func TestGetEntries(t *testing.T) {
 
 	tt := []struct {
 		name                  string
-		getLeaderboardEntries func(table string, filterParams models.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error)
-		getLeaderboardEntryID func(table string, filterParams models.GetEntriesFilterParams) (int, error)
+		getLeaderboardEntries func(quizID int, filterParams models.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error)
+		getLeaderboardEntryID func(quizID int, filterParams models.GetEntriesFilterParams) (int, error)
+		quizID                string
 		body                  string
 		status                int
 		hasMore               bool
 	}{
 		{
+			name:                  "invalid quizId value",
+			getLeaderboardEntries: repo.GetLeaderboardEntries,
+			getLeaderboardEntryID: repo.GetLeaderboardEntryID,
+			quizID:                "test",
+			body:                  "",
+			status:                http.StatusBadRequest,
+			hasMore:               false,
+		},
+		{
 			name:                  "error on unmarshal",
 			getLeaderboardEntries: repo.GetLeaderboardEntries,
 			getLeaderboardEntryID: repo.GetLeaderboardEntryID,
+			quizID:                "1",
 			body:                  "",
 			status:                http.StatusBadRequest,
 			hasMore:               false,
 		},
 		{
 			name: "error on GetLeaderboardEntries",
-			getLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
+			getLeaderboardEntries: func(quizID int, filterParams models.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
 				return nil, errors.New("test")
 			},
 			getLeaderboardEntryID: repo.GetLeaderboardEntryID,
+			quizID:                "1",
 			body:                  `{"page": 0, "limit": 10, "range": "", "user": ""}`,
 			status:                http.StatusInternalServerError,
 			hasMore:               false,
 		},
 		{
 			name: "error on GetLeaderboardEntryID",
-			getLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
+			getLeaderboardEntries: func(quizID int, filterParams models.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
 				return []repo.LeaderboardEntryDto{}, nil
 			},
-			getLeaderboardEntryID: func(table string, filterParams models.GetEntriesFilterParams) (int, error) {
+			getLeaderboardEntryID: func(quizID int, filterParams models.GetEntriesFilterParams) (int, error) {
 				return 0, errors.New("test")
 			},
+			quizID:  "1",
 			body:    `{"page": 0, "limit": 10, "range": "", "user": ""}`,
 			status:  http.StatusInternalServerError,
 			hasMore: false,
 		},
 		{
 			name: "happy path, has more is false",
-			getLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
+			getLeaderboardEntries: func(quizID int, filterParams models.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
 				return []repo.LeaderboardEntryDto{}, nil
 			},
-			getLeaderboardEntryID: func(table string, filterParams models.GetEntriesFilterParams) (int, error) { return 0, sql.ErrNoRows },
+			getLeaderboardEntryID: func(quizID int, filterParams models.GetEntriesFilterParams) (int, error) { return 0, sql.ErrNoRows },
+			quizID:                "1",
 			body:                  `{"page": 0, "limit": 10, "range": "", "user": ""}`,
 			status:                http.StatusOK,
 			hasMore:               false,
 		},
 		{
 			name: "happy path, has more is true",
-			getLeaderboardEntries: func(table string, filterParams models.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
+			getLeaderboardEntries: func(quizID int, filterParams models.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
 				return []repo.LeaderboardEntryDto{}, nil
 			},
-			getLeaderboardEntryID: func(table string, filterParams models.GetEntriesFilterParams) (int, error) { return 1, nil },
+			getLeaderboardEntryID: func(quizID int, filterParams models.GetEntriesFilterParams) (int, error) { return 1, nil },
+			quizID:                "1",
 			body:                  `{"page": 0, "limit": 10, "range": "", "user": ""}`,
 			status:                http.StatusOK,
 			hasMore:               true,
@@ -95,6 +110,10 @@ func TestGetEntries(t *testing.T) {
 			if err != nil {
 				t.Fatalf("could not create POST request: %v", err)
 			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"quizId": tc.quizID,
+			})
 
 			writer := httptest.NewRecorder()
 			GetEntries(writer, request)
@@ -125,6 +144,89 @@ func TestGetEntries(t *testing.T) {
 	}
 }
 
+func TestGetUserEntries(t *testing.T) {
+	savedGetUserLeaderboardEntries := repo.GetUserLeaderboardEntries
+
+	defer func() {
+		repo.GetUserLeaderboardEntries = savedGetUserLeaderboardEntries
+	}()
+
+	tt := []struct {
+		name                      string
+		getUserLeaderboardEntries func(userID int) ([]repo.LeaderboardEntryDto, error)
+		userID                    string
+		status                    int
+	}{
+		{
+			name:                      "invalid userId",
+			getUserLeaderboardEntries: repo.GetUserLeaderboardEntries,
+			userID:                    "testing",
+			status:                    http.StatusBadRequest,
+		},
+		{
+			name: "valid userId, no rows found",
+			getUserLeaderboardEntries: func(userID int) ([]repo.LeaderboardEntryDto, error) {
+				return nil, sql.ErrNoRows
+			},
+			userID: "1",
+			status: http.StatusNoContent,
+		},
+		{
+			name: "valid userId, unknown error on GetUserLeaderboardEntries",
+			getUserLeaderboardEntries: func(userID int) ([]repo.LeaderboardEntryDto, error) {
+				return nil, errors.New("test")
+			},
+			userID: "1",
+			status: http.StatusInternalServerError,
+		},
+		{
+			name: "happy path",
+			getUserLeaderboardEntries: func(userID int) ([]repo.LeaderboardEntryDto, error) {
+				return []repo.LeaderboardEntryDto{}, nil
+			},
+			userID: "1",
+			status: http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			repo.GetUserLeaderboardEntries = tc.getUserLeaderboardEntries
+
+			request, err := http.NewRequest("GET", "", nil)
+			if err != nil {
+				t.Fatalf("could not create GET request: %v", err)
+			}
+
+			request = mux.SetURLVars(request, map[string]string{
+				"userId": tc.userID,
+			})
+
+			writer := httptest.NewRecorder()
+			GetUserEntries(writer, request)
+			result := writer.Result()
+			defer result.Body.Close()
+
+			if result.StatusCode != tc.status {
+				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
+			}
+
+			if tc.status == http.StatusOK {
+				body, err := ioutil.ReadAll(result.Body)
+				if err != nil {
+					t.Fatalf("could not read response: %v", err)
+				}
+
+				var parsed []repo.LeaderboardEntryDto
+				err = json.Unmarshal(body, &parsed)
+				if err != nil {
+					t.Errorf("could not unmarshal response body: %v", err)
+				}
+			}
+		})
+	}
+}
+
 func TestGetEntry(t *testing.T) {
 	savedGetLeaderboardEntry := repo.GetLeaderboardEntry
 
@@ -134,37 +236,49 @@ func TestGetEntry(t *testing.T) {
 
 	tt := []struct {
 		name                string
-		getLeaderboardEntry func(table string, userID int) (repo.LeaderboardEntryDto, error)
+		getLeaderboardEntry func(quizID int, userID int) (repo.LeaderboardEntryDto, error)
+		quizID              string
 		userID              string
 		status              int
 	}{
 		{
+			name:                "invalid quizId",
+			getLeaderboardEntry: repo.GetLeaderboardEntry,
+			quizID:              "testing",
+			userID:              "",
+			status:              http.StatusBadRequest,
+		},
+		{
 			name:                "invalid userId",
 			getLeaderboardEntry: repo.GetLeaderboardEntry,
+			quizID:              "1",
 			userID:              "testing",
 			status:              http.StatusBadRequest,
 		},
 		{
 			name: "valid userId, no rows found",
-			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
+			getLeaderboardEntry: func(quizID int, userID int) (repo.LeaderboardEntryDto, error) {
 				return repo.LeaderboardEntryDto{}, sql.ErrNoRows
 			},
+			quizID: "1",
 			userID: "1",
 			status: http.StatusNoContent,
 		},
 		{
 			name: "valid userId, unknown error on GetLeaderboardEntry",
-			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
+			getLeaderboardEntry: func(quizID int, userID int) (repo.LeaderboardEntryDto, error) {
 				return repo.LeaderboardEntryDto{}, errors.New("test")
 			},
+			quizID: "1",
 			userID: "1",
 			status: http.StatusInternalServerError,
 		},
 		{
 			name: "happy path",
-			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
+			getLeaderboardEntry: func(quizID int, userID int) (repo.LeaderboardEntryDto, error) {
 				return repo.LeaderboardEntryDto{}, nil
 			},
+			quizID: "1",
 			userID: "1",
 			status: http.StatusOK,
 		},
@@ -180,6 +294,7 @@ func TestGetEntry(t *testing.T) {
 			}
 
 			request = mux.SetURLVars(request, map[string]string{
+				"quizId": tc.quizID,
 				"userId": tc.userID,
 			})
 
@@ -229,7 +344,7 @@ func TestCreateEntry(t *testing.T) {
 		name                   string
 		getUser                func(id int) (repo.UserDto, error)
 		validUser              func(request *http.Request, id int) (int, error)
-		insertLeaderboardEntry func(table string, entry repo.LeaderboardEntry) (int, error)
+		insertLeaderboardEntry func(entry repo.LeaderboardEntry) (int, error)
 		body                   string
 		status                 int
 	}{
@@ -265,7 +380,7 @@ func TestCreateEntry(t *testing.T) {
 			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
-			insertLeaderboardEntry: func(table string, entry repo.LeaderboardEntry) (int, error) { return 0, errors.New("test") },
+			insertLeaderboardEntry: func(entry repo.LeaderboardEntry) (int, error) { return 0, errors.New("test") },
 			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
 			status:                 http.StatusInternalServerError,
 		},
@@ -275,7 +390,7 @@ func TestCreateEntry(t *testing.T) {
 			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
-			insertLeaderboardEntry: func(table string, entry repo.LeaderboardEntry) (int, error) { return 1, nil },
+			insertLeaderboardEntry: func(entry repo.LeaderboardEntry) (int, error) { return 1, nil },
 			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
 			status:                 http.StatusCreated,
 		},
@@ -339,7 +454,7 @@ func TestUpdateEntry(t *testing.T) {
 		name                   string
 		getUser                func(id int) (repo.UserDto, error)
 		validUser              func(request *http.Request, id int) (int, error)
-		updateLeaderboardEntry func(table string, entry repo.LeaderboardEntry) error
+		updateLeaderboardEntry func(entry repo.LeaderboardEntry) error
 		id                     string
 		body                   string
 		status                 int
@@ -388,7 +503,7 @@ func TestUpdateEntry(t *testing.T) {
 			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
-			updateLeaderboardEntry: func(table string, entry repo.LeaderboardEntry) error { return errors.New("test") },
+			updateLeaderboardEntry: func(entry repo.LeaderboardEntry) error { return errors.New("test") },
 			id:                     "1",
 			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
 			status:                 http.StatusInternalServerError,
@@ -399,7 +514,7 @@ func TestUpdateEntry(t *testing.T) {
 			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
-			updateLeaderboardEntry: func(table string, entry repo.LeaderboardEntry) error { return nil },
+			updateLeaderboardEntry: func(entry repo.LeaderboardEntry) error { return nil },
 			id:                     "1",
 			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
 			status:                 http.StatusOK,
@@ -448,14 +563,14 @@ func TestUpdateEntry(t *testing.T) {
 }
 
 func TestDeleteEntry(t *testing.T) {
-	savedGetLeaderboardEntry := repo.GetLeaderboardEntry
+	savedGetLeaderboardEntryById := repo.GetLeaderboardEntryById
 	savedGetUser := repo.GetUser
 	savedValidUser := auth.ValidUser
 	savedDeleteLeaderboardEntry := repo.DeleteLeaderboardEntry
 	savedConfigValues := config.Values
 
 	defer func() {
-		repo.GetLeaderboardEntry = savedGetLeaderboardEntry
+		repo.GetLeaderboardEntryById = savedGetLeaderboardEntryById
 		repo.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
 		repo.DeleteLeaderboardEntry = savedDeleteLeaderboardEntry
@@ -467,27 +582,27 @@ func TestDeleteEntry(t *testing.T) {
 	}
 
 	tt := []struct {
-		name                   string
-		getLeaderboardEntry    func(table string, userID int) (repo.LeaderboardEntryDto, error)
-		getUser                func(id int) (repo.UserDto, error)
-		validUser              func(request *http.Request, id int) (int, error)
-		deleteLeaderboardEntry func(table string, entryID int) error
-		id                     string
-		status                 int
+		name                    string
+		getLeaderboardEntryById func(entryID int) (repo.LeaderboardEntry, error)
+		getUser                 func(id int) (repo.UserDto, error)
+		validUser               func(request *http.Request, id int) (int, error)
+		deleteLeaderboardEntry  func(entryID int) error
+		id                      string
+		status                  int
 	}{
 		{
-			name:                   "invalid id",
-			getLeaderboardEntry:    repo.GetLeaderboardEntry,
-			getUser:                repo.GetUser,
-			validUser:              auth.ValidUser,
-			deleteLeaderboardEntry: repo.DeleteLeaderboardEntry,
-			id:                     "testing",
-			status:                 http.StatusBadRequest,
+			name:                    "invalid id",
+			getLeaderboardEntryById: repo.GetLeaderboardEntryById,
+			getUser:                 repo.GetUser,
+			validUser:               auth.ValidUser,
+			deleteLeaderboardEntry:  repo.DeleteLeaderboardEntry,
+			id:                      "testing",
+			status:                  http.StatusBadRequest,
 		},
 		{
 			name: "valid id, error on GetLeaderboardEntry",
-			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
-				return repo.LeaderboardEntryDto{}, errors.New("test")
+			getLeaderboardEntryById: func(entryID int) (repo.LeaderboardEntry, error) {
+				return repo.LeaderboardEntry{}, errors.New("test")
 			},
 			getUser:                func(id int) (repo.UserDto, error) { return user, nil },
 			validUser:              auth.ValidUser,
@@ -497,8 +612,8 @@ func TestDeleteEntry(t *testing.T) {
 		},
 		{
 			name: "valid id, entry found, error on GetUser",
-			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
-				return repo.LeaderboardEntryDto{}, nil
+			getLeaderboardEntryById: func(entryID int) (repo.LeaderboardEntry, error) {
+				return repo.LeaderboardEntry{}, nil
 			},
 			getUser:                func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
 			validUser:              auth.ValidUser,
@@ -508,8 +623,8 @@ func TestDeleteEntry(t *testing.T) {
 		},
 		{
 			name: "valid id, entry found, invalid user",
-			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
-				return repo.LeaderboardEntryDto{}, nil
+			getLeaderboardEntryById: func(entryID int) (repo.LeaderboardEntry, error) {
+				return repo.LeaderboardEntry{}, nil
 			},
 			getUser: func(id int) (repo.UserDto, error) { return user, nil },
 			validUser: func(request *http.Request, id int) (int, error) {
@@ -521,27 +636,27 @@ func TestDeleteEntry(t *testing.T) {
 		},
 		{
 			name: "valid id, entry found, valid user, error on DeleteLeaderboardEntry",
-			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
-				return repo.LeaderboardEntryDto{}, nil
+			getLeaderboardEntryById: func(entryID int) (repo.LeaderboardEntry, error) {
+				return repo.LeaderboardEntry{}, nil
 			},
 			getUser: func(id int) (repo.UserDto, error) { return user, nil },
 			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
-			deleteLeaderboardEntry: func(table string, entryID int) error { return errors.New("test") },
+			deleteLeaderboardEntry: func(entryID int) error { return errors.New("test") },
 			id:                     "1",
 			status:                 http.StatusInternalServerError,
 		},
 		{
 			name: "happy path",
-			getLeaderboardEntry: func(table string, userID int) (repo.LeaderboardEntryDto, error) {
-				return repo.LeaderboardEntryDto{}, nil
+			getLeaderboardEntryById: func(entryID int) (repo.LeaderboardEntry, error) {
+				return repo.LeaderboardEntry{}, nil
 			},
 			getUser: func(id int) (repo.UserDto, error) { return user, nil },
 			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
-			deleteLeaderboardEntry: func(table string, entryID int) error { return nil },
+			deleteLeaderboardEntry: func(entryID int) error { return nil },
 			id:                     "1",
 			status:                 http.StatusOK,
 		},
@@ -549,7 +664,7 @@ func TestDeleteEntry(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			repo.GetLeaderboardEntry = tc.getLeaderboardEntry
+			repo.GetLeaderboardEntryById = tc.getLeaderboardEntryById
 			repo.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
 			repo.DeleteLeaderboardEntry = tc.deleteLeaderboardEntry
