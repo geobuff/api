@@ -45,7 +45,6 @@ jobs:
             echo AUTH_ISSUER=$AUTH_ISSUER >> .env
             echo CORS_ORIGINS=$CORS_ORIGINS >> .env
             echo CORS_METHODS=$CORS_METHODS >> .env
-            cat .env
       - run:
           name: Deploy to GCP
           command: |

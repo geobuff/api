@@ -28,6 +28,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("successfully loaded .env config")
 
 	err = repo.OpenConnection()
 	if err != nil {
