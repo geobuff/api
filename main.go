@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/badges"
-	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
 	"github.com/geobuff/api/quizzes"
@@ -17,12 +18,13 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/rs/cors"
 )
 
 func main() {
-	err := config.Load("config.json")
+	err := godotenv.Load()
 	if err != nil {
 		panic(err)
 	}
@@ -57,10 +59,8 @@ var serve = func() error {
 
 func handler(router http.Handler) http.Handler {
 	corsOptions := cors.New(cors.Options{
-		AllowedOrigins: config.Values.Cors.Origins,
-		AllowedMethods: config.Values.Cors.Methods,
-		AllowedHeaders: []string{"*"},
-		Debug:          true,
+		AllowedOrigins: strings.Split(os.Getenv("CORS_ORIGINS"), ","),
+		AllowedMethods: strings.Split(os.Getenv("CORS_METHODS"), ","),
 	})
 
 	return corsOptions.Handler(router)

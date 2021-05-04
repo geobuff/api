@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/email"
 	"github.com/geobuff/api/repo"
 	"github.com/google/uuid"
@@ -193,7 +193,7 @@ func SendResetToken(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	resetLink := fmt.Sprintf("%s/reset-password/%d/%s", config.Values.SiteUrl, user.ID, guid)
+	resetLink := fmt.Sprintf("%s/reset-password/%d/%s", os.Getenv("SITE_URL"), user.ID, guid)
 	err = email.SendResetToken(passwordResetDto.Email, resetLink)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
@@ -324,7 +324,7 @@ func getToken(request *http.Request) (string, error) {
 
 func getClaims(tokenString string) (*CustomClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.Values.Auth.SigningKey), nil
+		return []byte(os.Getenv("AUTH_SIGNING_KEY")), nil
 	})
 
 	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
@@ -344,12 +344,12 @@ func buildToken(user repo.User) (string, error) {
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
 			ExpiresAt: time.Now().AddDate(0, 0, 3).Unix(),
-			Issuer:    config.Values.Auth.Issuer,
+			Issuer:    os.Getenv("AUTH_ISSUER"),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(config.Values.Auth.SigningKey))
+	return token.SignedString([]byte(os.Getenv("AUTH_SIGNING_KEY")))
 }
 
 func hashPassword(password []byte) (string, error) {

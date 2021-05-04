@@ -34,9 +34,8 @@ jobs:
     steps:
       - checkout
       - run: |
-          echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
-          gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
-          gcloud app deploy
+          chmod +x deploy.sh
+          ./deploy.sh
 
 workflows:
   version: 2
@@ -48,4 +47,4 @@ workflows:
               - build
           filters:
             branches:
-              only: main
+              only: move-config-circleci
