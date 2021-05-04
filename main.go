@@ -62,7 +62,6 @@ func handler(router http.Handler) http.Handler {
 	corsOptions := cors.New(cors.Options{
 		AllowedOrigins: strings.Split(os.Getenv("CORS_ORIGINS"), ","),
 		AllowedMethods: strings.Split(os.Getenv("CORS_METHODS"), ","),
-		AllowedHeaders: []string{"*"},
 	})
 
 	return corsOptions.Handler(router)
