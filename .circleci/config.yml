@@ -36,12 +36,12 @@ jobs:
       - run:
           name: Create .env file
           command: |
-            echo "SITE_URL=$SITE_URL\n" >> .env
-            echo "CONNECTION_STRING=$CONNECTION_STRING\n" >> .env
-            echo "AUTH_SIGNING_KEY=$AUTH_SIGNING_KEY\n" >> .env
-            echo "AUTH_ISSUER=$AUTH_ISSUER\n" >> .env
-            echo "CORS_ORIGINS=$CORS_ORIGINS\n" >> .env
-            echo "CORS_METHODS=$CORS_METHODS\n" >> .env
+            echo "SITE_URL=${SITE_URL}\n" >> .env
+            echo "CONNECTION_STRING=${CONNECTION_STRING}\n" >> .env
+            echo "AUTH_SIGNING_KEY=${AUTH_SIGNING_KEY}\n" >> .env
+            echo "AUTH_ISSUER=${AUTH_ISSUER}\n" >> .env
+            echo "CORS_ORIGINS=${CORS_ORIGINS}\n" >> .env
+            echo "CORS_METHODS=${CORS_METHODS}\n" >> .env
       - run:
           name: Deploy to GCP
           command: |
