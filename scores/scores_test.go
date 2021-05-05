@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/geobuff/api/auth"
-	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
 )
@@ -181,13 +180,11 @@ func TestCreateScore(t *testing.T) {
 	savedGetUser := repo.GetUser
 	savedValidUser := auth.ValidUser
 	savedInsertScore := repo.InsertScore
-	savedConfigValues := config.Values
 
 	defer func() {
 		repo.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
 		repo.InsertScore = savedInsertScore
-		config.Values = savedConfigValues
 	}()
 
 	user := repo.UserDto{
@@ -255,7 +252,6 @@ func TestCreateScore(t *testing.T) {
 			repo.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
 			repo.InsertScore = tc.insertScore
-			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
@@ -291,13 +287,11 @@ func TestUpdateScore(t *testing.T) {
 	savedGetUser := repo.GetUser
 	savedValidUser := auth.ValidUser
 	savedUpdateScore := repo.UpdateScore
-	savedConfigValues := config.Values
 
 	defer func() {
 		repo.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
 		repo.UpdateScore = savedUpdateScore
-		config.Values = savedConfigValues
 	}()
 
 	user := repo.UserDto{
@@ -380,7 +374,6 @@ func TestUpdateScore(t *testing.T) {
 			repo.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
 			repo.UpdateScore = tc.updateScore
-			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
@@ -421,14 +414,12 @@ func TestDeleteScore(t *testing.T) {
 	savedGetUser := repo.GetUser
 	savedValidUser := auth.ValidUser
 	savedDeleteScore := repo.DeleteScore
-	savedConfigValues := config.Values
 
 	defer func() {
 		repo.GetScore = savedGetScore
 		repo.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
 		repo.DeleteScore = savedDeleteScore
-		config.Values = savedConfigValues
 	}()
 
 	user := repo.UserDto{
@@ -512,7 +503,6 @@ func TestDeleteScore(t *testing.T) {
 			repo.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
 			repo.DeleteScore = tc.deleteScore
-			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {

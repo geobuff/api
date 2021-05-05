@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo SITE_URL=$SITE_URL >> .env
+echo CONNECTION_STRING=$CONNECTION_STRING >> .env
+echo AUTH_SIGNING_KEY=$AUTH_SIGNING_KEY >> .env
+echo AUTH_ISSUER=$AUTH_ISSUER >> .env
+echo CORS_ORIGINS=$CORS_ORIGINS >> .env
+echo CORS_METHODS=$CORS_METHODS >> .env

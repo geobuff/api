@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/geobuff/api/auth"
-	"github.com/geobuff/api/config"
 	"github.com/geobuff/api/models"
 	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
@@ -327,13 +326,11 @@ func TestCreateEntry(t *testing.T) {
 	savedGetUser := repo.GetUser
 	savedValidUser := auth.ValidUser
 	savedInsertLeaderboardEntry := repo.InsertLeaderboardEntry
-	savedConfigValues := config.Values
 
 	defer func() {
 		repo.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
 		repo.InsertLeaderboardEntry = savedInsertLeaderboardEntry
-		config.Values = savedConfigValues
 	}()
 
 	user := repo.UserDto{
@@ -401,7 +398,6 @@ func TestCreateEntry(t *testing.T) {
 			repo.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
 			repo.InsertLeaderboardEntry = tc.insertLeaderboardEntry
-			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
@@ -437,13 +433,11 @@ func TestUpdateEntry(t *testing.T) {
 	savedGetUser := repo.GetUser
 	savedValidUser := auth.ValidUser
 	savedUpdateLeaderboardEntry := repo.UpdateLeaderboardEntry
-	savedConfigValues := config.Values
 
 	defer func() {
 		repo.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
 		repo.UpdateLeaderboardEntry = savedUpdateLeaderboardEntry
-		config.Values = savedConfigValues
 	}()
 
 	user := repo.UserDto{
@@ -526,7 +520,6 @@ func TestUpdateEntry(t *testing.T) {
 			repo.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
 			repo.UpdateLeaderboardEntry = tc.updateLeaderboardEntry
-			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
@@ -567,14 +560,12 @@ func TestDeleteEntry(t *testing.T) {
 	savedGetUser := repo.GetUser
 	savedValidUser := auth.ValidUser
 	savedDeleteLeaderboardEntry := repo.DeleteLeaderboardEntry
-	savedConfigValues := config.Values
 
 	defer func() {
 		repo.GetLeaderboardEntryById = savedGetLeaderboardEntryById
 		repo.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
 		repo.DeleteLeaderboardEntry = savedDeleteLeaderboardEntry
-		config.Values = savedConfigValues
 	}()
 
 	user := repo.UserDto{
@@ -668,7 +659,6 @@ func TestDeleteEntry(t *testing.T) {
 			repo.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
 			repo.DeleteLeaderboardEntry = tc.deleteLeaderboardEntry
-			config.Values = &config.Config{}
 
 			request, err := http.NewRequest("DELETE", "", nil)
 			if err != nil {
