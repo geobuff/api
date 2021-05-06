@@ -12,5 +12,7 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.10.0
 	github.com/rs/cors v1.7.0
+	github.com/sendgrid/rest v2.6.4+incompatible
+	github.com/sendgrid/sendgrid-go v3.10.0+incompatible
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 )
