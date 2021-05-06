@@ -68,19 +68,16 @@ func Login(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	user, err := repo.GetUserUsingEmail(loginDto.Email)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		http.Error(writer, "Invalid email. Please try again.", http.StatusBadRequest)
+		return
+	} else if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
-	match, err := passwordsMatch([]byte(user.PasswordHash), []byte(loginDto.Password))
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
-	if !match {
-		http.Error(writer, fmt.Sprint("Invalid password. Please try again.\n", err), http.StatusBadRequest)
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(loginDto.Password)); err != nil {
+		http.Error(writer, "Invalid password. Please try again.", http.StatusBadRequest)
 		return
 	}
 
@@ -116,7 +113,7 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if usernameExists {
-		http.Error(writer, fmt.Sprint("Username already in use. Please choose another and try again.\n", err), http.StatusBadRequest)
+		http.Error(writer, "Username already in use. Please choose another and try again.", http.StatusBadRequest)
 		return
 	}
 
@@ -127,7 +124,7 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if emailExists {
-		http.Error(writer, fmt.Sprint("Email already in use. Please choose another and try again.\n", err), http.StatusBadRequest)
+		http.Error(writer, "Email already in use. Please choose another and try again.", http.StatusBadRequest)
 		return
 	}
 
@@ -178,7 +175,7 @@ func SendResetToken(writer http.ResponseWriter, request *http.Request) {
 	user, err := repo.GetUserUsingEmail(passwordResetDto.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(writer, fmt.Sprintf("User with email %s does not exist.\n", passwordResetDto.Email), http.StatusBadRequest)
+			http.Error(writer, fmt.Sprintf("User with email %s does not exist.", passwordResetDto.Email), http.StatusBadRequest)
 			return
 		}
 
@@ -213,7 +210,7 @@ func ResetTokenValid(writer http.ResponseWriter, request *http.Request) {
 	user, err := repo.GetUser(userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(writer, fmt.Sprintf("User with id %d does not exist.\n", userID), http.StatusBadRequest)
+			http.Error(writer, fmt.Sprintf("User with id %d does not exist.", userID), http.StatusBadRequest)
 			return
 		}
 
@@ -244,7 +241,7 @@ func UpdatePasswordUsingToken(writer http.ResponseWriter, request *http.Request)
 	user, err := repo.GetUser(resetTokenUpdateDto.UserID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(writer, fmt.Sprintf("User with id %d does not exist.\n", resetTokenUpdateDto.UserID), http.StatusBadRequest)
+			http.Error(writer, fmt.Sprintf("User with id %d does not exist.", resetTokenUpdateDto.UserID), http.StatusBadRequest)
 			return
 		}
 
@@ -360,11 +357,4 @@ func hashPassword(password []byte) (string, error) {
 		return "", err
 	}
 	return string(hash), nil
-}
-
-func passwordsMatch(hashedPassword, plainPassword []byte) (bool, error) {
-	if err := bcrypt.CompareHashAndPassword(hashedPassword, plainPassword); err != nil {
-		return false, err
-	}
-	return true, nil
 }
