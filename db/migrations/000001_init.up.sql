@@ -61,7 +61,6 @@ CREATE TABLE leaderboard (
 );
 
 INSERT INTO badges (name, description, icon, total) values
-('Cartographer', 'Set country in user profile.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f4cd.svg', 1),
 ('Competitor', 'Submit a leaderboard entry.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3c6.svg', 1),
 ('International Traveler', 'Complete all world quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f9f3.svg', 2),
 ('SaharanBuff', 'Complete all Africa quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f418.svg', 4),
