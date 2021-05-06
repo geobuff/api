@@ -192,7 +192,7 @@ func SendResetToken(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	resetLink := fmt.Sprintf("%s/reset-password/%d/%s", os.Getenv("SITE_URL"), user.ID, guid)
-	err = email.SendResetToken(passwordResetDto.Email, resetLink)
+	_, err = email.SendResetToken(passwordResetDto.Email, resetLink)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
