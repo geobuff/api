@@ -13,6 +13,7 @@ import (
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
 	"github.com/geobuff/api/scores"
+	"github.com/geobuff/api/tempscores"
 	"github.com/geobuff/api/users"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -100,6 +101,10 @@ func router() http.Handler {
 	router.HandleFunc("/api/scores", scores.CreateScore).Methods("POST")
 	router.HandleFunc("/api/scores/{id}", scores.UpdateScore).Methods("PUT")
 	router.HandleFunc("/api/scores/{id}", scores.DeleteScore).Methods("DELETE")
+
+	// Temp Score endpoints.
+	router.HandleFunc("/api/tempscores/{id}", tempscores.GetTempScore).Methods("GET")
+	router.HandleFunc("/api/tempscores", tempscores.CreateTempScore).Methods("POST")
 
 	// Leaderboard endpoints.
 	router.HandleFunc("/api/leaderboard/all/{quizId}", leaderboard.GetEntries).Methods("POST")
