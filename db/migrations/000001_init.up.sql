@@ -51,6 +51,13 @@ CREATE TABLE scores (
     added DATE NOT NULL
 );
 
+CREATE TABLE tempscores (
+    id SERIAL PRIMARY KEY,
+    score INTEGER NOT NULL,
+    time INTEGER NOT NULL,
+    added DATE NOT NULL
+);
+
 CREATE TABLE leaderboard (
     id SERIAL PRIMARY KEY,
     quizId INTEGER references quizzes(id) NOT NULL,
