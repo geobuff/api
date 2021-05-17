@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$CIRCLE_BRANCH" = "prod-pipeline" ]; then
+if [ "$CIRCLE_BRANCH" = "develop" ]; then
     echo SITE_URL=$DEV_SITE_URL >> .env
     echo CONNECTION_STRING=$DEV_CONNECTION_STRING >> .env
     echo AUTH_ISSUER=$DEV_AUTH_ISSUER >> .env
