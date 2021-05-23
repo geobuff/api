@@ -10,6 +10,7 @@ import (
 	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
+	"github.com/geobuff/api/plays"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
 	"github.com/geobuff/api/scores"
@@ -113,6 +114,11 @@ func router() http.Handler {
 	router.HandleFunc("/api/leaderboard", leaderboard.CreateEntry).Methods("POST")
 	router.HandleFunc("/api/leaderboard/{id}", leaderboard.UpdateEntry).Methods("PUT")
 	router.HandleFunc("/api/leaderboard/{id}", leaderboard.DeleteEntry).Methods("DELETE")
+
+	// Play endpoints.
+	router.HandleFunc("/api/plays", plays.GetAllPlays).Methods("GET")
+	router.HandleFunc("/api/plays/{quizId}", plays.GetPlays).Methods("GET")
+	router.HandleFunc("/api/plays/{quizId}", plays.IncrementPlays).Methods("PUT")
 
 	return router
 }
