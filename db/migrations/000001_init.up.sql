@@ -67,6 +67,12 @@ CREATE TABLE leaderboard (
     added DATE NOT NULL
 );
 
+CREATE TABLE plays (
+    id SERIAL PRIMARY KEY,
+    quizId INTEGER references quizzes(id) NOT NULL,
+    value INTEGER NOT NULL
+);
+
 INSERT INTO badges (name, description, icon, total) values
 ('Competitor', 'Submit a leaderboard entry.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3c6.svg', 1),
 ('International Traveler', 'Complete all world quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f9f3.svg', 3),
@@ -112,3 +118,36 @@ INSERT INTO quizzes (type, badgeGroup, name, maxScore, time, mapSVG, imageUrl, v
 (2, 5, 'Flags of Germany', 16, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e9-1f1ea.svg', 'flags', 'germany-states', 'flags-of-germany', FALSE, FALSE, TRUE, TRUE),
 (2, 4, 'Flags of Japan', 47, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ef-1f1f5.svg', 'flags', 'japan-prefectures', 'flags-of-japan', FALSE, FALSE, TRUE, TRUE),
 (2, 6, 'Flags of the US', 50, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1f8.svg', 'flags', 'us-states', 'flags-of-the-us', FALSE, FALSE, TRUE, TRUE);
+
+INSERT INTO plays (quizId, value) values
+(1, 0),
+(2, 0),
+(3, 0),
+(4, 0),
+(5, 0),
+(6, 0),
+(7, 0),
+(8, 0),
+(9, 0),
+(10, 0),
+(11, 0),
+(12, 0),
+(13, 0),
+(14, 0),
+(15, 0),
+(16, 0),
+(17, 0),
+(18, 0),
+(19, 0),
+(20, 0),
+(21, 0),
+(22, 0),
+(23, 0),
+(24, 0),
+(25, 0),
+(26, 0),
+(27, 0),
+(28, 0),
+(29, 0),
+(30, 0),
+(31, 0);
