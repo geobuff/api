@@ -14,6 +14,7 @@ import (
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
 	"github.com/geobuff/api/scores"
+	"github.com/geobuff/api/subscription"
 	"github.com/geobuff/api/tempscores"
 	"github.com/geobuff/api/users"
 	"github.com/golang-migrate/migrate/v4"
@@ -119,6 +120,10 @@ func router() http.Handler {
 	router.HandleFunc("/api/plays", plays.GetAllPlays).Methods("GET")
 	router.HandleFunc("/api/plays/{quizId}", plays.GetPlays).Methods("GET")
 	router.HandleFunc("/api/plays/{quizId}", plays.IncrementPlays).Methods("PUT")
+
+	// Subscription endpoints.
+	router.HandleFunc("/api/subscription/create-checkout-session", subscription.HandleCreateCheckoutSession).Methods("POST")
+	router.HandleFunc("/api/subscription/premium", subscription.UpgradeSubscription).Methods("POST")
 
 	return router
 }

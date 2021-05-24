@@ -14,5 +14,8 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/sendgrid/rest v2.6.4+incompatible
 	github.com/sendgrid/sendgrid-go v3.10.0+incompatible
+	github.com/stripe/stripe-go v70.15.0+incompatible
+	github.com/stripe/stripe-go/v71 v71.48.0
+	github.com/stripe/stripe-go/v72 v72.45.0
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 )
