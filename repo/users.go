@@ -128,7 +128,7 @@ func ResetPassword(userID int, passwordHash string) error {
 }
 
 func UpgradeSubscription(userID int) error {
-	statement := "UPDATE users set isPremium = true id = $1 RETURNING id;"
+	statement := "UPDATE users set isPremium = true WHERE id = $1 RETURNING id;"
 	var id int
 	return Connection.QueryRow(statement, userID).Scan(&id)
 }
