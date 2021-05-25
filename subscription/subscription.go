@@ -14,6 +14,7 @@ import (
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
 	"github.com/stripe/stripe-go/v72"
+	portalsession "github.com/stripe/stripe-go/v72/billingportal/session"
 	"github.com/stripe/stripe-go/v72/checkout/session"
 )
 
@@ -32,7 +33,20 @@ type CreateCheckoutResult struct {
 }
 
 type UpgradeSubscriptionDto struct {
-	UserId int `json:"userId"`
+	UserId    int    `json:"userId"`
+	SessionId string `json:"sessionId"`
+}
+
+type ManageSubscriptionResult struct {
+	URL string `json:"url"`
+}
+
+type HandleCustomerPortalDto struct {
+	SessionID string `json:"sessionId"`
+}
+
+type HandleCustomerPortalResult struct {
+	URL string `json:"url"`
 }
 
 func HandleCreateCheckoutSession(writer http.ResponseWriter, request *http.Request) {
@@ -126,9 +140,43 @@ func UpgradeSubscription(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = repo.UpgradeSubscription(upgradeSubscriptionDto.UserId)
+	err = repo.UpgradeSubscription(upgradeSubscriptionDto.UserId, upgradeSubscriptionDto.SessionId)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
+}
+
+func HandleCustomerPortal(writer http.ResponseWriter, request *http.Request) {
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var handleCustomerPortalDto HandleCustomerPortalDto
+	err = json.Unmarshal(requestBody, &handleCustomerPortalDto)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	s, err := session.Get(handleCustomerPortalDto.SessionID, nil)
+	if err != nil {
+		writeJSON(writer, nil, err)
+		return
+	}
+
+	returnURL := os.Getenv("SITE_URL")
+	params := &stripe.BillingPortalSessionParams{
+		Customer:  stripe.String(s.Customer.ID),
+		ReturnURL: stripe.String(returnURL),
+	}
+
+	ps, _ := portalsession.New(params)
+
+	result := HandleCustomerPortalResult{
+		URL: ps.URL,
+	}
+	writeJSON(writer, result, nil)
 }

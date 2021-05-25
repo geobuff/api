@@ -13,8 +13,9 @@ type User struct {
 	PasswordHash        string         `json:"passwordHash"`
 	CountryCode         string         `json:"countryCode"`
 	XP                  int            `json:"xp"`
-	IsAdmin             bool           `json:"isAdmin"`
 	IsPremium           bool           `json:"isPremium"`
+	StripeSessionId     sql.NullString `json:"stripeSessionId"`
+	IsAdmin             bool           `json:"isAdmin"`
 	PasswordResetToken  sql.NullString `json:"passwordResetToken"`
 	PasswordResetExpiry sql.NullTime   `json:"passwordResetExpiry"`
 }
@@ -26,8 +27,8 @@ type UserDto struct {
 	Email               string         `json:"email"`
 	CountryCode         string         `json:"countryCode"`
 	XP                  int            `json:"xp"`
-	IsAdmin             bool           `json:"isAdmin"`
 	IsPremium           bool           `json:"isPremium"`
+	IsAdmin             bool           `json:"isAdmin"`
 	PasswordResetToken  sql.NullString `json:"passwordResetToken"`
 	PasswordResetExpiry sql.NullTime   `json:"passwordResetExpiry"`
 }
@@ -71,7 +72,7 @@ var GetUser = func(id int) (UserDto, error) {
 var GetUserUsingEmail = func(email string) (User, error) {
 	statement := "SELECT * FROM users WHERE email = $1;"
 	var user User
-	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry)
+	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.StripeSessionId, &user.PasswordResetToken, &user.PasswordResetExpiry)
 	return user, err
 }
 
@@ -79,7 +80,7 @@ var GetUserUsingEmail = func(email string) (User, error) {
 var InsertUser = func(user User) (User, error) {
 	statement := "INSERT INTO users (username, email, passwordHash, countrycode, xp, isAdmin, isPremium) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;"
 	var newUser User
-	err := Connection.QueryRow(statement, user.Username, user.Email, user.PasswordHash, user.CountryCode, 0, false, false).Scan(&newUser.ID, &newUser.Username, &newUser.Email, &newUser.PasswordHash, &newUser.CountryCode, &newUser.XP, &newUser.IsAdmin, &newUser.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry)
+	err := Connection.QueryRow(statement, user.Username, user.Email, user.PasswordHash, user.CountryCode, 0, false, false).Scan(&newUser.ID, &newUser.Username, &newUser.Email, &newUser.PasswordHash, &newUser.CountryCode, &newUser.XP, &newUser.IsPremium, &newUser.StripeSessionId, &newUser.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry)
 	return newUser, err
 }
 
@@ -127,8 +128,8 @@ func ResetPassword(userID int, passwordHash string) error {
 	return Connection.QueryRow(statement, userID, passwordHash).Scan(&id)
 }
 
-func UpgradeSubscription(userID int) error {
-	statement := "UPDATE users set isPremium = true WHERE id = $1 RETURNING id;"
+func UpgradeSubscription(userID int, sessionID string) error {
+	statement := "UPDATE users set isPremium = true, stripeSessionId = $2 WHERE id = $1 RETURNING id;"
 	var id int
-	return Connection.QueryRow(statement, userID).Scan(&id)
+	return Connection.QueryRow(statement, userID, sessionID).Scan(&id)
 }
