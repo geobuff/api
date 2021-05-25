@@ -13,7 +13,6 @@ import (
 
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
-	"github.com/stripe/stripe-go/customer"
 	"github.com/stripe/stripe-go/v72"
 	portalsession "github.com/stripe/stripe-go/v72/billingportal/session"
 	"github.com/stripe/stripe-go/v72/checkout/session"
@@ -200,23 +199,19 @@ func HandleWebhook(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if event.Type != "customer.subscription.deleted" {
-		return
-	}
+	switch event.Type {
+	case "customer.subscription.deleted":
+		var subscription stripe.Subscription
+		err := json.Unmarshal(event.Data.Raw, &subscription)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	var webhookDto WebhookDto
-	err = json.Unmarshal(requestBody, &webhookDto)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
-	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
-	customer, _ := customer.Get(webhookDto.Customer, nil)
-
-	err = repo.UnsubscribeUser(customer.Email)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
+		err = repo.UnsubscribeUser(subscription.Customer.Email)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+			return
+		}
 	}
 }
