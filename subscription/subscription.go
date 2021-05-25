@@ -13,9 +13,11 @@ import (
 
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
+	"github.com/stripe/stripe-go/customer"
 	"github.com/stripe/stripe-go/v72"
 	portalsession "github.com/stripe/stripe-go/v72/billingportal/session"
 	"github.com/stripe/stripe-go/v72/checkout/session"
+	"github.com/stripe/stripe-go/webhook"
 )
 
 type CreateCheckoutDto struct {
@@ -24,8 +26,8 @@ type CreateCheckoutDto struct {
 
 type ErrResp struct {
 	Error struct {
-		Message string
-	}
+		Message string `json:"message"`
+	} `json:"error"`
 }
 
 type CreateCheckoutResult struct {
@@ -47,6 +49,10 @@ type HandleCustomerPortalDto struct {
 
 type HandleCustomerPortalResult struct {
 	URL string `json:"url"`
+}
+
+type WebhookDto struct {
+	Customer string `json:"customer"`
 }
 
 func HandleCreateCheckoutSession(writer http.ResponseWriter, request *http.Request) {
@@ -179,4 +185,38 @@ func HandleCustomerPortal(writer http.ResponseWriter, request *http.Request) {
 		URL: ps.URL,
 	}
 	writeJSON(writer, result, nil)
+}
+
+func HandleWebhook(writer http.ResponseWriter, request *http.Request) {
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	event, err := webhook.ConstructEvent(requestBody, request.Header.Get("Stripe-Signature"), os.Getenv("STRIPE_WEBHOOK_SECRET"))
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if event.Type != "customer.subscription.deleted" {
+		return
+	}
+
+	var webhookDto WebhookDto
+	err = json.Unmarshal(requestBody, &webhookDto)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
+	customer, _ := customer.Get(webhookDto.Customer, nil)
+
+	err = repo.UnsubscribeUser(customer.Email)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
 }

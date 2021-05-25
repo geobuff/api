@@ -7,6 +7,7 @@ if [ "$CIRCLE_BRANCH" = "develop" ]; then
     echo AUTH_SIGNING_KEY=$DEV_AUTH_SIGNING_KEY >> .env
     echo CORS_ORIGINS=$DEV_CORS_ORIGINS >> .env
     echo STRIPE_SECRET_KEY=$DEV_STRIPE_SECRET_KEY >> .env
+    echo STRIPE_WEBHOOK_SECRET=$DEV_STRIPE_WEBHOOK_SECRET >> .env
 elif [ "$CIRCLE_BRANCH" = "main" ]; then
     echo SITE_URL=$PROD_SITE_URL >> .env
     echo CONNECTION_STRING=$PROD_CONNECTION_STRING >> .env
@@ -14,6 +15,7 @@ elif [ "$CIRCLE_BRANCH" = "main" ]; then
     echo AUTH_SIGNING_KEY=$PROD_AUTH_SIGNING_KEY >> .env
     echo CORS_ORIGINS=$PROD_CORS_ORIGINS >> .env
     echo STRIPE_SECRET_KEY=$PROD_STRIPE_SECRET_KEY >> .env
+    echo STRIPE_WEBHOOK_SECRET=$PROD_STRIPE_WEBHOOK_SECRET >> .env
 fi
 
 echo CORS_METHODS=$CORS_METHODS >> .env

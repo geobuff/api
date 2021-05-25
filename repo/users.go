@@ -133,3 +133,9 @@ func UpgradeSubscription(userID int, sessionID string) error {
 	var id int
 	return Connection.QueryRow(statement, userID, sessionID).Scan(&id)
 }
+
+func UnsubscribeUser(email string) error {
+	statement := "UPDATE users set isPremium = false, stripeSessionId = null WHERE email = $1 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, email).Scan(&id)
+}

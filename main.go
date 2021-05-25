@@ -125,6 +125,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/subscription/create-checkout-session", subscription.HandleCreateCheckoutSession).Methods("POST")
 	router.HandleFunc("/api/subscription/premium", subscription.UpgradeSubscription).Methods("POST")
 	router.HandleFunc("/api/subscription/manage", subscription.HandleCustomerPortal).Methods("POST")
+	router.HandleFunc("/api/subscription/webhook", subscription.HandleWebhook).Methods("POST")
 
 	return router
 }
