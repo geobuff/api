@@ -62,9 +62,9 @@ var GetFirstID = func(limit int, offset int) (int, error) {
 
 // GetUser returns the user with a given id.
 var GetUser = func(id int) (UserDto, error) {
-	statement := "SELECT id, username, email, countrycode, xp, isadmin, ispremium, passwordresettoken, passwordresetexpiry FROM users WHERE id = $1;"
+	statement := "SELECT id, username, email, countrycode, xp, ispremium, isadmin, passwordresettoken, passwordresetexpiry FROM users WHERE id = $1;"
 	var user UserDto
-	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry)
+	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsPremium, &user.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry)
 	return user, err
 }
 
@@ -72,13 +72,13 @@ var GetUser = func(id int) (UserDto, error) {
 var GetUserUsingEmail = func(email string) (User, error) {
 	statement := "SELECT * FROM users WHERE email = $1;"
 	var user User
-	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.StripeSessionId, &user.PasswordResetToken, &user.PasswordResetExpiry)
+	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.CountryCode, &user.XP, &user.IsPremium, &user.StripeSessionId, &user.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry)
 	return user, err
 }
 
 // InsertUser inserts a new user into the users table.
 var InsertUser = func(user User) (User, error) {
-	statement := "INSERT INTO users (username, email, passwordHash, countrycode, xp, isAdmin, isPremium) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;"
+	statement := "INSERT INTO users (username, email, passwordHash, countrycode, xp, isPremium, isAdmin) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;"
 	var newUser User
 	err := Connection.QueryRow(statement, user.Username, user.Email, user.PasswordHash, user.CountryCode, 0, false, false).Scan(&newUser.ID, &newUser.Username, &newUser.Email, &newUser.PasswordHash, &newUser.CountryCode, &newUser.XP, &newUser.IsPremium, &newUser.StripeSessionId, &newUser.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry)
 	return newUser, err
