@@ -166,6 +166,7 @@ func HandleCustomerPortal(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 	s, err := session.Get(handleCustomerPortalDto.SessionID, nil)
 	if err != nil {
 		writeJSON(writer, nil, err)
