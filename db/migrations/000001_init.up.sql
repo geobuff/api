@@ -102,7 +102,7 @@ INSERT INTO quizzes (type, badgeGroup, name, maxScore, time, mapSVG, imageUrl, v
 (1, 5, 'Regions of France', 13, 300, 'FranceRegions', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1eb-1f1f7.svg', 'regions', 'france-regions', 'regions-of-france', FALSE, FALSE, TRUE, TRUE),
 (1, 5, 'States of Germany', 16, 300, 'GermanyStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e9-1f1ea.svg', 'states', 'germany-states', 'states-of-germany', FALSE, FALSE, TRUE, TRUE),
 (1, 4, 'States and Union Territories of India', 36, 300, 'IndiaStatesAndUnionTerritories', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ee-1f1f3.svg', 'states and union territories', 'india-states-and-union-territories', 'states-and-union-territories-of-india', FALSE, FALSE, FALSE, TRUE),
-(1, 4, 'Prefectures of Japan', 47, 300, 'JapanPrefectures', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ef-1f1f5.svg', 'prefectures', 'japan-prefectures', 'prefectures-of-japan', FALSE, FALSE, TRUE, TRUE),
+(1, 4, 'Prefectures of Japan', 47, 300, 'JapanPrefectures', 'https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg', 'prefectures', 'japan-prefectures', 'prefectures-of-japan', FALSE, FALSE, TRUE, TRUE),
 (1, 6, 'States of Mexico', 32, 300, 'MexicoStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1f2-1f1fd.svg', 'states', 'mexico-states', 'states-of-mexico', FALSE, FALSE, FALSE, TRUE),
 (1, 8, 'Regions of New Zealand', 16, 300, 'NewZealandRegions', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1f3-1f1ff.svg', 'regions', 'new-zealand-regions', 'regions-of-new-zealand', FALSE, FALSE, FALSE, TRUE),
 (1, 3, 'States of Nigeria', 37, 300, 'NigeriaStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1f3-1f1ec.svg', 'states', 'nigeria-states', 'states-of-nigeria', FALSE, FALSE, FALSE, TRUE),
@@ -117,7 +117,7 @@ INSERT INTO quizzes (type, badgeGroup, name, maxScore, time, mapSVG, imageUrl, v
 (2, 6, 'Flags of Canada', 13, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e8-1f1e6.svg', 'flags', 'canada-provinces-and-territories', 'flags-of-canada', FALSE, FALSE, TRUE, TRUE),
 (2, 5, 'Flags of France', 13, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1eb-1f1f7.svg', 'flags', 'france-regions', 'flags-of-france', FALSE, FALSE, TRUE, TRUE),
 (2, 5, 'Flags of Germany', 16, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e9-1f1ea.svg', 'flags', 'germany-states', 'flags-of-germany', FALSE, FALSE, TRUE, TRUE),
-(2, 4, 'Flags of Japan', 47, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ef-1f1f5.svg', 'flags', 'japan-prefectures', 'flags-of-japan', FALSE, FALSE, TRUE, TRUE),
+(2, 4, 'Flags of Japan', 47, 300, '', 'https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg', 'flags', 'japan-prefectures', 'flags-of-japan', FALSE, FALSE, TRUE, TRUE),
 (2, 6, 'Flags of the US', 50, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1f8.svg', 'flags', 'us-states', 'flags-of-the-us', FALSE, FALSE, TRUE, TRUE);
 
 INSERT INTO plays (quizId, value) values
