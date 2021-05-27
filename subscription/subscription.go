@@ -13,7 +13,7 @@ import (
 
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
-	"github.com/stripe/stripe-go/customer"
+	"github.com/stripe/stripe-go/client"
 	"github.com/stripe/stripe-go/v72"
 	portalsession "github.com/stripe/stripe-go/v72/billingportal/session"
 	"github.com/stripe/stripe-go/v72/checkout/session"
@@ -195,6 +195,7 @@ func HandleWebhook(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 	event, err := webhook.ConstructEvent(requestBody, request.Header.Get("Stripe-Signature"), os.Getenv("STRIPE_WEBHOOK_SECRET"))
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
@@ -213,8 +214,9 @@ func HandleWebhook(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 
-		stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
-		c, err := customer.Get(req.Customer, nil)
+		sc := &client.API{}
+		sc.Init(os.Getenv("STRIPE_SECRET_KEY"), nil)
+		c, err := sc.Customers.Get(req.Customer, nil)
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 			return
