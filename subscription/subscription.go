@@ -13,6 +13,7 @@ import (
 
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
+	"github.com/stripe/stripe-go/customer"
 	"github.com/stripe/stripe-go/v72"
 	portalsession "github.com/stripe/stripe-go/v72/billingportal/session"
 	"github.com/stripe/stripe-go/v72/checkout/session"
@@ -202,14 +203,23 @@ func HandleWebhook(writer http.ResponseWriter, request *http.Request) {
 
 	switch event.Type {
 	case "customer.subscription.deleted":
-		var subscription stripe.Subscription
-		err := json.Unmarshal(event.Data.Raw, &subscription)
+		var req struct {
+			Customer string `json:"customer"`
+		}
+
+		err := json.Unmarshal(event.Data.Raw, &req)
 		if err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		err = repo.UnsubscribeUser(subscription.Customer.Email)
+		c, err := customer.Get(req.Customer, nil)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+			return
+		}
+
+		err = repo.UnsubscribeUser(c.Email)
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 			return
