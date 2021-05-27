@@ -195,6 +195,7 @@ func HandleWebhook(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 	event, err := webhook.ConstructEvent(requestBody, request.Header.Get("Stripe-Signature"), os.Getenv("STRIPE_WEBHOOK_SECRET"))
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
