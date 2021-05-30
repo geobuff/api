@@ -21,6 +21,7 @@ import (
 
 type CustomClaims struct {
 	UserID          int    `json:"userId"`
+	AvatarId        int    `json:"avatarId"`
 	Username        string `json:"username"`
 	Email           string `json:"email"`
 	CountryCode     string `json:"countryCode"`
@@ -335,6 +336,7 @@ func getClaims(tokenString string) (*CustomClaims, error) {
 func buildToken(user repo.User) (string, error) {
 	claims := CustomClaims{
 		UserID:          user.ID,
+		AvatarId:        user.AvatarId,
 		Username:        user.Username,
 		Email:           user.Email,
 		CountryCode:     user.CountryCode,
