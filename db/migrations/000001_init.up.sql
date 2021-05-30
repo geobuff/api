@@ -2,8 +2,18 @@ CREATE TABLE badges (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
-    icon TEXT NOT NULL,
-    total INTEGER NOT NULL
+    total INTEGER NOT NULL,
+    imageUrl TEXT NOT NULL,
+    background TEXT NOT NULL,
+    border TEXT NOT NULL
+);
+
+CREATE table avatars (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    imageUrl TEXT NOT NULL,
+    background TEXT NOT NULL,
+    border TEXT NOT NULL
 );
 
 CREATE TABLE quiztype (
@@ -30,7 +40,8 @@ CREATE TABLE quizzes (
 );
 
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY, 
+    id SERIAL PRIMARY KEY,
+    avatarId INTEGER references avatars(id) NOT NULL,
     username TEXT UNIQUE NOT NULL,
     email TEXT NOT NULL,
     passwordHash TEXT NOT NULL,
@@ -74,15 +85,22 @@ CREATE TABLE plays (
     value INTEGER NOT NULL
 );
 
-INSERT INTO badges (name, description, icon, total) values
-('Competitor', 'Submit a leaderboard entry.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3c6.svg', 1),
-('International Traveler', 'Complete all world quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f9f3.svg', 3),
-('SaharanBuff', 'Complete all Africa quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f418.svg', 4),
-('OrientalBuff', 'Complete all Asia quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f338.svg', 5),
-('EuropaBuff', 'Complete all Europe quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3f0.svg', 5),
-('RockiesBuff', 'Complete all North America quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/26f0.svg', 6),
-('AmazonBuff', 'Complete all South America quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f483.svg', 5),
-('PacificBuff', 'Complete all Oceania quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3dd.svg', 4);
+INSERT INTO badges (name, description, total, imageUrl, background, border) values
+('Competitor', 'Submit a leaderboard entry.', 1, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3c6.svg', '#FFF1CE', '#C1694F'),
+('International Traveler', 'Complete all world quizzes.', 3, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f9f3.svg', '#A8D9FF', '#4289C1'),
+('SaharanBuff', 'Complete all Africa quizzes.', 4, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f418.svg', '#DDDDDD', '#66757F'),
+('OrientalBuff', 'Complete all Asia quizzes.', 5, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f338.svg', '#FFE4EA', '#EA596E'),
+('EuropaBuff', 'Complete all Europe quizzes.', 5, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3f0.svg', '#ECF3F9', '#226699'),
+('RockiesBuff', 'Complete all North America quizzes.', 6, 'https://twemoji.maxcdn.com/v/13.0.1/svg/26f0.svg', '#E9E9E9', '#4B545D'),
+('AmazonBuff', 'Complete all South America quizzes.', 5, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f483.svg', '#FFBFC7', '#A0041E'),
+('PacificBuff', 'Complete all Oceania quizzes.', 4, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3dd.svg', '#D3ECFF', '#F4900C');
+
+INSERT INTO avatars (name, imageUrl, background, border) values
+('Mr. Pumpkin', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f383.svg', '#FFE0B7', '#F79D27'),
+('Zucc', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f916.svg', '#E0F2FF', '#3B88C3'),
+('GeoKitty', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f431.svg', '#FFE8AD', '#F18F26'),
+('Elon', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f47d.svg', '#E6F2FB', '#CCD6DD'),
+('Victor', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f4a9.svg', '#EDCBC1', '#BF6952');
 
 INSERT INTO quiztype (name) values ('Map'), ('Flag');
 

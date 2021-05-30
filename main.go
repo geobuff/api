@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/geobuff/api/auth"
+	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
@@ -126,6 +127,9 @@ func router() http.Handler {
 	router.HandleFunc("/api/subscription/premium", subscription.UpgradeSubscription).Methods("POST")
 	router.HandleFunc("/api/subscription/manage", subscription.HandleCustomerPortal).Methods("POST")
 	router.HandleFunc("/api/subscription/webhook", subscription.HandleWebhook).Methods("POST")
+
+	// Avatar endpoints.
+	router.HandleFunc("/api/avatars", avatars.GetAvatars).Methods("GET")
 
 	return router
 }
