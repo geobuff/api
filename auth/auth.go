@@ -38,6 +38,7 @@ type LoginDto struct {
 }
 
 type RegisterDto struct {
+	AvatarId    int    `json:"avatarId"`
 	Username    string `json:"username"`
 	Email       string `json:"email"`
 	CountryCode string `json:"countryCode"`
@@ -137,6 +138,7 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	newUser := repo.User{
+		AvatarId:     registerDto.AvatarId,
 		Username:     registerDto.Username,
 		Email:        registerDto.Email,
 		PasswordHash: passwordHash,
