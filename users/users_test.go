@@ -13,6 +13,7 @@ import (
 
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/validation"
 	"github.com/gorilla/mux"
 )
 
@@ -234,60 +235,120 @@ func TestGetUser(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	savedValidUser := auth.ValidUser
+	savedAnotherUserWithUsername := repo.AnotherUserWithUsername
+	savedAnotherUserWithEmail := repo.AnotherUserWithEmail
 	savedUpdateUser := repo.UpdateUser
+	savedValidator := validation.Validator
 
 	defer func() {
 		auth.ValidUser = savedValidUser
 		repo.UpdateUser = savedUpdateUser
+		repo.AnotherUserWithUsername = savedAnotherUserWithUsername
+		repo.AnotherUserWithEmail = savedAnotherUserWithEmail
+		validation.Validator = savedValidator
 	}()
 
+	validation.Init()
+
 	tt := []struct {
-		name       string
-		validUser  func(request *http.Request, id int) (int, error)
-		updateUser func(user repo.User) error
-		id         string
-		body       string
-		status     int
+		name                    string
+		validUser               func(request *http.Request, id int) (int, error)
+		anotherUserWithUsername func(id int, username string) (bool, error)
+		anotherUserWithEmail    func(id int, email string) (bool, error)
+		updateUser              func(userID int, user repo.UpdateUserDto) error
+		id                      string
+		body                    string
+		status                  int
 	}{
 		{
-			name:       "invalid id",
-			validUser:  auth.ValidUser,
-			updateUser: repo.UpdateUser,
-			id:         "testing",
-			body:       "",
-			status:     http.StatusBadRequest,
+			name:                    "invalid id",
+			validUser:               auth.ValidUser,
+			anotherUserWithUsername: repo.AnotherUserWithUsername,
+			anotherUserWithEmail:    repo.AnotherUserWithEmail,
+			updateUser:              repo.UpdateUser,
+			id:                      "testing",
+			body:                    "",
+			status:                  http.StatusBadRequest,
 		},
 		{
-			name:       "valid id, invalid user",
-			validUser:  func(request *http.Request, id int) (int, error) { return http.StatusUnauthorized, errors.New("test") },
-			updateUser: repo.UpdateUser,
-			id:         "1",
-			body:       "",
-			status:     http.StatusUnauthorized,
+			name:                    "valid id, invalid user",
+			validUser:               func(request *http.Request, id int) (int, error) { return http.StatusUnauthorized, errors.New("test") },
+			anotherUserWithUsername: repo.AnotherUserWithUsername,
+			anotherUserWithEmail:    repo.AnotherUserWithEmail,
+			updateUser:              repo.UpdateUser,
+			id:                      "1",
+			body:                    "",
+			status:                  http.StatusUnauthorized,
 		},
 		{
-			name:       "valid user, error on unmarshal",
-			validUser:  func(request *http.Request, id int) (int, error) { return http.StatusOK, nil },
-			updateUser: repo.UpdateUser,
-			id:         "1",
-			body:       "testing",
-			status:     http.StatusBadRequest,
+			name:                    "valid user, error on unmarshal",
+			validUser:               func(request *http.Request, id int) (int, error) { return http.StatusOK, nil },
+			anotherUserWithUsername: repo.AnotherUserWithUsername,
+			anotherUserWithEmail:    repo.AnotherUserWithEmail,
+			updateUser:              repo.UpdateUser,
+			id:                      "1",
+			body:                    "testing",
+			status:                  http.StatusBadRequest,
 		},
 		{
-			name:       "valid user, valid body, error on UpdateUser",
-			validUser:  func(request *http.Request, id int) (int, error) { return http.StatusOK, nil },
-			updateUser: func(user repo.User) error { return errors.New("test") },
-			id:         "1",
-			body:       `{"username":"mrscrub"}`,
-			status:     http.StatusInternalServerError,
+			name:                    "error on AnotherUserWithUsername",
+			validUser:               func(request *http.Request, id int) (int, error) { return http.StatusOK, nil },
+			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, errors.New("test") },
+			anotherUserWithEmail:    repo.AnotherUserWithEmail,
+			updateUser:              repo.UpdateUser,
+			id:                      "1",
+			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
+			status:                  http.StatusInternalServerError,
 		},
 		{
-			name:       "happy path",
-			validUser:  func(request *http.Request, id int) (int, error) { return http.StatusOK, nil },
-			updateUser: func(user repo.User) error { return nil },
-			id:         "1",
-			body:       `{"username":"mrscrub"}`,
-			status:     http.StatusOK,
+			name:                    "another user with username",
+			validUser:               func(request *http.Request, id int) (int, error) { return http.StatusOK, nil },
+			anotherUserWithUsername: func(id int, username string) (bool, error) { return true, nil },
+			anotherUserWithEmail:    repo.AnotherUserWithEmail,
+			updateUser:              repo.UpdateUser,
+			id:                      "1",
+			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
+			status:                  http.StatusBadRequest,
+		},
+		{
+			name:                    "error on AnotherUserWithEmail",
+			validUser:               func(request *http.Request, id int) (int, error) { return http.StatusOK, nil },
+			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, nil },
+			anotherUserWithEmail:    func(id int, email string) (bool, error) { return false, errors.New(("test")) },
+			updateUser:              repo.UpdateUser,
+			id:                      "1",
+			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
+			status:                  http.StatusInternalServerError,
+		},
+		{
+			name:                    "another user with email",
+			validUser:               func(request *http.Request, id int) (int, error) { return http.StatusOK, nil },
+			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, nil },
+			anotherUserWithEmail:    func(id int, email string) (bool, error) { return true, nil },
+			updateUser:              repo.UpdateUser,
+			id:                      "1",
+			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
+			status:                  http.StatusBadRequest,
+		},
+		{
+			name:                    "error on UpdateUser",
+			validUser:               func(request *http.Request, id int) (int, error) { return http.StatusOK, nil },
+			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, nil },
+			anotherUserWithEmail:    func(id int, email string) (bool, error) { return false, nil },
+			updateUser:              func(userID int, user repo.UpdateUserDto) error { return errors.New("test") },
+			id:                      "1",
+			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
+			status:                  http.StatusInternalServerError,
+		},
+		{
+			name:                    "happy path",
+			validUser:               func(request *http.Request, id int) (int, error) { return http.StatusOK, nil },
+			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, nil },
+			anotherUserWithEmail:    func(id int, email string) (bool, error) { return false, nil },
+			updateUser:              func(userID int, user repo.UpdateUserDto) error { return nil },
+			id:                      "1",
+			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
+			status:                  http.StatusOK,
 		},
 	}
 
@@ -295,6 +356,8 @@ func TestUpdateUser(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			auth.ValidUser = tc.validUser
 			repo.UpdateUser = tc.updateUser
+			repo.AnotherUserWithUsername = tc.anotherUserWithUsername
+			repo.AnotherUserWithEmail = tc.anotherUserWithEmail
 
 			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {

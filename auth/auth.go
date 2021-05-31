@@ -14,6 +14,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/geobuff/api/email"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/validation"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
@@ -38,11 +39,11 @@ type LoginDto struct {
 }
 
 type RegisterDto struct {
-	AvatarId    int    `json:"avatarId"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	CountryCode string `json:"countryCode"`
-	Password    string `json:"password"`
+	AvatarId    int    `json:"avatarId" validate:"required"`
+	Username    string `json:"username" validate:"required,username"`
+	Email       string `json:"email" validate:"required,email"`
+	CountryCode string `json:"countryCode" validate:"required"`
+	Password    string `json:"password" validate:"required,password"`
 }
 
 type PasswordResetDto struct {
@@ -106,6 +107,12 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 	err = json.Unmarshal(requestBody, &registerDto)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	err = validation.Validator.Struct(registerDto)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
 
