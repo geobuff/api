@@ -85,6 +85,28 @@ CREATE TABLE plays (
     value INTEGER NOT NULL
 );
 
+CREATE TABLE merch (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    price DECIMAL NOT NULL,
+    disabled BOOLEAN NOT NULL
+);
+
+CREATE TABLE merchSizes (
+    id SERIAL PRIMARY KEY,
+    merchId INTEGER references merch(id) NOT NULL,
+    size TEXT NOT NULL,
+    soldOut BOOLEAN NOT NULL
+);
+
+CREATE TABLE merchImages (
+    id SERIAL PRIMARY KEY,
+    merchId INTEGER references merch(id) NOT NULL,
+    imageUrl TEXT NOT NULL,
+    isPrimary BOOLEAN NOT NULL
+);
+
 INSERT INTO badges (name, description, total, imageUrl, background, border) values
 ('Competitor', 'Submit a leaderboard entry.', 1, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3c6.svg', '#FFF1CE', '#C1694F'),
 ('International Traveler', 'Complete all world quizzes.', 3, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f9f3.svg', '#A8D9FF', '#4289C1'),
@@ -170,3 +192,18 @@ INSERT INTO plays (quizId, value) values
 (29, 0),
 (30, 0),
 (31, 0);
+
+INSERT INTO merch (name, description, price, disabled) values
+('GeoTee', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 69.99, FALSE),
+('GeoCap', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 39.99, FALSE);
+
+INSERT INTO merchSizes (merchId, size, soldOut) values
+(1, 'S', FALSE),
+(1, 'M', FALSE),
+(1, 'L', FALSE),
+(1, 'XL', FALSE),
+(2, 'One Size Fits All', FALSE);
+
+INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
+(1, 'https://st.depositphotos.com/1026550/1985/i/950/depositphotos_19858699-stock-photo-blank-white-t-shirt-with.jpg', TRUE),
+(2, 'https://previews.123rf.com/images/koya79/koya791801/koya79180100187/93546384-white-baseball-cap-mock-up-blank-hat-template-isolated-on-white-background-3d-rendering.jpg', TRUE);
