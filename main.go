@@ -11,6 +11,7 @@ import (
 	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
+	"github.com/geobuff/api/merch"
 	"github.com/geobuff/api/plays"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
@@ -137,6 +138,9 @@ func router() http.Handler {
 
 	// Avatar endpoints.
 	router.HandleFunc("/api/avatars", avatars.GetAvatars).Methods("GET")
+
+	// Merch endpoints.
+	router.HandleFunc("/api/merch", merch.GetMerch).Methods("GET")
 
 	return router
 }
