@@ -25,9 +25,10 @@ type User struct {
 type UserDto struct {
 	ID                  int            `json:"id"`
 	AvatarId            int            `json:"avatarId"`
-	AvatarName          int            `json:"avatarName"`
-	AvatarBackground    int            `json:"avatarBackground"`
-	AvatarBorder        int            `json:"avatarBorder"`
+	AvatarName          string         `json:"avatarName"`
+	AvatarImageUrl      string         `json:"avatarImageUrl"`
+	AvatarBackground    string         `json:"avatarBackground"`
+	AvatarBorder        string         `json:"avatarBorder"`
 	Username            string         `json:"username"`
 	Email               string         `json:"email"`
 	CountryCode         string         `json:"countryCode"`
@@ -36,6 +37,14 @@ type UserDto struct {
 	IsAdmin             bool           `json:"isAdmin"`
 	PasswordResetToken  sql.NullString `json:"passwordResetToken"`
 	PasswordResetExpiry sql.NullTime   `json:"passwordResetExpiry"`
+}
+
+type UpdateUserDto struct {
+	AvatarId    int    `json:"avatarId" validate:"required"`
+	Username    string `json:"username" validate:"required,username"`
+	Email       string `json:"email" validate:"required,email"`
+	CountryCode string `json:"countryCode" validate:"required"`
+	XP          *int   `json:"xp" validate:"required"`
 }
 
 // GetUsers returns a page of users.
@@ -49,7 +58,7 @@ var GetUsers = func(limit int, offset int) ([]UserDto, error) {
 	var users = []UserDto{}
 	for rows.Next() {
 		var user UserDto
-		if err = rows.Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarBackground, &user.AvatarBorder, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry); err != nil {
+		if err = rows.Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarImageUrl, &user.AvatarBackground, &user.AvatarBorder, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -67,9 +76,9 @@ var GetFirstID = func(limit int, offset int) (int, error) {
 
 // GetUser returns the user with a given id.
 var GetUser = func(id int) (UserDto, error) {
-	statement := "SELECT u.id, a.id, a.name, a.imageurl, a.background, a.border, u.username, u.email, u.countrycode, u.xp, u.ispremium, u.isadmin, u.passwordresettoken, u.passwordresetexpiry FROM users u JOIN avatars a on a.id = u.avatarid WHERE id = $1;"
+	statement := "SELECT u.id, a.id, a.name, a.imageurl, a.background, a.border, u.username, u.email, u.countrycode, u.xp, u.ispremium, u.isadmin, u.passwordresettoken, u.passwordresetexpiry FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.id = $1;"
 	var user UserDto
-	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsPremium, &user.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry)
+	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarImageUrl, &user.AvatarBackground, &user.AvatarBorder, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsPremium, &user.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry)
 	return user, err
 }
 
@@ -90,10 +99,10 @@ var InsertUser = func(user User) (User, error) {
 }
 
 // UpdateUser updates a user entry.
-var UpdateUser = func(user User) error {
-	statement := "UPDATE users set username = $2, email = $3, countryCode = $4, xp = $5 WHERE id = $1 RETURNING id;"
+var UpdateUser = func(userID int, user UpdateUserDto) error {
+	statement := "UPDATE users set avatarid = $2, username = $3, email = $4, countryCode = $5, xp = $6 WHERE id = $1 RETURNING id;"
 	var id int
-	return Connection.QueryRow(statement, user.ID, user.Username, user.Email, user.CountryCode, user.XP).Scan(&id)
+	return Connection.QueryRow(statement, userID, user.AvatarId, user.Username, user.Email, user.CountryCode, user.XP).Scan(&id)
 }
 
 // DeleteUser deletes a users scores, leaderboard entries and then the user entry in the users table.
@@ -114,10 +123,24 @@ var UsernameExists = func(username string) (bool, error) {
 	return count > 0, err
 }
 
+var AnotherUserWithUsername = func(id int, username string) (bool, error) {
+	statement := "SELECT COUNT(id) FROM users WHERE id != $1 AND username = $2;"
+	var count int
+	err := Connection.QueryRow(statement, id, username).Scan(&count)
+	return count > 0, err
+}
+
 var EmailExists = func(email string) (bool, error) {
 	statement := "SELECT COUNT(id) FROM users WHERE email = $1;"
 	var count int
 	err := Connection.QueryRow(statement, email).Scan(&count)
+	return count > 0, err
+}
+
+var AnotherUserWithEmail = func(id int, email string) (bool, error) {
+	statement := "SELECT COUNT(id) FROM users WHERE id != $1 AND email = $2;"
+	var count int
+	err := Connection.QueryRow(statement, id, email).Scan(&count)
 	return count > 0, err
 }
 

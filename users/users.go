@@ -10,6 +10,7 @@ import (
 
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/validation"
 	"github.com/gorilla/mux"
 )
 
@@ -95,15 +96,42 @@ func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var updatedUser repo.User
+	var updatedUser repo.UpdateUserDto
 	err = json.Unmarshal(requestBody, &updatedUser)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
-	updatedUser.ID = id
-	if err = repo.UpdateUser(updatedUser); err != nil {
+	err = validation.Validator.Struct(updatedUser)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	usernameExists, err := repo.AnotherUserWithUsername(id, updatedUser.Username)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	if usernameExists {
+		http.Error(writer, "Username already in use. Please choose another and try again.", http.StatusBadRequest)
+		return
+	}
+
+	emailExists, err := repo.AnotherUserWithEmail(id, updatedUser.Email)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	if emailExists {
+		http.Error(writer, "Email already in use. Please choose another and try again.", http.StatusBadRequest)
+		return
+	}
+
+	if err = repo.UpdateUser(id, updatedUser); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}

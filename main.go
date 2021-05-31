@@ -18,6 +18,7 @@ import (
 	"github.com/geobuff/api/subscription"
 	"github.com/geobuff/api/tempscores"
 	"github.com/geobuff/api/users"
+	"github.com/geobuff/api/validation"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -51,6 +52,12 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("successfully ran database migrations")
+
+	err = validation.Init()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("successfully initialized validator")
 
 	err = serve()
 	if err != nil {
