@@ -21,4 +21,5 @@ require (
 	github.com/stripe/stripe-go/v71 v71.48.0
 	github.com/stripe/stripe-go/v72 v72.45.0
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
+	golang.org/x/tools v0.0.0-20200818005847-188abfa75333
 )

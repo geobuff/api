@@ -20,7 +20,7 @@ type MerchImage struct {
 	IsPrimary bool   `json:"isPrimary"`
 }
 
-func GetMerch() ([]Merch, error) {
+var GetMerch = func() ([]Merch, error) {
 	rows, err := Connection.Query("SELECT * FROM merch;")
 	if err != nil {
 		return nil, err
