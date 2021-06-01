@@ -205,5 +205,5 @@ INSERT INTO merchSizes (merchId, size, soldOut) values
 (2, 'One Size Fits All', FALSE);
 
 INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
-(1, 'https://st.depositphotos.com/1026550/1985/i/950/depositphotos_19858699-stock-photo-blank-white-t-shirt-with.jpg', TRUE),
-(2, 'https://previews.123rf.com/images/koya79/koya791801/koya79180100187/93546384-white-baseball-cap-mock-up-blank-hat-template-isolated-on-white-background-3d-rendering.jpg', TRUE);
+(1, '/geotee.png', TRUE),
+(2, '/geocap.png', TRUE);
