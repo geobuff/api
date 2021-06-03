@@ -85,7 +85,7 @@ func Login(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	token, err := buildToken(user)
+	token, err := BuildToken(user)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -138,7 +138,7 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	passwordHash, err := hashPassword([]byte(registerDto.Password))
+	passwordHash, err := HashPassword([]byte(registerDto.Password))
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -158,7 +158,7 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	token, err := buildToken(user)
+	token, err := BuildToken(user)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -265,7 +265,7 @@ func UpdatePasswordUsingToken(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	passwordHash, err := hashPassword([]byte(resetTokenUpdateDto.Password))
+	passwordHash, err := HashPassword([]byte(resetTokenUpdateDto.Password))
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -342,7 +342,7 @@ func getClaims(tokenString string) (*CustomClaims, error) {
 	return nil, err
 }
 
-func buildToken(user repo.User) (string, error) {
+var BuildToken = func(user repo.User) (string, error) {
 	claims := CustomClaims{
 		UserID:          user.ID,
 		AvatarId:        user.AvatarId,
@@ -364,7 +364,7 @@ func buildToken(user repo.User) (string, error) {
 	return token.SignedString([]byte(os.Getenv("AUTH_SIGNING_KEY")))
 }
 
-func hashPassword(password []byte) (string, error) {
+var HashPassword = func(password []byte) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword(password, bcrypt.MinCost)
 	if err != nil {
 		return "", err
