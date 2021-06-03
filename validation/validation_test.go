@@ -74,7 +74,7 @@ func TestPasswordValid(t *testing.T) {
 		{
 			name:     "happy path",
 			input:    "Password1!",
-			expected: false,
+			expected: true,
 		},
 	}
 
