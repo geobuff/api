@@ -16,9 +16,29 @@ func Init() error {
 	return Validator.RegisterValidation("password", passwordValidation)
 }
 
+func usernameValidation(fl validator.FieldLevel) bool {
+	return UsernameValid(fl.Field().String())
+}
+
+func UsernameValid(username string) bool {
+	if len(username) < 3 || len(username) > 30 {
+		return false
+	}
+
+	for _, value := range username {
+		if unicode.IsSpace(value) || (!unicode.IsLetter(value) && !unicode.IsNumber(value) && !unicode.IsPunct(value) && !unicode.IsSymbol(value)) {
+			return false
+		}
+	}
+	return true
+}
+
 func passwordValidation(fl validator.FieldLevel) bool {
+	return PasswordValid(fl.Field().String())
+}
+
+func PasswordValid(password string) bool {
 	var upper, lower, number bool
-	password := fl.Field().String()
 	if len(password) < 8 {
 		return false
 	}
@@ -40,20 +60,6 @@ func passwordValidation(fl validator.FieldLevel) bool {
 
 	if !upper || !lower || !number {
 		return false
-	}
-	return true
-}
-
-func usernameValidation(fl validator.FieldLevel) bool {
-	username := fl.Field().String()
-	if len(username) < 3 || len(username) > 30 {
-		return false
-	}
-
-	for _, value := range username {
-		if unicode.IsSpace(value) || (!unicode.IsLetter(value) && !unicode.IsNumber(value) && !unicode.IsPunct(value) && !unicode.IsSymbol(value)) {
-			return false
-		}
 	}
 	return true
 }
