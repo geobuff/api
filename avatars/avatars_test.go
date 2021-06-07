@@ -1,4 +1,4 @@
-package badges
+package avatars
 
 import (
 	"encoding/json"
@@ -11,33 +11,33 @@ import (
 	"github.com/geobuff/api/repo"
 )
 
-func TestGetBadges(t *testing.T) {
-	savedGetBadges := repo.GetBadges
+func TestGetAvatars(t *testing.T) {
+	savedGetAvatars := repo.GetAvatars
 
 	defer func() {
-		repo.GetBadges = savedGetBadges
+		repo.GetAvatars = savedGetAvatars
 	}()
 
 	tt := []struct {
-		name      string
-		getBadges func() ([]repo.Badge, error)
-		status    int
+		name       string
+		getAvatars func() ([]repo.Avatar, error)
+		status     int
 	}{
 		{
-			name:      "error on GetBadges",
-			getBadges: func() ([]repo.Badge, error) { return nil, errors.New("test") },
-			status:    http.StatusInternalServerError,
+			name:       "error on GetAvatars",
+			getAvatars: func() ([]repo.Avatar, error) { return nil, errors.New("test") },
+			status:     http.StatusInternalServerError,
 		},
 		{
-			name:      "happy path",
-			getBadges: func() ([]repo.Badge, error) { return []repo.Badge{}, nil },
-			status:    http.StatusOK,
+			name:       "happy path",
+			getAvatars: func() ([]repo.Avatar, error) { return []repo.Avatar{}, nil },
+			status:     http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			repo.GetBadges = tc.getBadges
+			repo.GetAvatars = tc.getAvatars
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -45,7 +45,7 @@ func TestGetBadges(t *testing.T) {
 			}
 
 			writer := httptest.NewRecorder()
-			GetBadges(writer, request)
+			GetAvatars(writer, request)
 			result := writer.Result()
 			defer result.Body.Close()
 
@@ -59,7 +59,7 @@ func TestGetBadges(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed []repo.Badge
+				var parsed []repo.Avatar
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)

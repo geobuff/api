@@ -3,8 +3,6 @@ package repo
 import (
 	"fmt"
 	"time"
-
-	"github.com/geobuff/api/models"
 )
 
 // LeaderboardEntry is the database object for leaderboard entries.
@@ -31,8 +29,16 @@ type LeaderboardEntryDto struct {
 	Ranking     int       `json:"ranking"`
 }
 
+// GetEntriesFilterParams contain the filter fields for the leaderboard.
+type GetEntriesFilterParams struct {
+	Page  int    `json:"page"`
+	Limit int    `json:"limit"`
+	Range string `json:"range"`
+	User  string `json:"user"`
+}
+
 // GetLeaderboardEntries returns a page of leaderboard entries.
-var GetLeaderboardEntries = func(quizID int, filterParams models.GetEntriesFilterParams) ([]LeaderboardEntryDto, error) {
+var GetLeaderboardEntries = func(quizID int, filterParams GetEntriesFilterParams) ([]LeaderboardEntryDto, error) {
 	query := "SELECT l.id, l.quizid, l.userid, u.username, u.countrycode, l.score, l.time FROM leaderboard l JOIN users u on u.id = l.userid WHERE l.quizid = $1 AND u.username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT $3 OFFSET $4;"
 
 	rows, err := Connection.Query(query, quizID, filterParams.User, filterParams.Limit, filterParams.Page*filterParams.Limit)
@@ -66,7 +72,7 @@ func getRangeFilter(rangeFilter string) string {
 }
 
 // GetLeaderboardEntryID returns the first ID for a given page.
-var GetLeaderboardEntryID = func(quizID int, filterParams models.GetEntriesFilterParams) (int, error) {
+var GetLeaderboardEntryID = func(quizID int, filterParams GetEntriesFilterParams) (int, error) {
 	query := "SELECT l.id FROM leaderboard l JOIN users u on u.id = l.userid WHERE l.quizid = $1 AND u.username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT 1 OFFSET $3;"
 	var id int
 	err := Connection.QueryRow(query, quizID, filterParams.User, (filterParams.Page+1)*filterParams.Limit).Scan(&id)
