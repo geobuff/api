@@ -229,7 +229,7 @@ func ResetTokenValid(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	valid := IsResetTokenValid(user.PasswordResetToken, mux.Vars(request)["token"], user.PasswordResetExpiry)
+	valid := isResetTokenValid(user.PasswordResetToken, mux.Vars(request)["token"], user.PasswordResetExpiry)
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(valid)
 }
@@ -260,7 +260,7 @@ func UpdatePasswordUsingToken(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	if !IsResetTokenValid(user.PasswordResetToken, resetTokenUpdateDto.Token, user.PasswordResetExpiry) {
+	if !isResetTokenValid(user.PasswordResetToken, resetTokenUpdateDto.Token, user.PasswordResetExpiry) {
 		http.Error(writer, "Password reset token is not valid.", http.StatusBadRequest)
 		return
 	}
@@ -283,7 +283,7 @@ func UpdatePasswordUsingToken(writer http.ResponseWriter, request *http.Request)
 	json.NewEncoder(writer).Encode(user)
 }
 
-var IsResetTokenValid = func(userToken sql.NullString, requestToken string, expiry sql.NullTime) bool {
+var isResetTokenValid = func(userToken sql.NullString, requestToken string, expiry sql.NullTime) bool {
 	return userToken.Valid && expiry.Valid && userToken.String == requestToken && expiry.Time.Sub(time.Now()) > 0
 }
 

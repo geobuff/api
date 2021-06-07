@@ -392,11 +392,11 @@ func TestSendResetToken(t *testing.T) {
 
 func TestResetTokenValid(t *testing.T) {
 	savedGetUser := repo.GetUser
-	savedIsResetTokenValid := IsResetTokenValid
+	savedIsResetTokenValid := isResetTokenValid
 
 	defer func() {
 		repo.GetUser = savedGetUser
-		IsResetTokenValid = savedIsResetTokenValid
+		isResetTokenValid = savedIsResetTokenValid
 	}()
 
 	tt := []struct {
@@ -409,21 +409,21 @@ func TestResetTokenValid(t *testing.T) {
 		{
 			name:              "invalid userId",
 			getUser:           repo.GetUser,
-			isResetTokenValid: IsResetTokenValid,
+			isResetTokenValid: isResetTokenValid,
 			userId:            "test",
 			status:            http.StatusBadRequest,
 		},
 		{
 			name:              "sql.ErrNoRows error on GetUser",
 			getUser:           func(id int) (repo.UserDto, error) { return repo.UserDto{}, sql.ErrNoRows },
-			isResetTokenValid: IsResetTokenValid,
+			isResetTokenValid: isResetTokenValid,
 			userId:            "1",
 			status:            http.StatusBadRequest,
 		},
 		{
 			name:              "other error on GetUser",
 			getUser:           func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
-			isResetTokenValid: IsResetTokenValid,
+			isResetTokenValid: isResetTokenValid,
 			userId:            "1",
 			status:            http.StatusInternalServerError,
 		},
@@ -439,7 +439,7 @@ func TestResetTokenValid(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			repo.GetUser = tc.getUser
-			IsResetTokenValid = tc.isResetTokenValid
+			isResetTokenValid = tc.isResetTokenValid
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -477,13 +477,13 @@ func TestResetTokenValid(t *testing.T) {
 
 func TestUpdatePasswordUsingToken(t *testing.T) {
 	savedGetuser := repo.GetUser
-	savedIsResetTokenValid := IsResetTokenValid
+	savedIsResetTokenValid := isResetTokenValid
 	savedHashPassword := hashPassword
 	savedResetPassword := repo.ResetPassword
 
 	defer func() {
 		repo.GetUser = savedGetuser
-		IsResetTokenValid = savedIsResetTokenValid
+		isResetTokenValid = savedIsResetTokenValid
 		hashPassword = savedHashPassword
 		repo.ResetPassword = savedResetPassword
 	}()
@@ -500,7 +500,7 @@ func TestUpdatePasswordUsingToken(t *testing.T) {
 		{
 			name:              "invalid body",
 			getUser:           repo.GetUser,
-			isResetTokenValid: IsResetTokenValid,
+			isResetTokenValid: isResetTokenValid,
 			hashPassword:      hashPassword,
 			resetPassword:     repo.ResetPassword,
 			body:              "testing",
@@ -509,7 +509,7 @@ func TestUpdatePasswordUsingToken(t *testing.T) {
 		{
 			name:              "sql.ErrNoRows on GetUser",
 			getUser:           func(id int) (repo.UserDto, error) { return repo.UserDto{}, sql.ErrNoRows },
-			isResetTokenValid: IsResetTokenValid,
+			isResetTokenValid: isResetTokenValid,
 			hashPassword:      hashPassword,
 			resetPassword:     repo.ResetPassword,
 			body:              `{"userId": 1, "token": "test", "password": "Password1!"}`,
@@ -518,7 +518,7 @@ func TestUpdatePasswordUsingToken(t *testing.T) {
 		{
 			name:              "other error on GetUser",
 			getUser:           func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
-			isResetTokenValid: IsResetTokenValid,
+			isResetTokenValid: isResetTokenValid,
 			hashPassword:      hashPassword,
 			resetPassword:     repo.ResetPassword,
 			body:              `{"userId": 1, "token": "test", "password": "Password1!"}`,
@@ -565,7 +565,7 @@ func TestUpdatePasswordUsingToken(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			repo.GetUser = tc.getUser
-			IsResetTokenValid = tc.isResetTokenValid
+			isResetTokenValid = tc.isResetTokenValid
 			hashPassword = tc.hashPassword
 			repo.ResetPassword = tc.resetPassword
 
@@ -673,7 +673,7 @@ func TestIsResetTokenValid(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := IsResetTokenValid(tc.userToken, tc.requestToken, tc.expiry)
+			result := isResetTokenValid(tc.userToken, tc.requestToken, tc.expiry)
 			if result != tc.expected {
 				t.Errorf("expected %v; got %v", tc.expected, result)
 			}
