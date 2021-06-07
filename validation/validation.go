@@ -8,7 +8,7 @@ import (
 
 var Validator *validator.Validate = validator.New()
 
-func Init() error {
+var Init = func() error {
 	err := Validator.RegisterValidation("username", usernameValidation)
 	if err != nil {
 		return err

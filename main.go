@@ -30,7 +30,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
+	err := loadConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -42,14 +42,8 @@ func main() {
 	}
 	fmt.Println("successfully connected to database")
 
-	driver, err := postgres.WithInstance(repo.Connection, &postgres.Config{})
-	m, err := migrate.NewWithDatabaseInstance("file://db/migrations", "postgres", driver)
-
+	err = runMigrations()
 	if err != nil {
-		panic(err)
-	}
-
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		panic(err)
 	}
 	fmt.Println("successfully ran database migrations")
@@ -64,6 +58,23 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+var loadConfig = func() error {
+	return godotenv.Load()
+}
+
+var runMigrations = func() error {
+	driver, err := postgres.WithInstance(repo.Connection, &postgres.Config{})
+	m, err := migrate.NewWithDatabaseInstance("file://db/migrations", "postgres", driver)
+	if err != nil {
+		return err
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+	return nil
 }
 
 var serve = func() error {
