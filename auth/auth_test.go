@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -20,11 +21,11 @@ import (
 
 func TestLogin(t *testing.T) {
 	savedGetUserUsingEmail := repo.GetUserUsingEmail
-	savedBuildToken := BuildToken
+	savedBuildToken := buildToken
 
 	defer func() {
 		repo.GetUserUsingEmail = savedGetUserUsingEmail
-		BuildToken = savedBuildToken
+		buildToken = savedBuildToken
 	}()
 
 	tt := []struct {
@@ -37,21 +38,21 @@ func TestLogin(t *testing.T) {
 		{
 			name:              "invalid body",
 			getUserUsingEmail: repo.GetUserUsingEmail,
-			buildToken:        BuildToken,
+			buildToken:        buildToken,
 			body:              "testing",
 			status:            http.StatusBadRequest,
 		},
 		{
 			name:              "sql.ErrNoRows error on GetUserUsingEmail",
 			getUserUsingEmail: func(email string) (repo.User, error) { return repo.User{}, sql.ErrNoRows },
-			buildToken:        BuildToken,
+			buildToken:        buildToken,
 			body:              `{"email": "scrub@gmail.com", "password": "Password1!"}`,
 			status:            http.StatusBadRequest,
 		},
 		{
 			name:              "other error on GetUserUsingEmail",
 			getUserUsingEmail: func(email string) (repo.User, error) { return repo.User{}, errors.New("test") },
-			buildToken:        BuildToken,
+			buildToken:        buildToken,
 			body:              `{"email": "scrub@gmail.com", "password": "Password1!"}`,
 			status:            http.StatusInternalServerError,
 		},
@@ -63,7 +64,7 @@ func TestLogin(t *testing.T) {
 					},
 					nil
 			},
-			buildToken: BuildToken,
+			buildToken: buildToken,
 			body:       `{"email": "scrub@gmail.com", "password": "Password1!"}`,
 			status:     http.StatusBadRequest,
 		},
@@ -96,7 +97,7 @@ func TestLogin(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			repo.GetUserUsingEmail = tc.getUserUsingEmail
-			BuildToken = tc.buildToken
+			buildToken = tc.buildToken
 
 			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
@@ -131,16 +132,16 @@ func TestLogin(t *testing.T) {
 func TestRegister(t *testing.T) {
 	savedUsernameExists := repo.UsernameExists
 	savedEmailExists := repo.EmailExists
-	savedHashPassword := HashPassword
+	savedHashPassword := hashPassword
 	savedInsertUser := repo.InsertUser
-	savedBuildToken := BuildToken
+	savedBuildToken := buildToken
 
 	defer func() {
 		repo.UsernameExists = savedUsernameExists
 		repo.EmailExists = savedEmailExists
-		HashPassword = savedHashPassword
+		hashPassword = savedHashPassword
 		repo.InsertUser = savedInsertUser
-		BuildToken = savedBuildToken
+		buildToken = savedBuildToken
 	}()
 
 	validation.Init()
@@ -159,9 +160,9 @@ func TestRegister(t *testing.T) {
 			name:           "invalid body",
 			usernameExists: repo.UsernameExists,
 			emailExists:    repo.EmailExists,
-			hashPassword:   HashPassword,
+			hashPassword:   hashPassword,
 			insertUser:     repo.InsertUser,
-			buildToken:     BuildToken,
+			buildToken:     buildToken,
 			body:           "testing",
 			status:         http.StatusBadRequest,
 		},
@@ -169,9 +170,9 @@ func TestRegister(t *testing.T) {
 			name:           "valid body, invalid struct",
 			usernameExists: repo.UsernameExists,
 			emailExists:    repo.EmailExists,
-			hashPassword:   HashPassword,
+			hashPassword:   hashPassword,
 			insertUser:     repo.InsertUser,
-			buildToken:     BuildToken,
+			buildToken:     buildToken,
 			body:           `{"username": "test"}`,
 			status:         http.StatusBadRequest,
 		},
@@ -179,9 +180,9 @@ func TestRegister(t *testing.T) {
 			name:           "error on UsernameExists",
 			usernameExists: func(username string) (bool, error) { return false, errors.New("test") },
 			emailExists:    repo.EmailExists,
-			hashPassword:   HashPassword,
+			hashPassword:   hashPassword,
 			insertUser:     repo.InsertUser,
-			buildToken:     BuildToken,
+			buildToken:     buildToken,
 			body:           `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:         http.StatusInternalServerError,
 		},
@@ -189,9 +190,9 @@ func TestRegister(t *testing.T) {
 			name:           "username exists",
 			usernameExists: func(username string) (bool, error) { return true, nil },
 			emailExists:    repo.EmailExists,
-			hashPassword:   HashPassword,
+			hashPassword:   hashPassword,
 			insertUser:     repo.InsertUser,
-			buildToken:     BuildToken,
+			buildToken:     buildToken,
 			body:           `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:         http.StatusBadRequest,
 		},
@@ -199,9 +200,9 @@ func TestRegister(t *testing.T) {
 			name:           "error on EmailExists",
 			usernameExists: func(username string) (bool, error) { return false, nil },
 			emailExists:    func(email string) (bool, error) { return false, errors.New("test") },
-			hashPassword:   HashPassword,
+			hashPassword:   hashPassword,
 			insertUser:     repo.InsertUser,
-			buildToken:     BuildToken,
+			buildToken:     buildToken,
 			body:           `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:         http.StatusInternalServerError,
 		},
@@ -209,9 +210,9 @@ func TestRegister(t *testing.T) {
 			name:           "email exists",
 			usernameExists: func(username string) (bool, error) { return false, nil },
 			emailExists:    func(email string) (bool, error) { return true, nil },
-			hashPassword:   HashPassword,
+			hashPassword:   hashPassword,
 			insertUser:     repo.InsertUser,
-			buildToken:     BuildToken,
+			buildToken:     buildToken,
 			body:           `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:         http.StatusBadRequest,
 		},
@@ -221,7 +222,7 @@ func TestRegister(t *testing.T) {
 			emailExists:    func(email string) (bool, error) { return false, nil },
 			hashPassword:   func(password []byte) (string, error) { return "", errors.New("test") },
 			insertUser:     repo.InsertUser,
-			buildToken:     BuildToken,
+			buildToken:     buildToken,
 			body:           `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:         http.StatusInternalServerError,
 		},
@@ -233,7 +234,7 @@ func TestRegister(t *testing.T) {
 				return "$2a$04$EPhTOaXYzAqV366oEUzNQOCGnfUWwdnsxPMGmsATA4ikOxBi48buW", nil
 			},
 			insertUser: func(user repo.User) (repo.User, error) { return repo.User{}, errors.New("test") },
-			buildToken: BuildToken,
+			buildToken: buildToken,
 			body:       `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:     http.StatusInternalServerError,
 		},
@@ -263,9 +264,9 @@ func TestRegister(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			repo.UsernameExists = tc.usernameExists
 			repo.EmailExists = tc.emailExists
-			HashPassword = tc.hashPassword
+			hashPassword = tc.hashPassword
 			repo.InsertUser = tc.insertUser
-			BuildToken = tc.buildToken
+			buildToken = tc.buildToken
 
 			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
@@ -477,13 +478,13 @@ func TestResetTokenValid(t *testing.T) {
 func TestUpdatePasswordUsingToken(t *testing.T) {
 	savedGetuser := repo.GetUser
 	savedIsResetTokenValid := IsResetTokenValid
-	savedHashPassword := HashPassword
+	savedHashPassword := hashPassword
 	savedResetPassword := repo.ResetPassword
 
 	defer func() {
 		repo.GetUser = savedGetuser
 		IsResetTokenValid = savedIsResetTokenValid
-		HashPassword = savedHashPassword
+		hashPassword = savedHashPassword
 		repo.ResetPassword = savedResetPassword
 	}()
 
@@ -500,7 +501,7 @@ func TestUpdatePasswordUsingToken(t *testing.T) {
 			name:              "invalid body",
 			getUser:           repo.GetUser,
 			isResetTokenValid: IsResetTokenValid,
-			hashPassword:      HashPassword,
+			hashPassword:      hashPassword,
 			resetPassword:     repo.ResetPassword,
 			body:              "testing",
 			status:            http.StatusBadRequest,
@@ -509,7 +510,7 @@ func TestUpdatePasswordUsingToken(t *testing.T) {
 			name:              "sql.ErrNoRows on GetUser",
 			getUser:           func(id int) (repo.UserDto, error) { return repo.UserDto{}, sql.ErrNoRows },
 			isResetTokenValid: IsResetTokenValid,
-			hashPassword:      HashPassword,
+			hashPassword:      hashPassword,
 			resetPassword:     repo.ResetPassword,
 			body:              `{"userId": 1, "token": "test", "password": "Password1!"}`,
 			status:            http.StatusBadRequest,
@@ -518,7 +519,7 @@ func TestUpdatePasswordUsingToken(t *testing.T) {
 			name:              "other error on GetUser",
 			getUser:           func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
 			isResetTokenValid: IsResetTokenValid,
-			hashPassword:      HashPassword,
+			hashPassword:      hashPassword,
 			resetPassword:     repo.ResetPassword,
 			body:              `{"userId": 1, "token": "test", "password": "Password1!"}`,
 			status:            http.StatusInternalServerError,
@@ -527,7 +528,7 @@ func TestUpdatePasswordUsingToken(t *testing.T) {
 			name:              "reset token invalid",
 			getUser:           func(id int) (repo.UserDto, error) { return repo.UserDto{}, nil },
 			isResetTokenValid: func(userToken sql.NullString, requestToken string, expiry sql.NullTime) bool { return false },
-			hashPassword:      HashPassword,
+			hashPassword:      hashPassword,
 			resetPassword:     repo.ResetPassword,
 			body:              `{"userId": 1, "token": "test", "password": "Password1!"}`,
 			status:            http.StatusBadRequest,
@@ -565,7 +566,7 @@ func TestUpdatePasswordUsingToken(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			repo.GetUser = tc.getUser
 			IsResetTokenValid = tc.isResetTokenValid
-			HashPassword = tc.hashPassword
+			hashPassword = tc.hashPassword
 			repo.ResetPassword = tc.resetPassword
 
 			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
@@ -678,4 +679,179 @@ func TestIsResetTokenValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestValidUser(t *testing.T) {
+	savedGetToken := getToken
+	savedGetClaims := getClaims
+
+	defer func() {
+		getToken = savedGetToken
+		getClaims = savedGetClaims
+	}()
+
+	tt := []struct {
+		name      string
+		getToken  func(request *http.Request) (string, error)
+		getClaims func(tokenString string) (*CustomClaims, error)
+		id        int
+		expected  int
+	}{
+		{
+			name:      "error on getToken",
+			getToken:  func(request *http.Request) (string, error) { return "", errors.New("test") },
+			getClaims: getClaims,
+			id:        0,
+			expected:  http.StatusInternalServerError,
+		},
+		{
+			name:      "error on getClaims",
+			getToken:  func(request *http.Request) (string, error) { return "", nil },
+			getClaims: func(tokenString string) (*CustomClaims, error) { return nil, errors.New("test") },
+			id:        0,
+			expected:  http.StatusInternalServerError,
+		},
+		{
+			name:      "claims userId does not equal id",
+			getToken:  func(request *http.Request) (string, error) { return "", nil },
+			getClaims: func(tokenString string) (*CustomClaims, error) { return &CustomClaims{UserID: 2}, nil },
+			id:        1,
+			expected:  http.StatusUnauthorized,
+		},
+		{
+			name:     "claims userId does not equal id but user is admin",
+			getToken: func(request *http.Request) (string, error) { return "", nil },
+			getClaims: func(tokenString string) (*CustomClaims, error) {
+				return &CustomClaims{UserID: 2, IsAdmin: true}, nil
+			},
+			id:       1,
+			expected: http.StatusOK,
+		},
+		{
+			name:      "claims userId equals id",
+			getToken:  func(request *http.Request) (string, error) { return "", nil },
+			getClaims: func(tokenString string) (*CustomClaims, error) { return &CustomClaims{UserID: 1}, nil },
+			id:        1,
+			expected:  http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			getToken = tc.getToken
+			getClaims = tc.getClaims
+
+			request, err := http.NewRequest("GET", "", nil)
+			if err != nil {
+				t.Fatalf("could not create GET request: %v", err)
+			}
+
+			status, _ := ValidUser(request, tc.id)
+
+			if status != tc.expected {
+				t.Errorf("expected status %v; got %v", tc.expected, status)
+			}
+		})
+	}
+}
+
+func TestIsAdmin(t *testing.T) {
+	savedGetToken := getToken
+	savedGetClaims := getClaims
+
+	defer func() {
+		getToken = savedGetToken
+		getClaims = savedGetClaims
+	}()
+
+	tt := []struct {
+		name      string
+		getToken  func(request *http.Request) (string, error)
+		getClaims func(tokenString string) (*CustomClaims, error)
+		expected  int
+	}{
+		{
+			name:      "error on getToken",
+			getToken:  func(request *http.Request) (string, error) { return "", errors.New("test") },
+			getClaims: getClaims,
+			expected:  http.StatusInternalServerError,
+		},
+		{
+			name:      "error on getClaims",
+			getToken:  func(request *http.Request) (string, error) { return "", nil },
+			getClaims: func(tokenString string) (*CustomClaims, error) { return &CustomClaims{}, errors.New("test") },
+			expected:  http.StatusInternalServerError,
+		},
+		{
+			name:      "user not admin",
+			getToken:  func(request *http.Request) (string, error) { return "", nil },
+			getClaims: func(tokenString string) (*CustomClaims, error) { return &CustomClaims{IsAdmin: false}, nil },
+			expected:  http.StatusUnauthorized,
+		},
+		{
+			name:      "user is admin",
+			getToken:  func(request *http.Request) (string, error) { return "", nil },
+			getClaims: func(tokenString string) (*CustomClaims, error) { return &CustomClaims{IsAdmin: true}, nil },
+			expected:  http.StatusOK,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			getToken = tc.getToken
+			getClaims = tc.getClaims
+
+			request, err := http.NewRequest("GET", "", nil)
+			if err != nil {
+				t.Fatalf("could not create GET request: %v", err)
+			}
+
+			status, _ := IsAdmin(request)
+			if status != tc.expected {
+				t.Errorf("expected status %v; got %v", tc.expected, status)
+			}
+		})
+	}
+}
+
+func TestGetToken(t *testing.T) {
+	tt := []struct {
+		name          string
+		token         string
+		expectedToken string
+		expectedError string
+	}{
+		{
+			name:          "token invalid length",
+			token:         "",
+			expectedToken: "",
+			expectedError: "token missing or invalid length",
+		},
+		{
+			name:          "token valid",
+			token:         "abcdefgh",
+			expectedToken: "abcdefgh",
+			expectedError: "",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			request, err := http.NewRequest("GET", "", nil)
+			if err != nil {
+				t.Fatalf("could not create GET request: %v", err)
+			}
+			request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tc.token))
+
+			token, err := getToken(request)
+			if token != tc.expectedToken {
+				t.Errorf("expected token %s; got %s", tc.expectedToken, token)
+			}
+
+			if err != nil && err.Error() != tc.expectedError {
+				t.Errorf("expected err %v; got %v", tc.expectedError, err)
+			}
+		})
+	}
+
 }
