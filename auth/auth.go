@@ -21,15 +21,19 @@ import (
 )
 
 type CustomClaims struct {
-	UserID          int    `json:"userId"`
-	AvatarId        int    `json:"avatarId"`
-	Username        string `json:"username"`
-	Email           string `json:"email"`
-	CountryCode     string `json:"countryCode"`
-	XP              int    `json:"xp"`
-	IsAdmin         bool   `json:"isAdmin"`
-	IsPremium       bool   `json:"isPremium"`
-	StripeSessionId string `json:"stripeSessionId"`
+	UserID           int    `json:"userId"`
+	AvatarId         int    `json:"avatarId"`
+	AvatarName       string `json:"avatarName"`
+	AvatarImageUrl   string `json:"avatarImageUrl"`
+	AvatarBackground string `json:"avatarBackground"`
+	AvatarBorder     string `json:"avatarBorder"`
+	Username         string `json:"username"`
+	Email            string `json:"email"`
+	CountryCode      string `json:"countryCode"`
+	XP               int    `json:"xp"`
+	IsAdmin          bool   `json:"isAdmin"`
+	IsPremium        bool   `json:"isPremium"`
+	StripeSessionId  string `json:"stripeSessionId"`
 	jwt.StandardClaims
 }
 
@@ -152,7 +156,13 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 		CountryCode:  registerDto.CountryCode,
 	}
 
-	user, err := repo.InsertUser(newUser)
+	id, err := repo.InsertUser(newUser)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	user, err := repo.GetUser(id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -342,17 +352,21 @@ var getClaims = func(tokenString string) (*CustomClaims, error) {
 	return nil, err
 }
 
-var buildToken = func(user repo.User) (string, error) {
+var buildToken = func(user repo.UserDto) (string, error) {
 	claims := CustomClaims{
-		UserID:          user.ID,
-		AvatarId:        user.AvatarId,
-		Username:        user.Username,
-		Email:           user.Email,
-		CountryCode:     user.CountryCode,
-		XP:              user.XP,
-		IsAdmin:         user.IsAdmin,
-		IsPremium:       user.IsPremium,
-		StripeSessionId: user.StripeSessionId.String,
+		UserID:           user.ID,
+		AvatarId:         user.AvatarId,
+		AvatarName:       user.AvatarName,
+		AvatarImageUrl:   user.AvatarImageUrl,
+		AvatarBackground: user.AvatarBackground,
+		AvatarBorder:     user.AvatarBorder,
+		Username:         user.Username,
+		Email:            user.Email,
+		CountryCode:      user.CountryCode,
+		XP:               user.XP,
+		IsAdmin:          user.IsAdmin,
+		IsPremium:        user.IsPremium,
+		StripeSessionId:  user.StripeSessionId.String,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
 			ExpiresAt: time.Now().AddDate(0, 0, 3).Unix(),
