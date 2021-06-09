@@ -119,10 +119,10 @@ INSERT INTO badges (name, description, total, imageUrl, background, border) valu
 
 INSERT INTO avatars (name, imageUrl, background, border) values
 ('Mr. Pumpkin', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f383.svg', '#FFE0B7', '#F79D27'),
-('Zucc', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f916.svg', '#E0F2FF', '#3B88C3'),
+('Bolts', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f916.svg', '#E0F2FF', '#3B88C3'),
 ('GeoKitty', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f431.svg', '#FFE8AD', '#F18F26'),
-('Elon', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f47d.svg', '#E6F2FB', '#CCD6DD'),
-('Victor', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f4a9.svg', '#EDCBC1', '#BF6952');
+('Cosmo', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f47d.svg', '#E6F2FB', '#CCD6DD'),
+('Prof. Doo Doo', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f4a9.svg', '#EDCBC1', '#BF6952');
 
 INSERT INTO quiztype (name) values ('Map'), ('Flag');
 
