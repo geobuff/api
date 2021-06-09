@@ -1,4 +1,4 @@
-package badges
+package merch
 
 import (
 	"encoding/json"
@@ -11,33 +11,33 @@ import (
 	"github.com/geobuff/api/repo"
 )
 
-func TestGetBadges(t *testing.T) {
-	savedGetBadges := repo.GetBadges
+func TestGetMerch(t *testing.T) {
+	savedGetMerch := repo.GetMerch
 
 	defer func() {
-		repo.GetBadges = savedGetBadges
+		repo.GetMerch = savedGetMerch
 	}()
 
 	tt := []struct {
-		name      string
-		getBadges func() ([]repo.Badge, error)
-		status    int
+		name     string
+		getMerch func() ([]repo.Merch, error)
+		status   int
 	}{
 		{
-			name:      "error on GetBadges",
-			getBadges: func() ([]repo.Badge, error) { return nil, errors.New("test") },
-			status:    http.StatusInternalServerError,
+			name:     "error on GetMerch",
+			getMerch: func() ([]repo.Merch, error) { return nil, errors.New("test") },
+			status:   http.StatusInternalServerError,
 		},
 		{
-			name:      "happy path",
-			getBadges: func() ([]repo.Badge, error) { return []repo.Badge{}, nil },
-			status:    http.StatusOK,
+			name:     "happy path",
+			getMerch: func() ([]repo.Merch, error) { return []repo.Merch{}, nil },
+			status:   http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			repo.GetBadges = tc.getBadges
+			repo.GetMerch = tc.getMerch
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -45,7 +45,7 @@ func TestGetBadges(t *testing.T) {
 			}
 
 			writer := httptest.NewRecorder()
-			GetBadges(writer, request)
+			GetMerch(writer, request)
 			result := writer.Result()
 			defer result.Body.Close()
 
@@ -59,7 +59,7 @@ func TestGetBadges(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed []repo.Badge
+				var parsed []repo.Merch
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)

@@ -9,8 +9,8 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-func SendResetToken(email, resetLink string) (*rest.Response, error) {
-	from := mail.NewEmail("Team GeoBuff", "teamgeobuff@gmail.com")
+var SendResetToken = func(email, resetLink string) (*rest.Response, error) {
+	from := mail.NewEmail(os.Getenv("EMAIL_NAME"), os.Getenv("EMAIL_ADDRESS"))
 	subject := "Password Reset Request"
 	to := mail.NewEmail("User", email)
 	plainTextContent := fmt.Sprintf("Hi there,\n\nBelow is the link to reset the password for your account:\n%s\n\nIf you did not request a password reset please disregard this email.\n\nFrom,\nThe GeoBuff Team", resetLink)

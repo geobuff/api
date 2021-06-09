@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/geobuff/api/auth"
-	"github.com/geobuff/api/models"
 	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
 )
@@ -35,7 +34,7 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var filterParams models.GetEntriesFilterParams
+	var filterParams repo.GetEntriesFilterParams
 	err = json.Unmarshal(requestBody, &filterParams)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)

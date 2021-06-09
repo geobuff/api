@@ -7,14 +7,19 @@ import (
 	"strings"
 
 	"github.com/geobuff/api/auth"
+	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
+	"github.com/geobuff/api/merch"
+	"github.com/geobuff/api/plays"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
 	"github.com/geobuff/api/scores"
+	"github.com/geobuff/api/subscription"
 	"github.com/geobuff/api/tempscores"
 	"github.com/geobuff/api/users"
+	"github.com/geobuff/api/validation"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -25,7 +30,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
+	err := loadConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -37,22 +42,39 @@ func main() {
 	}
 	fmt.Println("successfully connected to database")
 
-	driver, err := postgres.WithInstance(repo.Connection, &postgres.Config{})
-	m, err := migrate.NewWithDatabaseInstance("file://db/migrations", "postgres", driver)
-
+	err = runMigrations()
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("successfully ran database migrations")
 
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+	err = validation.Init()
+	if err != nil {
 		panic(err)
 	}
-	fmt.Println("successfully ran database migrations")
+	fmt.Println("successfully initialized validator")
 
 	err = serve()
 	if err != nil {
 		panic(err)
 	}
+}
+
+var loadConfig = func() error {
+	return godotenv.Load()
+}
+
+var runMigrations = func() error {
+	driver, err := postgres.WithInstance(repo.Connection, &postgres.Config{})
+	m, err := migrate.NewWithDatabaseInstance("file://db/migrations", "postgres", driver)
+	if err != nil {
+		return err
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+	return nil
 }
 
 var serve = func() error {
@@ -113,6 +135,23 @@ func router() http.Handler {
 	router.HandleFunc("/api/leaderboard", leaderboard.CreateEntry).Methods("POST")
 	router.HandleFunc("/api/leaderboard/{id}", leaderboard.UpdateEntry).Methods("PUT")
 	router.HandleFunc("/api/leaderboard/{id}", leaderboard.DeleteEntry).Methods("DELETE")
+
+	// Play endpoints.
+	router.HandleFunc("/api/plays", plays.GetAllPlays).Methods("GET")
+	router.HandleFunc("/api/plays/{quizId}", plays.GetPlays).Methods("GET")
+	router.HandleFunc("/api/plays/{quizId}", plays.IncrementPlays).Methods("PUT")
+
+	// Subscription endpoints.
+	router.HandleFunc("/api/subscription/create-checkout-session", subscription.HandleCreateCheckoutSession).Methods("POST")
+	router.HandleFunc("/api/subscription/premium", subscription.UpgradeSubscription).Methods("POST")
+	router.HandleFunc("/api/subscription/manage", subscription.HandleCustomerPortal).Methods("POST")
+	router.HandleFunc("/api/subscription/webhook", subscription.HandleWebhook).Methods("POST")
+
+	// Avatar endpoints.
+	router.HandleFunc("/api/avatars", avatars.GetAvatars).Methods("GET")
+
+	// Merch endpoints.
+	router.HandleFunc("/api/merch", merch.GetMerch).Methods("GET")
 
 	return router
 }

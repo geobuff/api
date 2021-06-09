@@ -14,19 +14,26 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/geobuff/api/email"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/validation"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type CustomClaims struct {
-	UserID      int    `json:"userId"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	CountryCode string `json:"countryCode"`
-	XP          int    `json:"xp"`
-	IsAdmin     bool   `json:"isAdmin"`
-	IsPremium   bool   `json:"isPremium"`
+	UserID           int    `json:"userId"`
+	AvatarId         int    `json:"avatarId"`
+	AvatarName       string `json:"avatarName"`
+	AvatarImageUrl   string `json:"avatarImageUrl"`
+	AvatarBackground string `json:"avatarBackground"`
+	AvatarBorder     string `json:"avatarBorder"`
+	Username         string `json:"username"`
+	Email            string `json:"email"`
+	CountryCode      string `json:"countryCode"`
+	XP               int    `json:"xp"`
+	IsAdmin          bool   `json:"isAdmin"`
+	IsPremium        bool   `json:"isPremium"`
+	StripeSessionId  string `json:"stripeSessionId"`
 	jwt.StandardClaims
 }
 
@@ -36,10 +43,11 @@ type LoginDto struct {
 }
 
 type RegisterDto struct {
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	CountryCode string `json:"countryCode"`
-	Password    string `json:"password"`
+	AvatarId    int    `json:"avatarId" validate:"required"`
+	Username    string `json:"username" validate:"required,username"`
+	Email       string `json:"email" validate:"required,email"`
+	CountryCode string `json:"countryCode" validate:"required"`
+	Password    string `json:"password" validate:"required,password"`
 }
 
 type PasswordResetDto struct {
@@ -106,6 +114,12 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	err = validation.Validator.Struct(registerDto)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	usernameExists, err := repo.UsernameExists(registerDto.Username)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
@@ -135,13 +149,20 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	newUser := repo.User{
+		AvatarId:     registerDto.AvatarId,
 		Username:     registerDto.Username,
 		Email:        registerDto.Email,
 		PasswordHash: passwordHash,
 		CountryCode:  registerDto.CountryCode,
 	}
 
-	user, err := repo.InsertUser(newUser)
+	id, err := repo.InsertUser(newUser)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	user, err := repo.GetUser(id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -218,7 +239,7 @@ func ResetTokenValid(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	valid := resetTokenValid(user.PasswordResetToken, mux.Vars(request)["token"], user.PasswordResetExpiry)
+	valid := isResetTokenValid(user.PasswordResetToken, mux.Vars(request)["token"], user.PasswordResetExpiry)
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(valid)
 }
@@ -249,7 +270,7 @@ func UpdatePasswordUsingToken(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	if !resetTokenValid(user.PasswordResetToken, resetTokenUpdateDto.Token, user.PasswordResetExpiry) {
+	if !isResetTokenValid(user.PasswordResetToken, resetTokenUpdateDto.Token, user.PasswordResetExpiry) {
 		http.Error(writer, "Password reset token is not valid.", http.StatusBadRequest)
 		return
 	}
@@ -272,7 +293,7 @@ func UpdatePasswordUsingToken(writer http.ResponseWriter, request *http.Request)
 	json.NewEncoder(writer).Encode(user)
 }
 
-func resetTokenValid(userToken sql.NullString, requestToken string, expiry sql.NullTime) bool {
+var isResetTokenValid = func(userToken sql.NullString, requestToken string, expiry sql.NullTime) bool {
 	return userToken.Valid && expiry.Valid && userToken.String == requestToken && expiry.Time.Sub(time.Now()) > 0
 }
 
@@ -312,7 +333,7 @@ var IsAdmin = func(request *http.Request) (int, error) {
 	return http.StatusOK, nil
 }
 
-func getToken(request *http.Request) (string, error) {
+var getToken = func(request *http.Request) (string, error) {
 	header := request.Header.Get("Authorization")
 	if len(header) < 8 {
 		return "", errors.New("token missing or invalid length")
@@ -320,7 +341,7 @@ func getToken(request *http.Request) (string, error) {
 	return header[7:], nil
 }
 
-func getClaims(tokenString string) (*CustomClaims, error) {
+var getClaims = func(tokenString string) (*CustomClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("AUTH_SIGNING_KEY")), nil
 	})
@@ -331,15 +352,21 @@ func getClaims(tokenString string) (*CustomClaims, error) {
 	return nil, err
 }
 
-func buildToken(user repo.User) (string, error) {
+var buildToken = func(user repo.UserDto) (string, error) {
 	claims := CustomClaims{
-		UserID:      user.ID,
-		Username:    user.Username,
-		Email:       user.Email,
-		CountryCode: user.CountryCode,
-		XP:          user.XP,
-		IsAdmin:     user.IsAdmin,
-		IsPremium:   user.IsPremium,
+		UserID:           user.ID,
+		AvatarId:         user.AvatarId,
+		AvatarName:       user.AvatarName,
+		AvatarImageUrl:   user.AvatarImageUrl,
+		AvatarBackground: user.AvatarBackground,
+		AvatarBorder:     user.AvatarBorder,
+		Username:         user.Username,
+		Email:            user.Email,
+		CountryCode:      user.CountryCode,
+		XP:               user.XP,
+		IsAdmin:          user.IsAdmin,
+		IsPremium:        user.IsPremium,
+		StripeSessionId:  user.StripeSessionId.String,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
 			ExpiresAt: time.Now().AddDate(0, 0, 3).Unix(),
@@ -351,7 +378,7 @@ func buildToken(user repo.User) (string, error) {
 	return token.SignedString([]byte(os.Getenv("AUTH_SIGNING_KEY")))
 }
 
-func hashPassword(password []byte) (string, error) {
+var hashPassword = func(password []byte) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword(password, bcrypt.MinCost)
 	if err != nil {
 		return "", err

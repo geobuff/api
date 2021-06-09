@@ -2,8 +2,18 @@ CREATE TABLE badges (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
-    icon TEXT NOT NULL,
-    total INTEGER NOT NULL
+    total INTEGER NOT NULL,
+    imageUrl TEXT NOT NULL,
+    background TEXT NOT NULL,
+    border TEXT NOT NULL
+);
+
+CREATE table avatars (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    imageUrl TEXT NOT NULL,
+    background TEXT NOT NULL,
+    border TEXT NOT NULL
 );
 
 CREATE TABLE quiztype (
@@ -30,13 +40,15 @@ CREATE TABLE quizzes (
 );
 
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY, 
+    id SERIAL PRIMARY KEY,
+    avatarId INTEGER references avatars(id) NOT NULL,
     username TEXT UNIQUE NOT NULL,
     email TEXT NOT NULL,
     passwordHash TEXT NOT NULL,
     countryCode TEXT NOT NULL,
     xp BIGINT NOT NULL,
     isPremium BOOLEAN NOT NULL,
+    stripeSessionId TEXT,
     isAdmin BOOLEAN NOT NULL,
     passwordResetToken TEXT,
     passwordResetExpiry DATE
@@ -67,15 +79,50 @@ CREATE TABLE leaderboard (
     added DATE NOT NULL
 );
 
-INSERT INTO badges (name, description, icon, total) values
-('Competitor', 'Submit a leaderboard entry.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3c6.svg', 1),
-('International Traveler', 'Complete all world quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f9f3.svg', 3),
-('SaharanBuff', 'Complete all Africa quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f418.svg', 4),
-('OrientalBuff', 'Complete all Asia quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f338.svg', 5),
-('EuropaBuff', 'Complete all Europe quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3f0.svg', 5),
-('RockiesBuff', 'Complete all North America quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/26f0.svg', 6),
-('AmazonBuff', 'Complete all South America quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f483.svg', 5),
-('PacificBuff', 'Complete all Oceania quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3dd.svg', 4);
+CREATE TABLE plays (
+    id SERIAL PRIMARY KEY,
+    quizId INTEGER references quizzes(id) NOT NULL,
+    value INTEGER NOT NULL
+);
+
+CREATE TABLE merch (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    price DECIMAL NOT NULL,
+    disabled BOOLEAN NOT NULL
+);
+
+CREATE TABLE merchSizes (
+    id SERIAL PRIMARY KEY,
+    merchId INTEGER references merch(id) NOT NULL,
+    size TEXT NOT NULL,
+    soldOut BOOLEAN NOT NULL
+);
+
+CREATE TABLE merchImages (
+    id SERIAL PRIMARY KEY,
+    merchId INTEGER references merch(id) NOT NULL,
+    imageUrl TEXT NOT NULL,
+    isPrimary BOOLEAN NOT NULL
+);
+
+INSERT INTO badges (name, description, total, imageUrl, background, border) values
+('Competitor', 'Submit a leaderboard entry.', 1, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3c6.svg', '#FFF1CE', '#C1694F'),
+('International Traveler', 'Complete all world quizzes.', 3, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f9f3.svg', '#A8D9FF', '#4289C1'),
+('SaharanBuff', 'Complete all Africa quizzes.', 4, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f418.svg', '#DDDDDD', '#66757F'),
+('OrientalBuff', 'Complete all Asia quizzes.', 5, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f338.svg', '#FFE4EA', '#EA596E'),
+('EuropaBuff', 'Complete all Europe quizzes.', 5, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3f0.svg', '#ECF3F9', '#226699'),
+('RockiesBuff', 'Complete all North America quizzes.', 6, 'https://twemoji.maxcdn.com/v/13.0.1/svg/26f0.svg', '#E9E9E9', '#4B545D'),
+('AmazonBuff', 'Complete all South America quizzes.', 5, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f483.svg', '#FFBFC7', '#A0041E'),
+('PacificBuff', 'Complete all Oceania quizzes.', 4, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3dd.svg', '#D3ECFF', '#F4900C');
+
+INSERT INTO avatars (name, imageUrl, background, border) values
+('Mr. Pumpkin', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f383.svg', '#FFE0B7', '#F79D27'),
+('Bolts', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f916.svg', '#E0F2FF', '#3B88C3'),
+('GeoKitty', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f431.svg', '#FFE8AD', '#F18F26'),
+('Cosmo', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f47d.svg', '#E6F2FB', '#CCD6DD'),
+('Prof. Doo Doo', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f4a9.svg', '#EDCBC1', '#BF6952');
 
 INSERT INTO quiztype (name) values ('Map'), ('Flag');
 
@@ -95,7 +142,7 @@ INSERT INTO quizzes (type, badgeGroup, name, maxScore, time, mapSVG, imageUrl, v
 (1, 5, 'Regions of France', 13, 300, 'FranceRegions', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1eb-1f1f7.svg', 'regions', 'france-regions', 'regions-of-france', FALSE, FALSE, TRUE, TRUE),
 (1, 5, 'States of Germany', 16, 300, 'GermanyStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e9-1f1ea.svg', 'states', 'germany-states', 'states-of-germany', FALSE, FALSE, TRUE, TRUE),
 (1, 4, 'States and Union Territories of India', 36, 300, 'IndiaStatesAndUnionTerritories', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ee-1f1f3.svg', 'states and union territories', 'india-states-and-union-territories', 'states-and-union-territories-of-india', FALSE, FALSE, FALSE, TRUE),
-(1, 4, 'Prefectures of Japan', 47, 300, 'JapanPrefectures', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ef-1f1f5.svg', 'prefectures', 'japan-prefectures', 'prefectures-of-japan', FALSE, FALSE, TRUE, TRUE),
+(1, 4, 'Prefectures of Japan', 47, 300, 'JapanPrefectures', 'https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg', 'prefectures', 'japan-prefectures', 'prefectures-of-japan', FALSE, FALSE, TRUE, TRUE),
 (1, 6, 'States of Mexico', 32, 300, 'MexicoStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1f2-1f1fd.svg', 'states', 'mexico-states', 'states-of-mexico', FALSE, FALSE, FALSE, TRUE),
 (1, 8, 'Regions of New Zealand', 16, 300, 'NewZealandRegions', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1f3-1f1ff.svg', 'regions', 'new-zealand-regions', 'regions-of-new-zealand', FALSE, FALSE, FALSE, TRUE),
 (1, 3, 'States of Nigeria', 37, 300, 'NigeriaStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1f3-1f1ec.svg', 'states', 'nigeria-states', 'states-of-nigeria', FALSE, FALSE, FALSE, TRUE),
@@ -110,5 +157,53 @@ INSERT INTO quizzes (type, badgeGroup, name, maxScore, time, mapSVG, imageUrl, v
 (2, 6, 'Flags of Canada', 13, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e8-1f1e6.svg', 'flags', 'canada-provinces-and-territories', 'flags-of-canada', FALSE, FALSE, TRUE, TRUE),
 (2, 5, 'Flags of France', 13, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1eb-1f1f7.svg', 'flags', 'france-regions', 'flags-of-france', FALSE, FALSE, TRUE, TRUE),
 (2, 5, 'Flags of Germany', 16, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e9-1f1ea.svg', 'flags', 'germany-states', 'flags-of-germany', FALSE, FALSE, TRUE, TRUE),
-(2, 4, 'Flags of Japan', 47, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ef-1f1f5.svg', 'flags', 'japan-prefectures', 'flags-of-japan', FALSE, FALSE, TRUE, TRUE),
+(2, 4, 'Flags of Japan', 47, 300, '', 'https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg', 'flags', 'japan-prefectures', 'flags-of-japan', FALSE, FALSE, TRUE, TRUE),
 (2, 6, 'Flags of the US', 50, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1f8.svg', 'flags', 'us-states', 'flags-of-the-us', FALSE, FALSE, TRUE, TRUE);
+
+INSERT INTO plays (quizId, value) values
+(1, 0),
+(2, 0),
+(3, 0),
+(4, 0),
+(5, 0),
+(6, 0),
+(7, 0),
+(8, 0),
+(9, 0),
+(10, 0),
+(11, 0),
+(12, 0),
+(13, 0),
+(14, 0),
+(15, 0),
+(16, 0),
+(17, 0),
+(18, 0),
+(19, 0),
+(20, 0),
+(21, 0),
+(22, 0),
+(23, 0),
+(24, 0),
+(25, 0),
+(26, 0),
+(27, 0),
+(28, 0),
+(29, 0),
+(30, 0),
+(31, 0);
+
+INSERT INTO merch (name, description, price, disabled) values
+('GeoTee', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 69.99, FALSE),
+('GeoCap', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 39.99, FALSE);
+
+INSERT INTO merchSizes (merchId, size, soldOut) values
+(1, 'S', FALSE),
+(1, 'M', FALSE),
+(1, 'L', FALSE),
+(1, 'XL', FALSE),
+(2, 'One Size Fits All', FALSE);
+
+INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
+(1, '/geotee.png', TRUE),
+(2, '/geocap.png', TRUE);
