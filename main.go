@@ -30,8 +30,6 @@ import (
 )
 
 func main() {
-	// Kirby is a scrub
-
 	err := loadConfig()
 	if err != nil {
 		panic(err)
