@@ -26,7 +26,7 @@ type LeaderboardEntryDto struct {
 	Score       int       `json:"score"`
 	Time        int       `json:"time"`
 	Added       time.Time `json:"added"`
-	Ranking     int       `json:"ranking"`
+	Rank        int       `json:"rank"`
 }
 
 // GetEntriesFilterParams contain the filter fields for the leaderboard.
@@ -39,7 +39,7 @@ type GetEntriesFilterParams struct {
 
 // GetLeaderboardEntries returns a page of leaderboard entries.
 var GetLeaderboardEntries = func(quizID int, filterParams GetEntriesFilterParams) ([]LeaderboardEntryDto, error) {
-	query := "SELECT l.id, l.quizid, l.userid, u.username, u.countrycode, l.score, l.time FROM leaderboard l JOIN users u on u.id = l.userid WHERE l.quizid = $1 AND u.username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT $3 OFFSET $4;"
+	query := "SELECT * FROM (SELECT l.id, l.quizid, l.userid, u.username, u.countrycode, l.score, l.time, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN users u on u.id = l.userid) a WHERE quizid = $1 AND username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT $3 OFFSET $4;"
 
 	rows, err := Connection.Query(query, quizID, filterParams.User, filterParams.Limit, filterParams.Page*filterParams.Limit)
 	if err != nil {
@@ -50,7 +50,7 @@ var GetLeaderboardEntries = func(quizID int, filterParams GetEntriesFilterParams
 	var entries = []LeaderboardEntryDto{}
 	for rows.Next() {
 		var entry LeaderboardEntryDto
-		if err = rows.Scan(&entry.ID, &entry.QuizID, &entry.UserID, &entry.Username, &entry.CountryCode, &entry.Score, &entry.Time); err != nil {
+		if err = rows.Scan(&entry.ID, &entry.QuizID, &entry.UserID, &entry.Username, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Rank); err != nil {
 			return nil, err
 		}
 		entries = append(entries, entry)
@@ -92,7 +92,7 @@ var GetUserLeaderboardEntries = func(userID int) ([]LeaderboardEntryDto, error) 
 	var entries = []LeaderboardEntryDto{}
 	for rows.Next() {
 		var entry LeaderboardEntryDto
-		if err = rows.Scan(&entry.ID, &entry.QuizID, &entry.UserID, &entry.Username, &entry.QuizName, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added, &entry.Ranking); err != nil {
+		if err = rows.Scan(&entry.ID, &entry.QuizID, &entry.UserID, &entry.Username, &entry.QuizName, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added, &entry.Rank); err != nil {
 			return nil, err
 		}
 		entries = append(entries, entry)
@@ -104,7 +104,7 @@ var GetUserLeaderboardEntries = func(userID int) ([]LeaderboardEntryDto, error) 
 var GetLeaderboardEntry = func(quizID, userID int) (LeaderboardEntryDto, error) {
 	statement := "SELECT * from (SELECT l.id, l.quizid, l.userid, u.username, q.name, u.countrycode, l.score, l.time, l.added, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN users u on u.id = l.userId JOIN quizzes q on q.id = l.quizid WHERE l.quizid = $1) c WHERE c.userid = $2;"
 	var entry LeaderboardEntryDto
-	err := Connection.QueryRow(statement, quizID, userID).Scan(&entry.ID, &entry.QuizID, &entry.UserID, &entry.Username, &entry.QuizName, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added, &entry.Ranking)
+	err := Connection.QueryRow(statement, quizID, userID).Scan(&entry.ID, &entry.QuizID, &entry.UserID, &entry.Username, &entry.QuizName, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added, &entry.Rank)
 	return entry, err
 }
 
