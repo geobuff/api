@@ -39,7 +39,7 @@ type GetEntriesFilterParams struct {
 
 // GetLeaderboardEntries returns a page of leaderboard entries.
 var GetLeaderboardEntries = func(quizID int, filterParams GetEntriesFilterParams) ([]LeaderboardEntryDto, error) {
-	query := "SELECT l.id, l.quizid, l.userid, u.username, u.countrycode, l.score, l.time, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN users u on u.id = l.userid WHERE l.quizid = $1 AND u.username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT $3 OFFSET $4;"
+	query := "SELECT * FROM (SELECT l.id, l.quizid, l.userid, u.username, u.countrycode, l.score, l.time, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN users u on u.id = l.userid) a WHERE quizid = $1 AND username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT $3 OFFSET $4;"
 
 	rows, err := Connection.Query(query, quizID, filterParams.User, filterParams.Limit, filterParams.Page*filterParams.Limit)
 	if err != nil {
