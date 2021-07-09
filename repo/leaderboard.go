@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 )
@@ -35,6 +36,7 @@ type GetEntriesFilterParams struct {
 	Limit int    `json:"limit"`
 	Range string `json:"range"`
 	User  string `json:"user"`
+	Rank  int    `json:"rank"`
 }
 
 // UserLeaderboardEntryDto provides us with additional fields used in the user profile.
@@ -53,9 +55,18 @@ type UserLeaderboardEntryDto struct {
 
 // GetLeaderboardEntries returns a page of leaderboard entries.
 var GetLeaderboardEntries = func(quizID int, filterParams GetEntriesFilterParams) ([]LeaderboardEntryDto, error) {
-	query := "SELECT * FROM (SELECT l.id, l.quizid, l.userid, u.username, u.countrycode, l.score, l.time, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN users u on u.id = l.userid) a WHERE quizid = $1 AND username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT $3 OFFSET $4;"
+	var rows *sql.Rows
+	var err error
+	if filterParams.Rank != 0 {
+		query := "SELECT * FROM (SELECT l.id, l.quizid, l.userid, u.username, u.countrycode, l.score, l.time, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN users u on u.id = l.userid) a WHERE quizid = $1 AND username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " AND rank BETWEEN $3 AND $4 ORDER BY score DESC, time"
+		lower := filterParams.Rank - (filterParams.Rank % 10)
+		upper := lower + filterParams.Limit
+		rows, err = Connection.Query(query, quizID, filterParams.User, lower+1, upper)
+	} else {
+		query := "SELECT * FROM (SELECT l.id, l.quizid, l.userid, u.username, u.countrycode, l.score, l.time, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN users u on u.id = l.userid) a WHERE quizid = $1 AND username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT $3 OFFSET $4;"
+		rows, err = Connection.Query(query, quizID, filterParams.User, filterParams.Limit, filterParams.Page*filterParams.Limit)
+	}
 
-	rows, err := Connection.Query(query, quizID, filterParams.User, filterParams.Limit, filterParams.Page*filterParams.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +117,7 @@ var GetUserLeaderboardEntries = func(userID int) ([]UserLeaderboardEntryDto, err
 	var entries = []UserLeaderboardEntryDto{}
 	for rows.Next() {
 		var entry UserLeaderboardEntryDto
-		if err = rows.Scan(&entry.ID, &entry.QuizID, &entry.UserID, &entry.BadgeGroup, &entry.QuizName, &entry.QuizImageUrl, &entry.Score, &entry.Time, &entry.Added, &entry.Rank); err != nil {
+		if err = rows.Scan(&entry.ID, &entry.UserID, &entry.QuizID, &entry.BadgeGroup, &entry.QuizName, &entry.QuizImageUrl, &entry.Score, &entry.Time, &entry.Added, &entry.Rank); err != nil {
 			return nil, err
 		}
 		entries = append(entries, entry)
