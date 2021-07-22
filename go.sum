@@ -149,6 +149,12 @@ github.com/geobuff/mapping v0.0.0-20210721002409-f05b99a32e42 h1:SDMWbsoZYV9a+Vd
 github.com/geobuff/mapping v0.0.0-20210721002409-f05b99a32e42/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
 github.com/geobuff/mapping v0.0.0-20210721005650-9885b2743c85 h1:Mk7aen0GFwYVX6arXzOPMkdDCAuFh/rvhqtRXKVSzyA=
 github.com/geobuff/mapping v0.0.0-20210721005650-9885b2743c85/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
+github.com/geobuff/mapping v0.0.0-20210721015047-a0a10d250f98 h1:pJpDGmWFgs3ZuCyRhnnQTeddeUK2AW4tjcVWubCCf50=
+github.com/geobuff/mapping v0.0.0-20210721015047-a0a10d250f98/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
+github.com/geobuff/mapping v0.0.0-20210721031355-09e0da6ebfeb h1:8hZpsvAgNp6X1vzO4tU71BIIkl/JZN8nB1wgEBhAfqQ=
+github.com/geobuff/mapping v0.0.0-20210721031355-09e0da6ebfeb/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
+github.com/geobuff/mapping v0.0.0-20210722001018-7c9ac442cedc h1:txSErMyqPRQ2O8BhrDDRGFoRwETQdGPD4LzmsJMAsog=
+github.com/geobuff/mapping v0.0.0-20210722001018-7c9ac442cedc/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20191125211704-12ad95a8df72/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200222043503-6f7a984d4dc4/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
