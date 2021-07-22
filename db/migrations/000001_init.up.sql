@@ -114,7 +114,7 @@ INSERT INTO avatars (name, imageUrl, background, border) values
 ('GeoKitty', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f431.svg', '#FFE8AD', '#F18F26'),
 ('Cosmo', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f47d.svg', '#E6F2FB', '#CCD6DD'),
 ('Kirby', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f4a9.svg', '#EDCBC1', '#BF6952'),
-('Ivan', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f921.svg', '#F1BF00', '#AA151B');
+('Buff', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f921.svg', '#F1BF00', '#AA151B');
 
 INSERT INTO quiztype (name) values ('Map'), ('Flag');
 
