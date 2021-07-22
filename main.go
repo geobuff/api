@@ -15,7 +15,6 @@ import (
 	"github.com/geobuff/api/plays"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/api/scores"
 	"github.com/geobuff/api/subscription"
 	"github.com/geobuff/api/tempscores"
 	"github.com/geobuff/api/users"
@@ -116,13 +115,6 @@ func router() http.Handler {
 
 	// Badge endpoints.
 	router.HandleFunc("/api/badges", badges.GetBadges).Methods("GET")
-
-	// Score endpoints.
-	router.HandleFunc("/api/scores/{userId}", scores.GetScores).Methods("GET")
-	router.HandleFunc("/api/scores/{userId}/{quizId}", scores.GetScore).Methods("GET")
-	router.HandleFunc("/api/scores", scores.CreateScore).Methods("POST")
-	router.HandleFunc("/api/scores/{id}", scores.UpdateScore).Methods("PUT")
-	router.HandleFunc("/api/scores/{id}", scores.DeleteScore).Methods("DELETE")
 
 	// Temp Score endpoints.
 	router.HandleFunc("/api/tempscores/{id}", tempscores.GetTempScore).Methods("GET")

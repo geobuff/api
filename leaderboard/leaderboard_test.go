@@ -151,7 +151,7 @@ func TestGetUserEntries(t *testing.T) {
 
 	tt := []struct {
 		name                      string
-		getUserLeaderboardEntries func(userID int) ([]repo.LeaderboardEntryDto, error)
+		getUserLeaderboardEntries func(userID int) ([]repo.UserLeaderboardEntryDto, error)
 		userID                    string
 		status                    int
 	}{
@@ -163,7 +163,7 @@ func TestGetUserEntries(t *testing.T) {
 		},
 		{
 			name: "valid userId, no rows found",
-			getUserLeaderboardEntries: func(userID int) ([]repo.LeaderboardEntryDto, error) {
+			getUserLeaderboardEntries: func(userID int) ([]repo.UserLeaderboardEntryDto, error) {
 				return nil, sql.ErrNoRows
 			},
 			userID: "1",
@@ -171,7 +171,7 @@ func TestGetUserEntries(t *testing.T) {
 		},
 		{
 			name: "valid userId, unknown error on GetUserLeaderboardEntries",
-			getUserLeaderboardEntries: func(userID int) ([]repo.LeaderboardEntryDto, error) {
+			getUserLeaderboardEntries: func(userID int) ([]repo.UserLeaderboardEntryDto, error) {
 				return nil, errors.New("test")
 			},
 			userID: "1",
@@ -179,8 +179,8 @@ func TestGetUserEntries(t *testing.T) {
 		},
 		{
 			name: "happy path",
-			getUserLeaderboardEntries: func(userID int) ([]repo.LeaderboardEntryDto, error) {
-				return []repo.LeaderboardEntryDto{}, nil
+			getUserLeaderboardEntries: func(userID int) ([]repo.UserLeaderboardEntryDto, error) {
+				return []repo.UserLeaderboardEntryDto{}, nil
 			},
 			userID: "1",
 			status: http.StatusOK,

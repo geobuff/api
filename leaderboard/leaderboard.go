@@ -61,7 +61,7 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// GetUserEntries gets all leaderboard entrie for a user.
+// GetUserEntries gets all leaderboard entries for a user.
 func GetUserEntries(writer http.ResponseWriter, request *http.Request) {
 	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
 	if err != nil {
