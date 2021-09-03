@@ -58,12 +58,12 @@ var GetLeaderboardEntries = func(quizID int, filterParams GetEntriesFilterParams
 	var rows *sql.Rows
 	var err error
 	if filterParams.Rank != 0 {
-		query := "SELECT * FROM (SELECT l.id, l.quizid, l.userid, u.username, u.countrycode, l.score, l.time, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN users u on u.id = l.userid) a WHERE quizid = $1 AND username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " AND rank BETWEEN $3 AND $4 ORDER BY score DESC, time"
+		query := "SELECT * FROM (SELECT l.id, l.quizid, l.userid, u.username, u.countrycode, l.score, l.time, l.added, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN users u on u.id = l.userid) a WHERE quizid = $1 AND username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " AND rank BETWEEN $3 AND $4 ORDER BY score DESC, time"
 		lower := filterParams.Rank - (filterParams.Rank % 10)
 		upper := lower + filterParams.Limit
 		rows, err = Connection.Query(query, quizID, filterParams.User, lower+1, upper)
 	} else {
-		query := "SELECT * FROM (SELECT l.id, l.quizid, l.userid, u.username, u.countrycode, l.score, l.time, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN users u on u.id = l.userid) a WHERE quizid = $1 AND username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT $3 OFFSET $4;"
+		query := "SELECT * FROM (SELECT l.id, l.quizid, l.userid, u.username, u.countrycode, l.score, l.time, l.added, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN users u on u.id = l.userid) a WHERE quizid = $1 AND username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT $3 OFFSET $4;"
 		rows, err = Connection.Query(query, quizID, filterParams.User, filterParams.Limit, filterParams.Page*filterParams.Limit)
 	}
 
@@ -75,7 +75,7 @@ var GetLeaderboardEntries = func(quizID int, filterParams GetEntriesFilterParams
 	var entries = []LeaderboardEntryDto{}
 	for rows.Next() {
 		var entry LeaderboardEntryDto
-		if err = rows.Scan(&entry.ID, &entry.QuizID, &entry.UserID, &entry.Username, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Rank); err != nil {
+		if err = rows.Scan(&entry.ID, &entry.QuizID, &entry.UserID, &entry.Username, &entry.CountryCode, &entry.Score, &entry.Time, &entry.Added, &entry.Rank); err != nil {
 			return nil, err
 		}
 		entries = append(entries, entry)
