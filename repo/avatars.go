@@ -27,3 +27,11 @@ var GetAvatars = func() ([]Avatar, error) {
 	}
 	return avatars, rows.Err()
 }
+
+// GetAvatar returns an avatar with the matching id.
+var GetAvatar = func(id int) (Avatar, error) {
+	statement := "SELECT * from avatars WHERE id = $1;"
+	var avatar Avatar
+	err := Connection.QueryRow(statement, id).Scan(&avatar.ID, &avatar.Name, &avatar.ImageUrl, &avatar.Background, &avatar.Border)
+	return avatar, err
+}

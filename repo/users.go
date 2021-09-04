@@ -42,11 +42,15 @@ type UserDto struct {
 }
 
 type UpdateUserDto struct {
-	AvatarId    int    `json:"avatarId" validate:"required"`
-	Username    string `json:"username" validate:"required,username"`
-	Email       string `json:"email" validate:"required,email"`
-	CountryCode string `json:"countryCode" validate:"required"`
-	XP          *int   `json:"xp" validate:"required"`
+	AvatarId         int    `json:"avatarId" validate:"required"`
+	AvatarName       string `json:"avatarName"`
+	AvatarImageUrl   string `json:"avatarImageUrl"`
+	AvatarBackground string `json:"avatarBackground"`
+	AvatarBorder     string `json:"avatarBorder"`
+	Username         string `json:"username" validate:"required,username"`
+	Email            string `json:"email" validate:"required,email"`
+	CountryCode      string `json:"countryCode" validate:"required"`
+	XP               *int   `json:"xp" validate:"required"`
 }
 
 // GetUsers returns a page of users.
