@@ -238,6 +238,7 @@ func TestUpdateUser(t *testing.T) {
 	savedAnotherUserWithUsername := repo.AnotherUserWithUsername
 	savedAnotherUserWithEmail := repo.AnotherUserWithEmail
 	savedUpdateUser := repo.UpdateUser
+	savedGetAvatar := repo.GetAvatar
 	savedValidator := validation.Validator
 
 	defer func() {
@@ -245,6 +246,7 @@ func TestUpdateUser(t *testing.T) {
 		repo.UpdateUser = savedUpdateUser
 		repo.AnotherUserWithUsername = savedAnotherUserWithUsername
 		repo.AnotherUserWithEmail = savedAnotherUserWithEmail
+		repo.GetAvatar = savedGetAvatar
 		validation.Validator = savedValidator
 	}()
 
@@ -256,6 +258,7 @@ func TestUpdateUser(t *testing.T) {
 		anotherUserWithUsername func(id int, username string) (bool, error)
 		anotherUserWithEmail    func(id int, email string) (bool, error)
 		updateUser              func(userID int, user repo.UpdateUserDto) error
+		getAvatar               func(id int) (repo.Avatar, error)
 		id                      string
 		body                    string
 		status                  int
@@ -266,6 +269,7 @@ func TestUpdateUser(t *testing.T) {
 			anotherUserWithUsername: repo.AnotherUserWithUsername,
 			anotherUserWithEmail:    repo.AnotherUserWithEmail,
 			updateUser:              repo.UpdateUser,
+			getAvatar:               repo.GetAvatar,
 			id:                      "testing",
 			body:                    "",
 			status:                  http.StatusBadRequest,
@@ -276,6 +280,7 @@ func TestUpdateUser(t *testing.T) {
 			anotherUserWithUsername: repo.AnotherUserWithUsername,
 			anotherUserWithEmail:    repo.AnotherUserWithEmail,
 			updateUser:              repo.UpdateUser,
+			getAvatar:               repo.GetAvatar,
 			id:                      "1",
 			body:                    "",
 			status:                  http.StatusUnauthorized,
@@ -286,6 +291,7 @@ func TestUpdateUser(t *testing.T) {
 			anotherUserWithUsername: repo.AnotherUserWithUsername,
 			anotherUserWithEmail:    repo.AnotherUserWithEmail,
 			updateUser:              repo.UpdateUser,
+			getAvatar:               repo.GetAvatar,
 			id:                      "1",
 			body:                    "testing",
 			status:                  http.StatusBadRequest,
@@ -296,6 +302,7 @@ func TestUpdateUser(t *testing.T) {
 			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, errors.New("test") },
 			anotherUserWithEmail:    repo.AnotherUserWithEmail,
 			updateUser:              repo.UpdateUser,
+			getAvatar:               repo.GetAvatar,
 			id:                      "1",
 			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
 			status:                  http.StatusInternalServerError,
@@ -306,6 +313,7 @@ func TestUpdateUser(t *testing.T) {
 			anotherUserWithUsername: func(id int, username string) (bool, error) { return true, nil },
 			anotherUserWithEmail:    repo.AnotherUserWithEmail,
 			updateUser:              repo.UpdateUser,
+			getAvatar:               repo.GetAvatar,
 			id:                      "1",
 			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
 			status:                  http.StatusBadRequest,
@@ -316,6 +324,7 @@ func TestUpdateUser(t *testing.T) {
 			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, nil },
 			anotherUserWithEmail:    func(id int, email string) (bool, error) { return false, errors.New(("test")) },
 			updateUser:              repo.UpdateUser,
+			getAvatar:               repo.GetAvatar,
 			id:                      "1",
 			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
 			status:                  http.StatusInternalServerError,
@@ -326,6 +335,7 @@ func TestUpdateUser(t *testing.T) {
 			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, nil },
 			anotherUserWithEmail:    func(id int, email string) (bool, error) { return true, nil },
 			updateUser:              repo.UpdateUser,
+			getAvatar:               repo.GetAvatar,
 			id:                      "1",
 			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
 			status:                  http.StatusBadRequest,
@@ -336,6 +346,18 @@ func TestUpdateUser(t *testing.T) {
 			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, nil },
 			anotherUserWithEmail:    func(id int, email string) (bool, error) { return false, nil },
 			updateUser:              func(userID int, user repo.UpdateUserDto) error { return errors.New("test") },
+			getAvatar:               repo.GetAvatar,
+			id:                      "1",
+			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
+			status:                  http.StatusInternalServerError,
+		},
+		{
+			name:                    "error on getAvatar",
+			validUser:               func(request *http.Request, id int) (int, error) { return http.StatusOK, nil },
+			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, nil },
+			anotherUserWithEmail:    func(id int, email string) (bool, error) { return false, nil },
+			updateUser:              func(userID int, user repo.UpdateUserDto) error { return nil },
+			getAvatar:               func(id int) (repo.Avatar, error) { return repo.Avatar{}, errors.New("test") },
 			id:                      "1",
 			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
 			status:                  http.StatusInternalServerError,
@@ -346,6 +368,7 @@ func TestUpdateUser(t *testing.T) {
 			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, nil },
 			anotherUserWithEmail:    func(id int, email string) (bool, error) { return false, nil },
 			updateUser:              func(userID int, user repo.UpdateUserDto) error { return nil },
+			getAvatar:               func(id int) (repo.Avatar, error) { return repo.Avatar{}, nil },
 			id:                      "1",
 			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
 			status:                  http.StatusOK,
@@ -358,6 +381,7 @@ func TestUpdateUser(t *testing.T) {
 			repo.UpdateUser = tc.updateUser
 			repo.AnotherUserWithUsername = tc.anotherUserWithUsername
 			repo.AnotherUserWithEmail = tc.anotherUserWithEmail
+			repo.GetAvatar = tc.getAvatar
 
 			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
