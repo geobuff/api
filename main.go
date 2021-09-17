@@ -16,6 +16,7 @@ import (
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
 	"github.com/geobuff/api/subscription"
+	"github.com/geobuff/api/support"
 	"github.com/geobuff/api/tempscores"
 	"github.com/geobuff/api/users"
 	"github.com/geobuff/api/validation"
@@ -144,6 +145,9 @@ func router() http.Handler {
 
 	// Merch endpoints.
 	router.HandleFunc("/api/merch", merch.GetMerch).Methods("GET")
+
+	// Support endpoints.
+	router.HandleFunc("/api/support", support.SendSupportRequest).Methods("POST")
 
 	return router
 }
