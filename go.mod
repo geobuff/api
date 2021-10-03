@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/geobuff/mapping v0.0.0-20210722001018-7c9ac442cedc
+	github.com/geobuff/mapping v0.0.0-20210905231441-8bf7f2f5eac9
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/golang-migrate/migrate v3.5.4+incompatible

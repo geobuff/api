@@ -136,6 +136,16 @@ func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	avatar, err := repo.GetAvatar(updatedUser.AvatarId)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	updatedUser.AvatarName = avatar.Name
+	updatedUser.AvatarImageUrl = avatar.ImageUrl
+	updatedUser.AvatarBackground = avatar.Background
+	updatedUser.AvatarBorder = avatar.Border
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(updatedUser)
 }
