@@ -58,6 +58,8 @@ CREATE TABLE tempscores (
     id SERIAL PRIMARY KEY,
     score INTEGER NOT NULL,
     time INTEGER NOT NULL,
+    results TEXT[] NOT NULL,
+    recents TEXT[] NOT NULL,
     added DATE NOT NULL
 );
 
