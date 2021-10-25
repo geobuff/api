@@ -126,7 +126,7 @@ func TestCreateTempScore(t *testing.T) {
 		{
 			name:            "happy path",
 			insertTempScore: func(score repo.TempScore) (int, error) { return 1, nil },
-			body:            `{"score":1,"time":2,"results":["new zealand","recents": ["new zealand"]]}`,
+			body:            `{"score":1,"time":2,"results":["new zealand"],"recents": ["new zealand"]}`,
 			status:          http.StatusCreated,
 		},
 	}
