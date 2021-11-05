@@ -11,9 +11,9 @@ CREATE TABLE badges (
 CREATE table avatars (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    imageUrl TEXT NOT NULL,
-    background TEXT NOT NULL,
-    border TEXT NOT NULL
+    description TEXT NOT NULL,
+    primaryImageUrl TEXT NOT NULL,
+    secondaryImageUrl TEXT NOT NULL
 );
 
 CREATE TABLE quiztype (
@@ -110,13 +110,13 @@ INSERT INTO badges (name, description, total, imageUrl, background, border) valu
 ('AmazonBuff', 'Complete all South America quizzes.', 7, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f483.svg', '#FFBFC7', '#A0041E'),
 ('PacificBuff', 'Complete all Oceania quizzes.', 4, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3dd.svg', '#D3ECFF', '#F4900C');
 
-INSERT INTO avatars (name, imageUrl, background, border) values
-('Mr. Pumpkin', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f383.svg', '#FFE0B7', '#F79D27'),
-('Bolts', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f916.svg', '#E0F2FF', '#3B88C3'),
-('GeoKitty', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f431.svg', '#FFE8AD', '#F18F26'),
-('Cosmo', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f47d.svg', '#E6F2FB', '#CCD6DD'),
-('Kirby', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f4a9.svg', '#EDCBC1', '#BF6952'),
-('Buff', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f921.svg', '#F1BF00', '#AA151B');
+INSERT INTO avatars (name, description, primaryImageUrl, secondaryImageUrl) values
+('Mr. Pumpkin', 'Pumpkin ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f383.svg', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f921.svg'),
+('Bolts', 'Bolts ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f916.svg', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f383.svg'),
+('GeoKitty', 'GeoKitty ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f431.svg', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f916.svg'),
+('Cosmo', 'Cosmo ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f47d.svg', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f431.svg'),
+('Kirby', 'Kirby ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f4a9.svg', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f47d.svg'),
+('Buff', 'Buff ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', './test-avatar.svg', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f4a9.svg');
 
 INSERT INTO quiztype (name) values ('Map'), ('Flag');
 

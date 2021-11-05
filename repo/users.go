@@ -23,39 +23,39 @@ type User struct {
 
 // UserDto is the dto for a user entry.
 type UserDto struct {
-	ID                  int            `json:"id"`
-	AvatarId            int            `json:"avatarId"`
-	AvatarName          string         `json:"avatarName"`
-	AvatarImageUrl      string         `json:"avatarImageUrl"`
-	AvatarBackground    string         `json:"avatarBackground"`
-	AvatarBorder        string         `json:"avatarBorder"`
-	Username            string         `json:"username"`
-	Email               string         `json:"email"`
-	PasswordHash        string         `json:"passwordHash"`
-	CountryCode         string         `json:"countryCode"`
-	XP                  int            `json:"xp"`
-	IsPremium           bool           `json:"isPremium"`
-	StripeSessionId     sql.NullString `json:"stripeSessionId"`
-	IsAdmin             bool           `json:"isAdmin"`
-	PasswordResetToken  sql.NullString `json:"passwordResetToken"`
-	PasswordResetExpiry sql.NullTime   `json:"passwordResetExpiry"`
+	ID                      int            `json:"id"`
+	AvatarId                int            `json:"avatarId"`
+	AvatarName              string         `json:"avatarName"`
+	AvatarDescription       string         `json:"avatarDescription"`
+	AvatarPrimaryImageUrl   string         `json:"avatarPrimaryImageUrl"`
+	AvatarSecondaryImageUrl string         `json:"avatarSecondaryImageUrl"`
+	Username                string         `json:"username"`
+	Email                   string         `json:"email"`
+	PasswordHash            string         `json:"passwordHash"`
+	CountryCode             string         `json:"countryCode"`
+	XP                      int            `json:"xp"`
+	IsPremium               bool           `json:"isPremium"`
+	StripeSessionId         sql.NullString `json:"stripeSessionId"`
+	IsAdmin                 bool           `json:"isAdmin"`
+	PasswordResetToken      sql.NullString `json:"passwordResetToken"`
+	PasswordResetExpiry     sql.NullTime   `json:"passwordResetExpiry"`
 }
 
 type UpdateUserDto struct {
-	AvatarId         int    `json:"avatarId" validate:"required"`
-	AvatarName       string `json:"avatarName"`
-	AvatarImageUrl   string `json:"avatarImageUrl"`
-	AvatarBackground string `json:"avatarBackground"`
-	AvatarBorder     string `json:"avatarBorder"`
-	Username         string `json:"username" validate:"required,username"`
-	Email            string `json:"email" validate:"required,email"`
-	CountryCode      string `json:"countryCode" validate:"required"`
-	XP               *int   `json:"xp" validate:"required"`
+	AvatarId                int    `json:"avatarId" validate:"required"`
+	AvatarName              string `json:"avatarName"`
+	AvatarDescription       string `json:"avatarDescription"`
+	AvatarPrimaryImageUrl   string `json:"avatarPrimaryImageUrl"`
+	AvatarSecondaryImageUrl string `json:"avatarSecondaryImageUrl"`
+	Username                string `json:"username" validate:"required,username"`
+	Email                   string `json:"email" validate:"required,email"`
+	CountryCode             string `json:"countryCode" validate:"required"`
+	XP                      *int   `json:"xp" validate:"required"`
 }
 
 // GetUsers returns a page of users.
 var GetUsers = func(limit int, offset int) ([]UserDto, error) {
-	rows, err := Connection.Query("SELECT u.id, a.id, a.name, a.imageurl, a.background, a.border, u.username, u.email, u.countrycode, u.xp, u.isadmin, u.ispremium, u.passwordresettoken, u.passwordresetexpiry FROM users u JOIN avatars a on a.id = u.avatarid LIMIT $1 OFFSET $2;", limit, offset)
+	rows, err := Connection.Query("SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.xp, u.isadmin, u.ispremium, u.passwordresettoken, u.passwordresetexpiry FROM users u JOIN avatars a on a.id = u.avatarid LIMIT $1 OFFSET $2;", limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ var GetUsers = func(limit int, offset int) ([]UserDto, error) {
 	var users = []UserDto{}
 	for rows.Next() {
 		var user UserDto
-		if err = rows.Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarImageUrl, &user.AvatarBackground, &user.AvatarBorder, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry); err != nil {
+		if err = rows.Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -82,17 +82,17 @@ var GetFirstID = func(limit int, offset int) (int, error) {
 
 // GetUser returns the user with a given id.
 var GetUser = func(id int) (UserDto, error) {
-	statement := "SELECT u.id, a.id, a.name, a.imageurl, a.background, a.border, u.username, u.email, u.countrycode, u.xp, u.ispremium, u.isadmin, u.passwordresettoken, u.passwordresetexpiry FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.id = $1;"
+	statement := "SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.xp, u.ispremium, u.isadmin, u.passwordresettoken, u.passwordresetexpiry FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.id = $1;"
 	var user UserDto
-	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarImageUrl, &user.AvatarBackground, &user.AvatarBorder, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsPremium, &user.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry)
+	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsPremium, &user.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry)
 	return user, err
 }
 
 // GetUserUsingEmail returns the user with a given email.
 var GetUserUsingEmail = func(email string) (UserDto, error) {
-	statement := "SELECT u.id, a.id, a.name, a.imageurl, a.background, a.border, u.username, u.email, u.passwordhash, u.countrycode, u.xp, u.ispremium, u.isadmin, u.passwordresettoken, u.passwordresetexpiry FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.email = $1;"
+	statement := "SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.passwordhash, u.countrycode, u.xp, u.ispremium, u.isadmin, u.passwordresettoken, u.passwordresetexpiry FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.email = $1;"
 	var user UserDto
-	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarImageUrl, &user.AvatarBackground, &user.AvatarBorder, &user.Username, &user.Email, &user.PasswordHash, &user.CountryCode, &user.XP, &user.IsPremium, &user.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry)
+	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.PasswordHash, &user.CountryCode, &user.XP, &user.IsPremium, &user.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry)
 	return user, err
 }
 
