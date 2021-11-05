@@ -21,19 +21,19 @@ import (
 )
 
 type CustomClaims struct {
-	UserID           int    `json:"userId"`
-	AvatarId         int    `json:"avatarId"`
-	AvatarName       string `json:"avatarName"`
-	AvatarImageUrl   string `json:"avatarImageUrl"`
-	AvatarBackground string `json:"avatarBackground"`
-	AvatarBorder     string `json:"avatarBorder"`
-	Username         string `json:"username"`
-	Email            string `json:"email"`
-	CountryCode      string `json:"countryCode"`
-	XP               int    `json:"xp"`
-	IsAdmin          bool   `json:"isAdmin"`
-	IsPremium        bool   `json:"isPremium"`
-	StripeSessionId  string `json:"stripeSessionId"`
+	UserID                  int    `json:"userId"`
+	AvatarId                int    `json:"avatarId"`
+	AvatarName              string `json:"avatarName"`
+	AvatarDescription       string `json:"avatarDescription"`
+	AvatarPrimaryImageUrl   string `json:"avatarPrimaryImageUrl"`
+	AvatarSecondaryImageUrl string `json:"avatarSecondaryImageUrl"`
+	Username                string `json:"username"`
+	Email                   string `json:"email"`
+	CountryCode             string `json:"countryCode"`
+	XP                      int    `json:"xp"`
+	IsAdmin                 bool   `json:"isAdmin"`
+	IsPremium               bool   `json:"isPremium"`
+	StripeSessionId         string `json:"stripeSessionId"`
 	jwt.StandardClaims
 }
 
@@ -354,19 +354,19 @@ var getClaims = func(tokenString string) (*CustomClaims, error) {
 
 var buildToken = func(user repo.UserDto) (string, error) {
 	claims := CustomClaims{
-		UserID:           user.ID,
-		AvatarId:         user.AvatarId,
-		AvatarName:       user.AvatarName,
-		AvatarImageUrl:   user.AvatarImageUrl,
-		AvatarBackground: user.AvatarBackground,
-		AvatarBorder:     user.AvatarBorder,
-		Username:         user.Username,
-		Email:            user.Email,
-		CountryCode:      user.CountryCode,
-		XP:               user.XP,
-		IsAdmin:          user.IsAdmin,
-		IsPremium:        user.IsPremium,
-		StripeSessionId:  user.StripeSessionId.String,
+		UserID:                  user.ID,
+		AvatarId:                user.AvatarId,
+		AvatarName:              user.AvatarName,
+		AvatarDescription:       user.AvatarDescription,
+		AvatarPrimaryImageUrl:   user.AvatarPrimaryImageUrl,
+		AvatarSecondaryImageUrl: user.AvatarSecondaryImageUrl,
+		Username:                user.Username,
+		Email:                   user.Email,
+		CountryCode:             user.CountryCode,
+		XP:                      user.XP,
+		IsAdmin:                 user.IsAdmin,
+		IsPremium:               user.IsPremium,
+		StripeSessionId:         user.StripeSessionId.String,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
 			ExpiresAt: time.Now().AddDate(0, 0, 3).Unix(),
