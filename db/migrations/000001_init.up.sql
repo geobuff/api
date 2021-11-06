@@ -226,5 +226,6 @@ INSERT INTO merchSizes (merchId, size, quantity) values
 
 INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
 (1, '/tee.jpg', TRUE),
+(1, '/tee-2.jpg', FALSE),
 (2, '/socks.jpg', TRUE),
 (3, '/kirby.jpeg', TRUE);
