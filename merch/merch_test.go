@@ -20,17 +20,17 @@ func TestGetMerch(t *testing.T) {
 
 	tt := []struct {
 		name     string
-		getMerch func() ([]repo.Merch, error)
+		getMerch func() ([]repo.MerchDto, error)
 		status   int
 	}{
 		{
 			name:     "error on GetMerch",
-			getMerch: func() ([]repo.Merch, error) { return nil, errors.New("test") },
+			getMerch: func() ([]repo.MerchDto, error) { return nil, errors.New("test") },
 			status:   http.StatusInternalServerError,
 		},
 		{
 			name:     "happy path",
-			getMerch: func() ([]repo.Merch, error) { return []repo.Merch{}, nil },
+			getMerch: func() ([]repo.MerchDto, error) { return []repo.MerchDto{}, nil },
 			status:   http.StatusOK,
 		},
 	}

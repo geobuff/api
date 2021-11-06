@@ -1,41 +1,60 @@
 package repo
 
+import (
+	"database/sql"
+)
+
 type Merch struct {
-	ID          int          `json:"id"`
-	Name        string       `json:"name"`
-	Description string       `json:"description"`
-	Price       float64      `json:"price"`
-	Disabled    bool         `json:"disabled"`
-	Sizes       []MerchSize  `json:"sizes"`
-	Images      []MerchImage `json:"images"`
+	ID           int             `json:"id"`
+	Name         string          `json:"name"`
+	Description  string          `json:"description"`
+	Price        sql.NullFloat64 `json:"price"`
+	ExternalLink sql.NullString  `json:"externalLink"`
+	Sizes        []MerchSize     `json:"sizes"`
+	Images       []MerchImage    `json:"images"`
 }
 
 type MerchSize struct {
-	Size    string `json:"size"`
-	SoldOut bool   `json:"soldOut"`
+	ID       int    `json:"id"`
+	MerchID  int    `json:"merchId"`
+	Size     string `json:"size"`
+	Quantity int    `json:"quantity"`
 }
 
 type MerchImage struct {
+	ID        int    `json:"id"`
+	MerchID   int    `json:"merchId"`
 	ImageUrl  string `json:"imageUrl"`
 	IsPrimary bool   `json:"isPrimary"`
 }
 
-var GetMerch = func() ([]Merch, error) {
+type MerchDto struct {
+	ID           int             `json:"id"`
+	Name         string          `json:"name"`
+	Description  string          `json:"description"`
+	Price        sql.NullFloat64 `json:"price"`
+	ExternalLink sql.NullString  `json:"externalLink"`
+	Sizes        []MerchSize     `json:"sizes"`
+	Images       []MerchImage    `json:"images"`
+	SoldOut      bool            `json:"soldOut"`
+}
+
+var GetMerch = func() ([]MerchDto, error) {
 	rows, err := Connection.Query("SELECT * FROM merch;")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var merch = []Merch{}
+	var merch = []MerchDto{}
 	for rows.Next() {
-		var entry Merch
-		if err = rows.Scan(&entry.ID, &entry.Name, &entry.Description, &entry.Price, &entry.Disabled); err != nil {
+		var entry MerchDto
+		if err = rows.Scan(&entry.ID, &entry.Name, &entry.Description, &entry.Price, &entry.ExternalLink); err != nil {
 			return nil, err
 		}
 
-		query := "SELECT size, soldout FROM merchsizes WHERE merchid = $1;"
-		rows, err := Connection.Query(query, entry.ID)
+		sizeQuery := "SELECT * FROM merchsizes WHERE merchid = $1;"
+		rows, err := Connection.Query(sizeQuery, entry.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -44,15 +63,16 @@ var GetMerch = func() ([]Merch, error) {
 		var sizes = []MerchSize{}
 		for rows.Next() {
 			var size MerchSize
-			if err = rows.Scan(&size.Size, &size.SoldOut); err != nil {
+			if err = rows.Scan(&size.ID, &size.MerchID, &size.Size, &size.Quantity); err != nil {
 				return nil, err
 			}
 			sizes = append(sizes, size)
 		}
 		entry.Sizes = sizes
+		entry.SoldOut = isSoldOut(sizes)
 
-		query = "SELECT imageurl, isprimary FROM merchImages WHERE merchid = $1;"
-		rows, err = Connection.Query(query, entry.ID)
+		imageQuery := "SELECT * FROM merchImages WHERE merchid = $1;"
+		rows, err = Connection.Query(imageQuery, entry.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +81,7 @@ var GetMerch = func() ([]Merch, error) {
 		var images = []MerchImage{}
 		for rows.Next() {
 			var image MerchImage
-			if err = rows.Scan(&image.ImageUrl, &image.IsPrimary); err != nil {
+			if err = rows.Scan(&image.ID, &image.MerchID, &image.ImageUrl, &image.IsPrimary); err != nil {
 				return nil, err
 			}
 			images = append(images, image)
@@ -71,4 +91,13 @@ var GetMerch = func() ([]Merch, error) {
 		merch = append(merch, entry)
 	}
 	return merch, rows.Err()
+}
+
+func isSoldOut(sizes []MerchSize) bool {
+	for _, size := range sizes {
+		if size.Quantity > 0 {
+			return false
+		}
+	}
+	return true
 }
