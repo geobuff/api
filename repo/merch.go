@@ -5,13 +5,14 @@ import (
 )
 
 type Merch struct {
-	ID           int             `json:"id"`
-	Name         string          `json:"name"`
-	Description  string          `json:"description"`
-	Price        sql.NullFloat64 `json:"price"`
-	ExternalLink sql.NullString  `json:"externalLink"`
-	Sizes        []MerchSize     `json:"sizes"`
-	Images       []MerchImage    `json:"images"`
+	ID                int             `json:"id"`
+	Name              string          `json:"name"`
+	Description       string          `json:"description"`
+	SizeGuideImageUrl sql.NullString  `json:"sizeGuideImageUrl"`
+	Price             sql.NullFloat64 `json:"price"`
+	ExternalLink      sql.NullString  `json:"externalLink"`
+	Sizes             []MerchSize     `json:"sizes"`
+	Images            []MerchImage    `json:"images"`
 }
 
 type MerchSize struct {
@@ -29,14 +30,15 @@ type MerchImage struct {
 }
 
 type MerchDto struct {
-	ID           int             `json:"id"`
-	Name         string          `json:"name"`
-	Description  string          `json:"description"`
-	Price        sql.NullFloat64 `json:"price"`
-	ExternalLink sql.NullString  `json:"externalLink"`
-	Sizes        []MerchSize     `json:"sizes"`
-	Images       []MerchImage    `json:"images"`
-	SoldOut      bool            `json:"soldOut"`
+	ID                int             `json:"id"`
+	Name              string          `json:"name"`
+	Description       string          `json:"description"`
+	SizeGuideImageUrl sql.NullString  `json:"sizeGuideImageUrl"`
+	Price             sql.NullFloat64 `json:"price"`
+	ExternalLink      sql.NullString  `json:"externalLink"`
+	Sizes             []MerchSize     `json:"sizes"`
+	Images            []MerchImage    `json:"images"`
+	SoldOut           bool            `json:"soldOut"`
 }
 
 var GetMerch = func() ([]MerchDto, error) {
@@ -49,7 +51,7 @@ var GetMerch = func() ([]MerchDto, error) {
 	var merch = []MerchDto{}
 	for rows.Next() {
 		var entry MerchDto
-		if err = rows.Scan(&entry.ID, &entry.Name, &entry.Description, &entry.Price, &entry.ExternalLink); err != nil {
+		if err = rows.Scan(&entry.ID, &entry.Name, &entry.Description, &entry.SizeGuideImageUrl, &entry.Price, &entry.ExternalLink); err != nil {
 			return nil, err
 		}
 

@@ -82,6 +82,7 @@ CREATE TABLE merch (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
+    sizeGuideImageUrl TEXT,
     price DECIMAL,
     externalLink TEXT
 );
@@ -211,10 +212,10 @@ INSERT INTO plays (quizId, value) values
 (42, 0),
 (43, 0);
 
-INSERT INTO merch (name, description, price, externalLink) values
-('Tee', 'Tee ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 59.99, null),
-('Socks', 'Socks ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 19.99, null),
-('Rare NFT', '', null, 'https://opensea.io');
+INSERT INTO merch (name, description, sizeGuideImageUrl, price, externalLink) values
+('Tee', 'Tee ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', '/tee-size-guide.png', 59.99, null),
+('Socks', 'Socks ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', null, 19.99, null),
+('Rare NFT', '', null, null, 'https://opensea.io');
 
 INSERT INTO merchSizes (merchId, size, quantity) values
 (1, 'S', 5),
@@ -225,5 +226,6 @@ INSERT INTO merchSizes (merchId, size, quantity) values
 
 INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
 (1, '/tee.jpg', TRUE),
+(1, '/tee-2.jpg', FALSE),
 (2, '/socks.jpg', TRUE),
 (3, '/kirby.jpeg', TRUE);
