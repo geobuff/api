@@ -82,15 +82,15 @@ CREATE TABLE merch (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
-    price DECIMAL NOT NULL,
-    disabled BOOLEAN NOT NULL
+    price DECIMAL,
+    externalLink TEXT
 );
 
 CREATE TABLE merchSizes (
     id SERIAL PRIMARY KEY,
     merchId INTEGER references merch(id) NOT NULL,
     size TEXT NOT NULL,
-    soldOut BOOLEAN NOT NULL
+    quantity INTEGER NOT NULL
 );
 
 CREATE TABLE merchImages (
@@ -211,17 +211,19 @@ INSERT INTO plays (quizId, value) values
 (42, 0),
 (43, 0);
 
-INSERT INTO merch (name, description, price, disabled) values
-('GeoTee', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 69.99, FALSE),
-('GeoCap', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 39.99, FALSE);
+INSERT INTO merch (name, description, price, externalLink) values
+('Tee', 'Tee ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 59.99, null),
+('Socks', 'Socks ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 19.99, null),
+('Rare NFT', '', null, 'https://opensea.io');
 
-INSERT INTO merchSizes (merchId, size, soldOut) values
-(1, 'S', FALSE),
-(1, 'M', FALSE),
-(1, 'L', FALSE),
-(1, 'XL', FALSE),
-(2, 'One Size Fits All', FALSE);
+INSERT INTO merchSizes (merchId, size, quantity) values
+(1, 'S', 5),
+(1, 'M', 15),
+(1, 'L', 0),
+(1, 'XL', 2),
+(2, 'One Size Fits All', 0);
 
 INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
-(1, '/geotee.png', TRUE),
-(2, '/geocap.png', TRUE);
+(1, '/tee.jpg', TRUE),
+(2, '/socks.jpg', TRUE),
+(3, '/kirby.jpeg', TRUE);
