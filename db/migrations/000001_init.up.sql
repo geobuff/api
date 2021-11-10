@@ -114,10 +114,10 @@ INSERT INTO badges (name, description, total, imageUrl, background, border) valu
 INSERT INTO avatars (name, description, primaryImageUrl, secondaryImageUrl) values
 ('Commando One', 'Commando One ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/commando-one-primary.svg', '/commando-one-secondary.svg'),
 ('Commando Two', 'Commando Two ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/commando-two-primary.svg', '/commando-two-secondary.svg'),
-('Traveller One', 'Traveller One ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/traveller-one-primary.svg', '/traveller-one-secondary .svg'),
+('Traveller One', 'Traveller One ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/traveller-one-primary.svg', '/traveller-one-secondary.svg'),
 ('Traveller Two', 'Traveller Two ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/traveller-two-primary.svg', '/traveller-two-secondary.svg'),
 ('Researcher One', 'Researcher One ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/researcher-one-primary.svg', '/researcher-one-secondary.svg'),
-('Researcher Two', 'Researcher Two ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/researcher-two-primary.svg', '/researcher-one-secondary.svg');
+('Researcher Two', 'Researcher Two ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/researcher-two-primary.svg', '/researcher-two-secondary.svg');
 
 INSERT INTO quiztype (name) values ('Map'), ('Flag');
 
