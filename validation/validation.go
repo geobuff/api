@@ -21,7 +21,7 @@ func usernameValidation(fl validator.FieldLevel) bool {
 }
 
 func UsernameValid(username string) bool {
-	if len(username) < 3 || len(username) > 30 {
+	if len(username) < 3 || len(username) > 20 {
 		return false
 	}
 
