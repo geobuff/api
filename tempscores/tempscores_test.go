@@ -120,13 +120,13 @@ func TestCreateTempScore(t *testing.T) {
 		{
 			name:            "valid body, error on InsertTempScore",
 			insertTempScore: func(score repo.TempScore) (int, error) { return 0, errors.New("test") },
-			body:            `{"score":1,"time":2}`,
+			body:            `{"score":1,"time":2,"results":["new zealand"],"recents": ["new zealand"]}`,
 			status:          http.StatusInternalServerError,
 		},
 		{
 			name:            "happy path",
 			insertTempScore: func(score repo.TempScore) (int, error) { return 1, nil },
-			body:            `{"score":1,"time":2}`,
+			body:            `{"score":1,"time":2,"results":["new zealand"],"recents": ["new zealand"]}`,
 			status:          http.StatusCreated,
 		},
 	}

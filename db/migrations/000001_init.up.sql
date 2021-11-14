@@ -11,9 +11,9 @@ CREATE TABLE badges (
 CREATE table avatars (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    imageUrl TEXT NOT NULL,
-    background TEXT NOT NULL,
-    border TEXT NOT NULL
+    description TEXT NOT NULL,
+    primaryImageUrl TEXT NOT NULL,
+    secondaryImageUrl TEXT NOT NULL
 );
 
 CREATE TABLE quiztype (
@@ -58,6 +58,8 @@ CREATE TABLE tempscores (
     id SERIAL PRIMARY KEY,
     score INTEGER NOT NULL,
     time INTEGER NOT NULL,
+    results TEXT[] NOT NULL,
+    recents TEXT[] NOT NULL,
     added DATE NOT NULL
 );
 
@@ -80,15 +82,16 @@ CREATE TABLE merch (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
-    price DECIMAL NOT NULL,
-    disabled BOOLEAN NOT NULL
+    sizeGuideImageUrl TEXT,
+    price DECIMAL,
+    externalLink TEXT
 );
 
 CREATE TABLE merchSizes (
     id SERIAL PRIMARY KEY,
     merchId INTEGER references merch(id) NOT NULL,
     size TEXT NOT NULL,
-    soldOut BOOLEAN NOT NULL
+    quantity INTEGER NOT NULL
 );
 
 CREATE TABLE merchImages (
@@ -108,13 +111,13 @@ INSERT INTO badges (name, description, total, imageUrl, background, border) valu
 ('AmazonBuff', 'Complete all South America quizzes.', 7, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f483.svg', '#FFBFC7', '#A0041E'),
 ('PacificBuff', 'Complete all Oceania quizzes.', 4, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3dd.svg', '#D3ECFF', '#F4900C');
 
-INSERT INTO avatars (name, imageUrl, background, border) values
-('Mr. Pumpkin', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f383.svg', '#FFE0B7', '#F79D27'),
-('Bolts', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f916.svg', '#E0F2FF', '#3B88C3'),
-('GeoKitty', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f431.svg', '#FFE8AD', '#F18F26'),
-('Cosmo', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f47d.svg', '#E6F2FB', '#CCD6DD'),
-('Kirby', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f4a9.svg', '#EDCBC1', '#BF6952'),
-('Buff', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f921.svg', '#F1BF00', '#AA151B');
+INSERT INTO avatars (name, description, primaryImageUrl, secondaryImageUrl) values
+('Commando One', 'Commando One ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/commando-one-primary.svg', '/commando-one-secondary.svg'),
+('Commando Two', 'Commando Two ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/commando-two-primary.svg', '/commando-two-secondary.svg'),
+('Traveller One', 'Traveller One ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/traveller-one-primary.svg', '/traveller-one-secondary.svg'),
+('Traveller Two', 'Traveller Two ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/traveller-two-primary.svg', '/traveller-two-secondary.svg'),
+('Researcher One', 'Researcher One ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/researcher-one-primary.svg', '/researcher-one-secondary.svg'),
+('Researcher Two', 'Researcher Two ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/researcher-two-primary.svg', '/researcher-two-secondary.svg');
 
 INSERT INTO quiztype (name) values ('Map'), ('Flag');
 
@@ -209,17 +212,30 @@ INSERT INTO plays (quizId, value) values
 (42, 0),
 (43, 0);
 
-INSERT INTO merch (name, description, price, disabled) values
-('GeoTee', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 69.99, FALSE),
-('GeoCap', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 39.99, FALSE);
+INSERT INTO merch (name, description, sizeGuideImageUrl, price, externalLink) values
+('Tee', 'Tee ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', '/tee-size-guide.png', 59.99, null),
+('Socks', 'Socks ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', null, 19.99, null),
+('Commando One NFT', '', null, null, 'https://opensea.io'),
+('Commando Two NFT', '', null, null, 'https://opensea.io'),
+('Traveller One NFT', '', null, null, 'https://opensea.io'),
+('Traveller Two NFT', '', null, null, 'https://opensea.io'),
+('Researcher One NFT', '', null, null, 'https://opensea.io'),
+('Researcher Two NFT', '', null, null, 'https://opensea.io');
 
-INSERT INTO merchSizes (merchId, size, soldOut) values
-(1, 'S', FALSE),
-(1, 'M', FALSE),
-(1, 'L', FALSE),
-(1, 'XL', FALSE),
-(2, 'One Size Fits All', FALSE);
+INSERT INTO merchSizes (merchId, size, quantity) values
+(1, 'S', 5),
+(1, 'M', 15),
+(1, 'L', 0),
+(1, 'XL', 2),
+(2, 'One Size Fits All', 0);
 
 INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
-(1, '/geotee.png', TRUE),
-(2, '/geocap.png', TRUE);
+(1, '/tee.jpg', TRUE),
+(1, '/tee-2.jpg', FALSE),
+(2, '/socks.jpg', TRUE),
+(3, '/commando-one-primary.svg', TRUE),
+(4, '/commando-two-primary.svg', TRUE),
+(5, '/traveller-one-primary.svg', TRUE),
+(6, '/traveller-two-primary.svg', TRUE),
+(7, '/researcher-one-primary.svg', TRUE),
+(8, '/researcher-two-primary.svg', TRUE);

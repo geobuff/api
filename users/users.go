@@ -143,9 +143,10 @@ func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	updatedUser.AvatarName = avatar.Name
-	updatedUser.AvatarImageUrl = avatar.ImageUrl
-	updatedUser.AvatarBackground = avatar.Background
-	updatedUser.AvatarBorder = avatar.Border
+	updatedUser.AvatarDescription = avatar.Description
+	updatedUser.AvatarPrimaryImageUrl = avatar.PrimaryImageUrl
+	updatedUser.AvatarSecondaryImageUrl = avatar.SecondaryImageUrl
+
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(updatedUser)
 }

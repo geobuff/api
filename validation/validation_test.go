@@ -15,7 +15,7 @@ func TestUsernameValid(t *testing.T) {
 		},
 		{
 			name:     "length greater than max",
-			input:    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			input:    "aaaaaaaaaaaaaaaaaaaaa",
 			expected: false,
 		},
 		{
