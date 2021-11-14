@@ -215,7 +215,12 @@ INSERT INTO plays (quizId, value) values
 INSERT INTO merch (name, description, sizeGuideImageUrl, price, externalLink) values
 ('Tee', 'Tee ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', '/tee-size-guide.png', 59.99, null),
 ('Socks', 'Socks ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', null, 19.99, null),
-('Rare NFT', '', null, null, 'https://opensea.io');
+('Commando One NFT', '', null, null, 'https://opensea.io'),
+('Commando Two NFT', '', null, null, 'https://opensea.io'),
+('Traveller One NFT', '', null, null, 'https://opensea.io'),
+('Traveller Two NFT', '', null, null, 'https://opensea.io'),
+('Researcher One NFT', '', null, null, 'https://opensea.io'),
+('Researcher Two NFT', '', null, null, 'https://opensea.io');
 
 INSERT INTO merchSizes (merchId, size, quantity) values
 (1, 'S', 5),
@@ -228,4 +233,9 @@ INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
 (1, '/tee.jpg', TRUE),
 (1, '/tee-2.jpg', FALSE),
 (2, '/socks.jpg', TRUE),
-(3, '/kirby.jpeg', TRUE);
+(3, '/commando-one-primary.svg', TRUE),
+(4, '/commando-two-primary.svg', TRUE),
+(5, '/traveller-one-primary.svg', TRUE),
+(6, '/traveller-two-primary.svg', TRUE),
+(7, '/researcher-one-primary.svg', TRUE),
+(8, '/researcher-two-primary.svg', TRUE);
