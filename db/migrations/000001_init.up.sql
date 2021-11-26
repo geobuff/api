@@ -101,6 +101,13 @@ CREATE TABLE merchImages (
     isPrimary BOOLEAN NOT NULL
 );
 
+CREATE TABLE discounts (
+    id SERIAL PRIMARY KEY,
+    merchId INTEGER references merch(id),
+    code TEXT NOT NULL,
+    amount INTEGER NOT NULL
+);
+
 INSERT INTO badges (name, description, total, imageUrl, background, border) values
 ('Competitor', 'Submit a leaderboard entry.', 1, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3c6.svg', '#FFF1CE', '#C1694F'),
 ('International Traveler', 'Complete all world quizzes.', 3, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f9f3.svg', '#A8D9FF', '#4289C1'),
@@ -250,3 +257,6 @@ INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
 (9, '/traveller-two-primary.svg', TRUE),
 (10, '/researcher-one-primary.svg', TRUE),
 (11, '/researcher-two-primary.svg', TRUE);
+
+INSERT INTO discounts (merchId, code, amount) values
+(null, 'NOSHIP420', 5);
