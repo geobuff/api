@@ -101,6 +101,13 @@ CREATE TABLE merchImages (
     isPrimary BOOLEAN NOT NULL
 );
 
+CREATE TABLE discounts (
+    id SERIAL PRIMARY KEY,
+    merchId INTEGER references merch(id),
+    code TEXT NOT NULL,
+    amount INTEGER NOT NULL
+);
+
 INSERT INTO badges (name, description, total, imageUrl, background, border) values
 ('Competitor', 'Submit a leaderboard entry.', 1, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3c6.svg', '#FFF1CE', '#C1694F'),
 ('International Traveler', 'Complete all world quizzes.', 3, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f9f3.svg', '#A8D9FF', '#4289C1'),
@@ -213,8 +220,11 @@ INSERT INTO plays (quizId, value) values
 (43, 0);
 
 INSERT INTO merch (name, description, sizeGuideImageUrl, price, externalLink) values
-('Tee', 'Tee ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', '/tee-size-guide.png', 59.99, null),
-('Socks', 'Socks ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', null, 19.99, null),
+('Tee', 'Tee ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', '/tee-size-guide.png', 49.99, null),
+('Socks', 'Socks ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', null, 11.99, null),
+('Logo Poster', 'Logo poster ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', null, 19.99, null),
+('Avatars Poster', 'Avatars poster ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', null, 19.99, null),
+('Sticker Pack', 'Sticker pack ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', null, 11.99, null),
 ('Commando One NFT', '', null, null, 'https://opensea.io'),
 ('Commando Two NFT', '', null, null, 'https://opensea.io'),
 ('Traveller One NFT', '', null, null, 'https://opensea.io'),
@@ -223,19 +233,30 @@ INSERT INTO merch (name, description, sizeGuideImageUrl, price, externalLink) va
 ('Researcher Two NFT', '', null, null, 'https://opensea.io');
 
 INSERT INTO merchSizes (merchId, size, quantity) values
-(1, 'S', 5),
-(1, 'M', 15),
-(1, 'L', 0),
-(1, 'XL', 2),
-(2, 'One Size Fits All', 0);
+(1, 'S', 8),
+(1, 'M', 25),
+(1, 'L', 25),
+(1, 'XL', 15),
+(1, 'XXL', 7),
+(2, 'One Size Fits All', 100),
+(3, 'A2', 0),
+(4, 'A2', 0),
+(5, 'A4', 0);
 
 INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
 (1, '/tee.jpg', TRUE),
-(1, '/tee-2.jpg', FALSE),
 (2, '/socks.jpg', TRUE),
-(3, '/commando-one-primary.svg', TRUE),
-(4, '/commando-two-primary.svg', TRUE),
-(5, '/traveller-one-primary.svg', TRUE),
-(6, '/traveller-two-primary.svg', TRUE),
-(7, '/researcher-one-primary.svg', TRUE),
-(8, '/researcher-two-primary.svg', TRUE);
+(3, '/logo-poster.png', TRUE),
+(4, '/avatars-poster.png', TRUE),
+(5, '/sticker-pack-avatars-primary.png', TRUE),
+(5, '/sticker-pack-avatars-secondary.png', FALSE),
+(5, '/sticker-pack-logo.png', FALSE),
+(6, '/commando-one-primary.svg', TRUE),
+(7, '/commando-two-primary.svg', TRUE),
+(8, '/traveller-one-primary.svg', TRUE),
+(9, '/traveller-two-primary.svg', TRUE),
+(10, '/researcher-one-primary.svg', TRUE),
+(11, '/researcher-two-primary.svg', TRUE);
+
+INSERT INTO discounts (merchId, code, amount) values
+(null, 'NOSHIP420', 5);

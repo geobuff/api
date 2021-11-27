@@ -9,6 +9,7 @@ import (
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
+	"github.com/geobuff/api/discounts"
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
 	"github.com/geobuff/api/merch"
@@ -145,6 +146,9 @@ func router() http.Handler {
 
 	// Merch endpoints.
 	router.HandleFunc("/api/merch", merch.GetMerch).Methods("GET")
+
+	// Discount endpoints.
+	router.HandleFunc("/api/discounts/{code}", discounts.GetDiscount).Methods("GET")
 
 	// Support endpoints.
 	router.HandleFunc("/api/support", support.SendSupportRequest).Methods("POST")
