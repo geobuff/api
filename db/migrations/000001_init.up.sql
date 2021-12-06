@@ -108,6 +108,33 @@ CREATE TABLE discounts (
     amount INTEGER NOT NULL
 );
 
+CREATE TABLE orderStatus (
+    id SERIAL PRIMARY KEY,
+    status TEXT NOT NULL
+);
+
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    statusId INTEGER references orderStatus(id),
+    email TEXT NOT NULL,
+    firstName TEXT NOT NULL,
+    lastName TEXT NOT NULL,
+    address TEXT NOT NULL,
+    suburb TEXT NOT NULL,
+    city TEXT NOT NULL,
+    postcode TEXT NOT NULL,
+    added DATE NOT NULL,
+    discount TEXT
+);
+
+CREATE TABLE orderItems (
+    id SERIAL PRIMARY KEY,
+    orderId INTEGER references orders(id),
+    merchId INTEGER references merch(id),
+    sizeId INTEGER references merchSizes(id),
+    quantity INTEGER NOT NULL
+);
+
 INSERT INTO badges (name, description, total, imageUrl, background, border) values
 ('Competitor', 'Submit a leaderboard entry.', 1, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3c6.svg', '#FFF1CE', '#C1694F'),
 ('International Traveler', 'Complete all world quizzes.', 3, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f9f3.svg', '#A8D9FF', '#4289C1'),
@@ -260,3 +287,8 @@ INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
 
 INSERT INTO discounts (merchId, code, amount) values
 (null, 'NOSHIP420', 5);
+
+INSERT INTO orderStatus (status) values
+('Pending'),
+('Payment Received'),
+('Shipped');

@@ -18,27 +18,6 @@ import (
 	"github.com/stripe/stripe-go/webhook"
 )
 
-type CheckoutItemDto struct {
-	ID       int    `json:"id"`
-	Size     string `json:"size"`
-	Quantity int    `json:"quantity"`
-}
-
-type Customer struct {
-	Email     string `json:"email"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Address   string `json:"address"`
-	Suburb    string `json:"suburb"`
-	City      string `json:"city"`
-	Postcode  string `json:"postcode"`
-}
-
-type CreateCheckoutDto struct {
-	Items    []CheckoutItemDto `json:"items"`
-	Customer Customer          `json:"customer"`
-}
-
 type ErrResp struct {
 	Error struct {
 		Message string `json:"message"`
@@ -60,10 +39,16 @@ func HandleCreateCheckoutSession(writer http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	var createCheckoutDto CreateCheckoutDto
+	var createCheckoutDto repo.CreateCheckoutDto
 	err = json.Unmarshal(requestBody, &createCheckoutDto)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	_, err = repo.InsertOrder(createCheckoutDto)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
