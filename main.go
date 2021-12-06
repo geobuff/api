@@ -9,6 +9,7 @@ import (
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
+	"github.com/geobuff/api/checkout"
 	"github.com/geobuff/api/discounts"
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
@@ -16,7 +17,6 @@ import (
 	"github.com/geobuff/api/plays"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/api/subscription"
 	"github.com/geobuff/api/support"
 	"github.com/geobuff/api/tempscores"
 	"github.com/geobuff/api/users"
@@ -135,11 +135,9 @@ func router() http.Handler {
 	router.HandleFunc("/api/plays/{quizId}", plays.GetPlays).Methods("GET")
 	router.HandleFunc("/api/plays/{quizId}", plays.IncrementPlays).Methods("PUT")
 
-	// Subscription endpoints.
-	router.HandleFunc("/api/subscription/create-checkout-session", subscription.HandleCreateCheckoutSession).Methods("POST")
-	router.HandleFunc("/api/subscription/premium", subscription.UpgradeSubscription).Methods("POST")
-	router.HandleFunc("/api/subscription/manage", subscription.HandleCustomerPortal).Methods("POST")
-	router.HandleFunc("/api/subscription/webhook", subscription.HandleWebhook).Methods("POST")
+	// Checkout endpoints.
+	router.HandleFunc("/api/checkout/create-checkout-session", checkout.HandleCreateCheckoutSession).Methods("POST")
+	router.HandleFunc("/api/checkout/webhook", checkout.HandleWebhook).Methods("POST")
 
 	// Avatar endpoints.
 	router.HandleFunc("/api/avatars", avatars.GetAvatars).Methods("GET")

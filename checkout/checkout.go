@@ -1,4 +1,4 @@
-package subscription
+package checkout
 
 import (
 	"bytes"
@@ -11,18 +11,12 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
 	"github.com/stripe/stripe-go/client"
 	"github.com/stripe/stripe-go/v72"
-	portalsession "github.com/stripe/stripe-go/v72/billingportal/session"
 	"github.com/stripe/stripe-go/v72/checkout/session"
 	"github.com/stripe/stripe-go/webhook"
 )
-
-type CreateCheckoutDto struct {
-	Price string `json:"priceId"`
-}
 
 type ErrResp struct {
 	Error struct {
@@ -32,23 +26,6 @@ type ErrResp struct {
 
 type CreateCheckoutResult struct {
 	SessionID string `json:"sessionId"`
-}
-
-type UpgradeSubscriptionDto struct {
-	UserId    int    `json:"userId"`
-	SessionId string `json:"sessionId"`
-}
-
-type ManageSubscriptionResult struct {
-	URL string `json:"url"`
-}
-
-type HandleCustomerPortalDto struct {
-	SessionID string `json:"sessionId"`
-}
-
-type HandleCustomerPortalResult struct {
-	URL string `json:"url"`
 }
 
 type WebhookDto struct {
@@ -62,27 +39,53 @@ func HandleCreateCheckoutSession(writer http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	var createCheckoutDto CreateCheckoutDto
+	var createCheckoutDto repo.CreateCheckoutDto
 	err = json.Unmarshal(requestBody, &createCheckoutDto)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
+	_, err = repo.InsertOrder(createCheckoutDto)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	merch, err := repo.GetMerch()
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	var lineItems []*stripe.CheckoutSessionLineItemParams
+	for _, checkoutItem := range createCheckoutDto.Items {
+		for _, merchItem := range merch {
+			if checkoutItem.ID == merchItem.ID {
+				amount := int64(merchItem.Price.Float64 * 100)
+				image := os.Getenv("SITE_URL") + merchItem.Images[0].ImageUrl
+				newItem := stripe.CheckoutSessionLineItemParams{
+					Amount:   &amount,
+					Name:     stripe.String(fmt.Sprintf("%s - %s", merchItem.Name, checkoutItem.Size)),
+					Images:   []*string{stripe.String(image)},
+					Currency: stripe.String("NZD"),
+					Quantity: stripe.Int64(int64(checkoutItem.Quantity)),
+				}
+				lineItems = append(lineItems, &newItem)
+			}
+		}
+	}
+
 	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 	params := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(os.Getenv("SITE_URL") + "/subscription/success?session_id={CHECKOUT_SESSION_ID}"),
-		CancelURL:  stripe.String(os.Getenv("SITE_URL") + "/subscription/canceled"),
+		SuccessURL: stripe.String(os.Getenv("SITE_URL") + "/checkout/success?session_id={CHECKOUT_SESSION_ID}"),
+		CancelURL:  stripe.String(os.Getenv("SITE_URL") + "/checkout/canceled"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
-		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
-		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			{
-				Price:    stripe.String(createCheckoutDto.Price),
-				Quantity: stripe.Int64(1),
-			},
-		},
+		Mode:          stripe.String(string(stripe.CheckoutSessionModePayment)),
+		LineItems:     lineItems,
+		CustomerEmail: &createCheckoutDto.Customer.Email,
 	}
 
 	s, err := session.New(params)
@@ -125,67 +128,6 @@ func writeJSON(w http.ResponseWriter, v interface{}, err error) {
 		log.Printf("io.Copy: %v", err)
 		return
 	}
-}
-
-func UpgradeSubscription(writer http.ResponseWriter, request *http.Request) {
-	requestBody, err := ioutil.ReadAll(request.Body)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
-	var upgradeSubscriptionDto UpgradeSubscriptionDto
-	err = json.Unmarshal(requestBody, &upgradeSubscriptionDto)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
-	if code, err := auth.ValidUser(request, upgradeSubscriptionDto.UserId); err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), code)
-		return
-	}
-
-	err = repo.UpgradeSubscription(upgradeSubscriptionDto.UserId, upgradeSubscriptionDto.SessionId)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-}
-
-func HandleCustomerPortal(writer http.ResponseWriter, request *http.Request) {
-	requestBody, err := ioutil.ReadAll(request.Body)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
-	var handleCustomerPortalDto HandleCustomerPortalDto
-	err = json.Unmarshal(requestBody, &handleCustomerPortalDto)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
-	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
-	s, err := session.Get(handleCustomerPortalDto.SessionID, nil)
-	if err != nil {
-		writeJSON(writer, nil, err)
-		return
-	}
-
-	returnURL := fmt.Sprintf("%s/subscription/manage-redirect", os.Getenv("SITE_URL"))
-	params := &stripe.BillingPortalSessionParams{
-		Customer:  stripe.String(s.Customer.ID),
-		ReturnURL: stripe.String(returnURL),
-	}
-
-	ps, _ := portalsession.New(params)
-
-	result := HandleCustomerPortalResult{
-		URL: ps.URL,
-	}
-	writeJSON(writer, result, nil)
 }
 
 func HandleWebhook(writer http.ResponseWriter, request *http.Request) {
