@@ -163,3 +163,22 @@ func getStatus(id int) (string, error) {
 	err := Connection.QueryRow(statement, id).Scan(&result)
 	return result, err
 }
+
+func UpdateStatusLatestOrder(email string) error {
+	statement := "UPDATE orders set statusId = 2 where id = (select id from orders where email = $1 order by added desc LIMIT 1);"
+	var id int
+	return Connection.QueryRow(statement, email).Scan(&id)
+}
+
+func RemoveLatestOrder(email string) error {
+	statement := "SELECT id from orders where email = $1 order by added desc LIMIT 1;"
+	var orderId int
+	err := Connection.QueryRow(statement, email).Scan(&orderId)
+	if err != nil {
+		return err
+	}
+
+	Connection.QueryRow("DELETE from orderItems where orderid = $1;", orderId)
+	var id int
+	return Connection.QueryRow("DELETE from orders where id = $1;", orderId).Scan(&id)
+}

@@ -144,7 +144,7 @@ func HandleWebhook(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	switch event.Type {
-	case "customer.subscription.deleted":
+	case "payment_intent.succeeded":
 		var req struct {
 			Customer string `json:"customer"`
 		}
@@ -163,7 +163,31 @@ func HandleWebhook(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 
-		err = repo.UnsubscribeUser(c.Email)
+		err = repo.UpdateStatusLatestOrder(c.Email)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+			return
+		}
+	case "payment_intent.canceled":
+		var req struct {
+			Customer string `json:"customer"`
+		}
+
+		err := json.Unmarshal(event.Data.Raw, &req)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		sc := &client.API{}
+		sc.Init(os.Getenv("STRIPE_SECRET_KEY"), nil)
+		c, err := sc.Customers.Get(req.Customer, nil)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+			return
+		}
+
+		err = repo.RemoveLatestOrder(c.Email)
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 			return
