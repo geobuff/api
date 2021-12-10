@@ -14,6 +14,7 @@ import (
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
 	"github.com/geobuff/api/merch"
+	"github.com/geobuff/api/orders"
 	"github.com/geobuff/api/plays"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
@@ -138,6 +139,9 @@ func router() http.Handler {
 	// Checkout endpoints.
 	router.HandleFunc("/api/checkout/create-checkout-session", checkout.HandleCreateCheckoutSession).Methods("POST")
 	router.HandleFunc("/api/checkout/webhook", checkout.HandleWebhook).Methods("POST")
+
+	// Order endpoints.
+	router.HandleFunc("/api/orders/{email}", orders.GetOrders).Methods("GET")
 
 	// Avatar endpoints.
 	router.HandleFunc("/api/avatars", avatars.GetAvatars).Methods("GET")

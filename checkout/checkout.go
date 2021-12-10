@@ -66,7 +66,7 @@ func HandleCreateCheckoutSession(writer http.ResponseWriter, request *http.Reque
 				image := os.Getenv("SITE_URL") + merchItem.Images[0].ImageUrl
 				newItem := stripe.CheckoutSessionLineItemParams{
 					Amount:   &amount,
-					Name:     stripe.String(fmt.Sprintf("%s - %s", merchItem.Name, checkoutItem.Size)),
+					Name:     stripe.String(fmt.Sprintf("%s - %s", merchItem.Name, checkoutItem.SizeName)),
 					Images:   []*string{stripe.String(image)},
 					Currency: stripe.String("NZD"),
 					Quantity: stripe.Int64(int64(checkoutItem.Quantity)),
