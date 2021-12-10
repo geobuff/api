@@ -165,7 +165,7 @@ func getStatus(id int) (string, error) {
 }
 
 func UpdateStatusLatestOrder(email string) error {
-	statement := "UPDATE orders set statusId = 2 where id = (select id from orders where email = $1 order by added desc LIMIT 1);"
+	statement := "UPDATE orders set statusId = 2 where id = (select id from orders where email = $1 order by added desc LIMIT 1) returning id;"
 	var id int
 	return Connection.QueryRow(statement, email).Scan(&id)
 }

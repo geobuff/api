@@ -142,6 +142,7 @@ func router() http.Handler {
 
 	// Order endpoints.
 	router.HandleFunc("/api/orders/{email}", orders.GetOrders).Methods("GET")
+	router.HandleFunc("/api/orders/{email}", orders.CancelOrder).Methods("DELETE")
 
 	// Avatar endpoints.
 	router.HandleFunc("/api/avatars", avatars.GetAvatars).Methods("GET")
