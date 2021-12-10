@@ -171,9 +171,9 @@ func UpdateStatusLatestOrder(email string) error {
 }
 
 func RemoveLatestOrder(email string) error {
-	statement := "SELECT id from orders where email = $1 AND statusid = 1 order by added desc LIMIT 1;"
+	statement := "SELECT id from orders where email = $1 AND statusid = $2 order by added desc LIMIT 1;"
 	var orderId int
-	err := Connection.QueryRow(statement, email).Scan(&orderId)
+	err := Connection.QueryRow(statement, email, 1).Scan(&orderId)
 	if err != nil {
 		return err
 	}
