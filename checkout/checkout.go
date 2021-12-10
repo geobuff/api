@@ -79,7 +79,7 @@ func HandleCreateCheckoutSession(writer http.ResponseWriter, request *http.Reque
 	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 	params := &stripe.CheckoutSessionParams{
 		SuccessURL: stripe.String(os.Getenv("SITE_URL") + "/checkout/success?session_id={CHECKOUT_SESSION_ID}"),
-		CancelURL:  stripe.String(os.Getenv("SITE_URL") + "/checkout/canceled"),
+		CancelURL:  stripe.String(fmt.Sprintf("%s/checkout/canceled?email=%s", os.Getenv("SITE_URL"), createCheckoutDto.Customer.Email)),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
@@ -164,30 +164,6 @@ func HandleWebhook(writer http.ResponseWriter, request *http.Request) {
 		}
 
 		err = repo.UpdateStatusLatestOrder(c.Email)
-		if err != nil {
-			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-			return
-		}
-	case "payment_intent.canceled":
-		var req struct {
-			Customer string `json:"customer"`
-		}
-
-		err := json.Unmarshal(event.Data.Raw, &req)
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		sc := &client.API{}
-		sc.Init(os.Getenv("STRIPE_SECRET_KEY"), nil)
-		c, err := sc.Customers.Get(req.Customer, nil)
-		if err != nil {
-			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-			return
-		}
-
-		err = repo.RemoveLatestOrder(c.Email)
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 			return

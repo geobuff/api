@@ -19,3 +19,11 @@ func GetOrders(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(orders)
 }
+
+func CancelOrder(writer http.ResponseWriter, request *http.Request) {
+	err := repo.RemoveLatestOrder(mux.Vars(request)["email"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+}
