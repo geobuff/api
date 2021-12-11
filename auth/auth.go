@@ -33,7 +33,6 @@ type CustomClaims struct {
 	XP                      int    `json:"xp"`
 	IsAdmin                 bool   `json:"isAdmin"`
 	IsPremium               bool   `json:"isPremium"`
-	StripeSessionId         string `json:"stripeSessionId"`
 	jwt.StandardClaims
 }
 
@@ -366,7 +365,6 @@ var buildToken = func(user repo.UserDto) (string, error) {
 		XP:                      user.XP,
 		IsAdmin:                 user.IsAdmin,
 		IsPremium:               user.IsPremium,
-		StripeSessionId:         user.StripeSessionId.String,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
 			ExpiresAt: time.Now().AddDate(0, 0, 3).Unix(),
