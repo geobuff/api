@@ -48,7 +48,6 @@ CREATE TABLE users (
     countryCode TEXT NOT NULL,
     xp BIGINT NOT NULL,
     isPremium BOOLEAN NOT NULL,
-    stripeSessionId TEXT,
     isAdmin BOOLEAN NOT NULL,
     passwordResetToken TEXT,
     passwordResetExpiry DATE

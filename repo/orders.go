@@ -98,8 +98,8 @@ func insertOrderItem(item CheckoutItemDto, orderId int) error {
 	return Connection.QueryRow(statement, orderId, item.ID, item.SizeID, item.Quantity).Scan(&id)
 }
 
-func GetOrders(email string) ([]OrderDto, error) {
-	rows, err := Connection.Query("SELECT * FROM orders WHERE email = $1;", email)
+func GetNonPendingOrders(email string) ([]OrderDto, error) {
+	rows, err := Connection.Query("SELECT * FROM orders WHERE email = $1 AND statusid != $2;", email, 1)
 	if err != nil {
 		return nil, err
 	}
