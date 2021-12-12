@@ -15,7 +15,6 @@ type User struct {
 	CountryCode         string         `json:"countryCode"`
 	XP                  int            `json:"xp"`
 	IsPremium           bool           `json:"isPremium"`
-	StripeSessionId     sql.NullString `json:"stripeSessionId"`
 	IsAdmin             bool           `json:"isAdmin"`
 	PasswordResetToken  sql.NullString `json:"passwordResetToken"`
 	PasswordResetExpiry sql.NullTime   `json:"passwordResetExpiry"`
@@ -35,7 +34,6 @@ type UserDto struct {
 	CountryCode             string         `json:"countryCode"`
 	XP                      int            `json:"xp"`
 	IsPremium               bool           `json:"isPremium"`
-	StripeSessionId         sql.NullString `json:"stripeSessionId"`
 	IsAdmin                 bool           `json:"isAdmin"`
 	PasswordResetToken      sql.NullString `json:"passwordResetToken"`
 	PasswordResetExpiry     sql.NullTime   `json:"passwordResetExpiry"`
@@ -160,16 +158,4 @@ var ResetPassword = func(userID int, passwordHash string) error {
 	statement := "UPDATE users set passwordhash = $2, passwordResetToken = null, passwordResetExpiry = null WHERE id = $1 RETURNING id;"
 	var id int
 	return Connection.QueryRow(statement, userID, passwordHash).Scan(&id)
-}
-
-func UpgradeSubscription(userID int, sessionID string) error {
-	statement := "UPDATE users set isPremium = true, stripeSessionId = $2 WHERE id = $1 RETURNING id;"
-	var id int
-	return Connection.QueryRow(statement, userID, sessionID).Scan(&id)
-}
-
-func UnsubscribeUser(email string) error {
-	statement := "UPDATE users set isPremium = false, stripeSessionId = null WHERE email = $1 RETURNING id;"
-	var id int
-	return Connection.QueryRow(statement, email).Scan(&id)
 }
