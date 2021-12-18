@@ -82,7 +82,7 @@ CREATE TABLE merch (
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     sizeGuideImageUrl TEXT,
-    price DECIMAL,
+    price DECIMAL(12,2),
     externalLink TEXT
 );
 
@@ -104,7 +104,7 @@ CREATE TABLE discounts (
     id SERIAL PRIMARY KEY,
     merchId INTEGER references merch(id),
     code TEXT NOT NULL,
-    amount INTEGER NOT NULL
+    amount DECIMAL(12,2) NOT NULL
 );
 
 CREATE TABLE orderStatus (
@@ -283,7 +283,7 @@ INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
 (10, '/researcher-two-primary.svg', TRUE);
 
 INSERT INTO discounts (merchId, code, amount) values
-(null, 'NOSHIP420', 5);
+(null, 'NOSHIP420', 4.99);
 
 INSERT INTO orderStatus (status) values
 ('Pending'),
