@@ -62,19 +62,15 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if code, err := auth.ValidUser(request, id); err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), code)
-		return
-	}
-
-	user, err := repo.GetUser(id)
-	if err != nil {
+	switch user, err := repo.GetUser(id); err {
+	case sql.ErrNoRows:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
+	case nil:
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(user)
+	default:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
 	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(user)
 }
 
 // UpdateUser creates a new user entry.
