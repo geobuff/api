@@ -50,7 +50,8 @@ CREATE TABLE users (
     isPremium BOOLEAN NOT NULL,
     isAdmin BOOLEAN NOT NULL,
     passwordResetToken TEXT,
-    passwordResetExpiry DATE
+    passwordResetExpiry DATE,
+    joined DATE
 );
 
 CREATE TABLE tempscores (
