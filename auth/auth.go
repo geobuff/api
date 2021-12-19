@@ -21,18 +21,19 @@ import (
 )
 
 type CustomClaims struct {
-	UserID                  int    `json:"userId"`
-	AvatarId                int    `json:"avatarId"`
-	AvatarName              string `json:"avatarName"`
-	AvatarDescription       string `json:"avatarDescription"`
-	AvatarPrimaryImageUrl   string `json:"avatarPrimaryImageUrl"`
-	AvatarSecondaryImageUrl string `json:"avatarSecondaryImageUrl"`
-	Username                string `json:"username"`
-	Email                   string `json:"email"`
-	CountryCode             string `json:"countryCode"`
-	XP                      int    `json:"xp"`
-	IsAdmin                 bool   `json:"isAdmin"`
-	IsPremium               bool   `json:"isPremium"`
+	UserID                  int       `json:"userId"`
+	AvatarId                int       `json:"avatarId"`
+	AvatarName              string    `json:"avatarName"`
+	AvatarDescription       string    `json:"avatarDescription"`
+	AvatarPrimaryImageUrl   string    `json:"avatarPrimaryImageUrl"`
+	AvatarSecondaryImageUrl string    `json:"avatarSecondaryImageUrl"`
+	Username                string    `json:"username"`
+	Email                   string    `json:"email"`
+	CountryCode             string    `json:"countryCode"`
+	XP                      int       `json:"xp"`
+	IsAdmin                 bool      `json:"isAdmin"`
+	IsPremium               bool      `json:"isPremium"`
+	Joined                  time.Time `json:"joined"`
 	jwt.StandardClaims
 }
 
@@ -365,6 +366,7 @@ var buildToken = func(user repo.UserDto) (string, error) {
 		XP:                      user.XP,
 		IsAdmin:                 user.IsAdmin,
 		IsPremium:               user.IsPremium,
+		Joined:                  user.Joined,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
 			ExpiresAt: time.Now().AddDate(0, 0, 3).Unix(),
