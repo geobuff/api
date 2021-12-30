@@ -10,6 +10,7 @@ import (
 	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/checkout"
+	"github.com/geobuff/api/dailytrivia"
 	"github.com/geobuff/api/discounts"
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
@@ -99,6 +100,10 @@ func router() http.Handler {
 	// Quiz endpoints.
 	router.HandleFunc("/api/quizzes", quizzes.GetQuizzes).Methods("GET")
 	router.HandleFunc("/api/quizzes/{id}", quizzes.GetQuiz).Methods("GET")
+
+	// Daily Trivia endpoints.
+	router.HandleFunc("/api/daily-trivia", dailytrivia.GenerateDailyTrivia).Methods("POST")
+	router.HandleFunc("/api/daily-trivia/{date}", dailytrivia.GetDailyTrivia).Methods("GET")
 
 	// Mapping endpoints.
 	router.HandleFunc("/api/mappings/{key}", mappings.GetMapping).Methods("GET")

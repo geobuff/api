@@ -39,6 +39,30 @@ CREATE TABLE quizzes (
     enabled BOOLEAN NOT NULL
 );
 
+CREATE TABLE dailyTrivia (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    date DATE NOT NULL
+);
+
+CREATE TABLE dailyTriviaQuestions (
+    id SERIAL PRIMARY KEY,
+    dailyTriviaId INTEGER references dailyTrivia(id) NOT NULL,
+    type TEXT NOT NULL,
+    question TEXT NOT NULL,
+    map TEXT,
+    flagCode TEXT,
+    imageUrl TEXT
+);
+
+CREATE TABLE dailyTriviaAnswers (
+    id SERIAL PRIMARY KEY,
+    dailyTriviaQuestionId INTEGER references dailyTriviaQuestions(id) NOT NULL,
+    text TEXT NOT NULL,
+    isCorrect BOOLEAN NOT NULL,
+    flagCode TEXT
+);
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     avatarId INTEGER references avatars(id) NOT NULL,
