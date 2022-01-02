@@ -20,7 +20,7 @@ type DailyTriviaQuestion struct {
 	Type          string `json:"type"`
 	Question      string `json:"question"`
 	Map           string `json:"map"`
-	Highlighted   string `json:"hightlighted`
+	Highlighted   string `json:"hightlighted"`
 	FlagCode      string `json:"flagCode"`
 	ImageURL      string `json:"imageUrl"`
 }
@@ -33,14 +33,21 @@ type DailyTriviaAnswer struct {
 	FlagCode              string `json:"flagCode"`
 }
 
+type DailyTriviaDto struct {
+	ID        int           `json:"id"`
+	Name      string        `json:"name"`
+	Questions []QuestionDto `json:"questions"`
+}
+
 type QuestionDto struct {
-	ID       int         `json:"id"`
-	Type     string      `json:"type"`
-	Question string      `json:"question"`
-	Map      string      `json:"map"`
-	FlagCode string      `json:"flagCode"`
-	ImageURL string      `json:"imageUrl"`
-	Answers  []AnswerDto `json:"answers"`
+	ID          int         `json:"id"`
+	Type        string      `json:"type"`
+	Question    string      `json:"question"`
+	Map         string      `json:"map"`
+	Highlighted string      `json:"highlighted"`
+	FlagCode    string      `json:"flagCode"`
+	ImageURL    string      `json:"imageUrl"`
+	Answers     []AnswerDto `json:"answers"`
 }
 
 type AnswerDto struct {
@@ -262,14 +269,14 @@ func whatFlag(dailyTriviaId int) error {
 	return nil
 }
 
-func GetDailyTrivia(date string) ([]QuestionDto, error) {
-	var id int
-	err := Connection.QueryRow("SELECT id from dailyTrivia WHERE date = $1;", date).Scan(&id)
+func GetDailyTrivia(date string) (*DailyTriviaDto, error) {
+	var result DailyTriviaDto
+	err := Connection.QueryRow("SELECT id, name from dailyTrivia WHERE date = $1;", date).Scan(&result.ID, &result.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := Connection.Query("SELECT id, type, question, map, flagCode, imageUrl FROM dailyTriviaQuestions WHERE dailyTriviaId = $1;", id)
+	rows, err := Connection.Query("SELECT id, type, question, map, highlighted, flagCode, imageUrl FROM dailyTriviaQuestions WHERE dailyTriviaId = $1;", result.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +285,7 @@ func GetDailyTrivia(date string) ([]QuestionDto, error) {
 	var questions = []QuestionDto{}
 	for rows.Next() {
 		var question QuestionDto
-		if err = rows.Scan(&question.ID, &question.Type, &question.Question, &question.Map, &question.FlagCode, &question.ImageURL); err != nil {
+		if err = rows.Scan(&question.ID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL); err != nil {
 			return nil, err
 		}
 
@@ -300,6 +307,7 @@ func GetDailyTrivia(date string) ([]QuestionDto, error) {
 
 		questions = append(questions, question)
 	}
+	result.Questions = questions
 
-	return questions, rows.Err()
+	return &result, rows.Err()
 }
