@@ -58,10 +58,10 @@ type AnswerDto struct {
 
 func CreateDailyTrivia() error {
 	date := time.Now()
-	year, month, day := date.Date()
+	_, month, day := date.Date()
 	statement := "INSERT INTO dailyTrivia (name, date) VALUES ($1, $2) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, fmt.Sprintf("Daily Trivia %d-%d-%d", day, month, year), date).Scan(&id)
+	err := Connection.QueryRow(statement, fmt.Sprintf("Daily Trivia - %s %d", month, day), date).Scan(&id)
 	if err != nil {
 		return err
 	}
