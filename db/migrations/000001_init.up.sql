@@ -51,6 +51,7 @@ CREATE TABLE dailyTriviaQuestions (
     type TEXT NOT NULL,
     question TEXT NOT NULL,
     map TEXT,
+    highlighted TEXT,
     flagCode TEXT,
     imageUrl TEXT
 );
