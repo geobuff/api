@@ -115,6 +115,8 @@ func router() http.Handler {
 	router.HandleFunc("/api/auth/send-reset-token", auth.SendResetToken).Methods("POST")
 	router.HandleFunc("/api/auth/reset-token-valid/{userId}/{token}", auth.ResetTokenValid).Methods("GET")
 	router.HandleFunc("/api/auth", auth.UpdatePasswordUsingToken).Methods("PUT")
+	router.HandleFunc("/api/auth/username/{username}", auth.UsernameExists).Methods("GET")
+	router.HandleFunc("/api/auth/email/{email}", auth.EmailExists).Methods("GET")
 
 	// User endpoints.
 	router.HandleFunc("/api/users", users.GetUsers).Methods("GET")

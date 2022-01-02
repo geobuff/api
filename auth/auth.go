@@ -178,6 +178,28 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(token)
 }
 
+func EmailExists(writer http.ResponseWriter, request *http.Request) {
+	exists, err := repo.EmailExists(mux.Vars(request)["email"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(exists)
+}
+
+func UsernameExists(writer http.ResponseWriter, request *http.Request) {
+	exists, err := repo.UsernameExists(mux.Vars(request)["username"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(exists)
+}
+
 // SendResetToken sends a password reset email if the user is valid.
 func SendResetToken(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
