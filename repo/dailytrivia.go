@@ -68,6 +68,13 @@ func generateQuestions(dailyTriviaId int) error {
 		return err
 	}
 	questionId = questionId + 1
+
+	err = whatCapital(dailyTriviaId, questionId)
+	if err != nil {
+		return err
+	}
+	questionId = questionId + 1
+
 	return nil
 }
 
@@ -137,6 +144,71 @@ func whatCountry(dailyTriviaId int) (int, error) {
 	}
 
 	return questionId, nil
+}
+
+func whatCapital(dailyTriviaId, questionId int) error {
+	capitals := mapping.Mappings["world-capitals"]
+	rand.Seed(time.Now().UnixNano())
+	max := len(capitals)
+	index := rand.Intn(max + 1)
+	capital := capitals[index]
+	capitals = append(capitals[:index], capitals[index+1:]...)
+	max = max - 1
+	countryName := getCountryName(capital.Code)
+
+	question := DailyTriviaQuestion{
+		DailyTriviaId: dailyTriviaId,
+		Type:          "map",
+		Question:      fmt.Sprintf("The capital city of %s is _______", countryName),
+		Map:           "WorldCapitals",
+		Highlighted:   capital.SVGName,
+	}
+
+	questionId, err := createQuestion(question)
+	if err != nil {
+		return err
+	}
+
+	answer := DailyTriviaAnswer{
+		DailyTriviaQuestionID: questionId,
+		Text:                  capital.SVGName,
+		IsCorrect:             true,
+		FlagCode:              capital.Code,
+	}
+	err = createAnswer(answer)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < 3; i++ {
+		index := rand.Intn(max + 1)
+		capital := capitals[index]
+		answer := DailyTriviaAnswer{
+			DailyTriviaQuestionID: questionId,
+			Text:                  capital.SVGName,
+			IsCorrect:             false,
+			FlagCode:              capital.Code,
+		}
+
+		err = createAnswer(answer)
+		if err != nil {
+			return err
+		}
+
+		capitals = append(capitals[:index], capitals[index+1:]...)
+		max = max - 1
+	}
+
+	return nil
+}
+
+func getCountryName(code string) string {
+	for _, value := range mapping.Mappings["world-countries"] {
+		if value.Code == code {
+			return value.SVGName
+		}
+	}
+	return ""
 }
 
 func GetDailyTrivia(date string) ([]QuestionDto, error) {
