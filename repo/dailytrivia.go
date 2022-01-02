@@ -1,6 +1,8 @@
 package repo
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -58,14 +60,17 @@ type AnswerDto struct {
 
 func CreateDailyTrivia() error {
 	date := time.Now()
+	var id int
+	if err := Connection.QueryRow("SELECT id FROM dailyTrivia WHERE date = $1", date).Scan(&id); err != sql.ErrNoRows {
+		return errors.New("daily trivia for current date already created")
+	}
+
 	_, month, day := date.Date()
 	statement := "INSERT INTO dailyTrivia (name, date) VALUES ($1, $2) RETURNING id;"
-	var id int
 	err := Connection.QueryRow(statement, fmt.Sprintf("Daily Trivia - %s %d", month, day), date).Scan(&id)
 	if err != nil {
 		return err
 	}
-
 	return generateQuestions(id)
 }
 
