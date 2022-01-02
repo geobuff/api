@@ -7,7 +7,7 @@ type Discount struct {
 	ID      int           `json:"id"`
 	MerchID sql.NullInt64 `json:"merchId"`
 	Code    string        `json:"code"`
-	Amount  int           `json:"amount"`
+	Amount  float64       `json:"amount"`
 }
 
 // GetDiscount returns a discount by code.

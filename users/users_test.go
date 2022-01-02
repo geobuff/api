@@ -143,51 +143,32 @@ func TestGetUsers(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	savedValidUser := auth.ValidUser
 	savedGetUser := repo.GetUser
 
 	defer func() {
-		auth.ValidUser = savedValidUser
 		repo.GetUser = savedGetUser
 	}()
 
 	tt := []struct {
-		name      string
-		validUser func(request *http.Request, id int) (int, error)
-		getUser   func(id int) (repo.UserDto, error)
-		id        string
-		status    int
+		name    string
+		getUser func(id int) (repo.UserDto, error)
+		id      string
+		status  int
 	}{
 		{
-			name:      "invalid id",
-			validUser: auth.ValidUser,
-			getUser:   repo.GetUser,
-			id:        "testing",
-			status:    http.StatusBadRequest,
-		},
-		{
-			name: "valid id, invalid user",
-			validUser: func(request *http.Request, id int) (int, error) {
-				return http.StatusUnauthorized, errors.New("test")
-			},
+			name:    "invalid id",
 			getUser: repo.GetUser,
-			id:      "1",
-			status:  http.StatusUnauthorized,
+			id:      "testing",
+			status:  http.StatusBadRequest,
 		},
 		{
-			name: "valid id, valid user, error on GetUser",
-			validUser: func(request *http.Request, id int) (int, error) {
-				return http.StatusOK, nil
-			},
+			name:    "valid id, error on GetUser",
 			getUser: func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
 			id:      "1",
 			status:  http.StatusInternalServerError,
 		},
 		{
-			name: "happy path",
-			validUser: func(request *http.Request, id int) (int, error) {
-				return http.StatusOK, nil
-			},
+			name:    "happy path",
 			getUser: func(id int) (repo.UserDto, error) { return repo.UserDto{}, nil },
 			id:      "1",
 			status:  http.StatusOK,
@@ -196,7 +177,6 @@ func TestGetUser(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			auth.ValidUser = tc.validUser
 			repo.GetUser = tc.getUser
 
 			request, err := http.NewRequest("GET", "", nil)

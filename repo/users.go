@@ -18,6 +18,7 @@ type User struct {
 	IsAdmin             bool           `json:"isAdmin"`
 	PasswordResetToken  sql.NullString `json:"passwordResetToken"`
 	PasswordResetExpiry sql.NullTime   `json:"passwordResetExpiry"`
+	Joined              time.Time      `json:"joined"`
 }
 
 // UserDto is the dto for a user entry.
@@ -37,6 +38,7 @@ type UserDto struct {
 	IsAdmin                 bool           `json:"isAdmin"`
 	PasswordResetToken      sql.NullString `json:"passwordResetToken"`
 	PasswordResetExpiry     sql.NullTime   `json:"passwordResetExpiry"`
+	Joined                  time.Time      `json:"joined"`
 }
 
 type UpdateUserDto struct {
@@ -53,7 +55,7 @@ type UpdateUserDto struct {
 
 // GetUsers returns a page of users.
 var GetUsers = func(limit int, offset int) ([]UserDto, error) {
-	rows, err := Connection.Query("SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.xp, u.isadmin, u.ispremium, u.passwordresettoken, u.passwordresetexpiry FROM users u JOIN avatars a on a.id = u.avatarid LIMIT $1 OFFSET $2;", limit, offset)
+	rows, err := Connection.Query("SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.xp, u.isadmin, u.ispremium, u.passwordresettoken, u.passwordresetexpiry, u.joined FROM users u JOIN avatars a on a.id = u.avatarid LIMIT $1 OFFSET $2;", limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +64,7 @@ var GetUsers = func(limit int, offset int) ([]UserDto, error) {
 	var users = []UserDto{}
 	for rows.Next() {
 		var user UserDto
-		if err = rows.Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry); err != nil {
+		if err = rows.Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsAdmin, &user.IsPremium, &user.PasswordResetToken, &user.PasswordResetExpiry, &user.Joined); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -80,25 +82,25 @@ var GetFirstID = func(limit int, offset int) (int, error) {
 
 // GetUser returns the user with a given id.
 var GetUser = func(id int) (UserDto, error) {
-	statement := "SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.xp, u.ispremium, u.isadmin, u.passwordresettoken, u.passwordresetexpiry FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.id = $1;"
+	statement := "SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.xp, u.ispremium, u.isadmin, u.passwordresettoken, u.passwordresetexpiry, u.joined FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.id = $1;"
 	var user UserDto
-	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsPremium, &user.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry)
+	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.XP, &user.IsPremium, &user.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry, &user.Joined)
 	return user, err
 }
 
 // GetUserUsingEmail returns the user with a given email.
 var GetUserUsingEmail = func(email string) (UserDto, error) {
-	statement := "SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.passwordhash, u.countrycode, u.xp, u.ispremium, u.isadmin, u.passwordresettoken, u.passwordresetexpiry FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.email = $1;"
+	statement := "SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.passwordhash, u.countrycode, u.xp, u.ispremium, u.isadmin, u.passwordresettoken, u.passwordresetexpiry, u.joined FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.email = $1;"
 	var user UserDto
-	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.PasswordHash, &user.CountryCode, &user.XP, &user.IsPremium, &user.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry)
+	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.PasswordHash, &user.CountryCode, &user.XP, &user.IsPremium, &user.IsAdmin, &user.PasswordResetToken, &user.PasswordResetExpiry, &user.Joined)
 	return user, err
 }
 
 // InsertUser inserts a new user into the users table.
 var InsertUser = func(user User) (int, error) {
-	statement := "INSERT INTO users (avatarid, username, email, passwordHash, countrycode, xp, isPremium, isAdmin) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;"
+	statement := "INSERT INTO users (avatarid, username, email, passwordHash, countrycode, xp, isPremium, isAdmin, joined) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, user.AvatarId, user.Username, user.Email, user.PasswordHash, user.CountryCode, 0, false, false).Scan(&id)
+	err := Connection.QueryRow(statement, user.AvatarId, user.Username, user.Email, user.PasswordHash, user.CountryCode, 0, false, false, time.Now()).Scan(&id)
 	return id, err
 }
 

@@ -21,18 +21,19 @@ import (
 )
 
 type CustomClaims struct {
-	UserID                  int    `json:"userId"`
-	AvatarId                int    `json:"avatarId"`
-	AvatarName              string `json:"avatarName"`
-	AvatarDescription       string `json:"avatarDescription"`
-	AvatarPrimaryImageUrl   string `json:"avatarPrimaryImageUrl"`
-	AvatarSecondaryImageUrl string `json:"avatarSecondaryImageUrl"`
-	Username                string `json:"username"`
-	Email                   string `json:"email"`
-	CountryCode             string `json:"countryCode"`
-	XP                      int    `json:"xp"`
-	IsAdmin                 bool   `json:"isAdmin"`
-	IsPremium               bool   `json:"isPremium"`
+	UserID                  int       `json:"userId"`
+	AvatarId                int       `json:"avatarId"`
+	AvatarName              string    `json:"avatarName"`
+	AvatarDescription       string    `json:"avatarDescription"`
+	AvatarPrimaryImageUrl   string    `json:"avatarPrimaryImageUrl"`
+	AvatarSecondaryImageUrl string    `json:"avatarSecondaryImageUrl"`
+	Username                string    `json:"username"`
+	Email                   string    `json:"email"`
+	CountryCode             string    `json:"countryCode"`
+	XP                      int       `json:"xp"`
+	IsAdmin                 bool      `json:"isAdmin"`
+	IsPremium               bool      `json:"isPremium"`
+	Joined                  time.Time `json:"joined"`
 	jwt.StandardClaims
 }
 
@@ -175,6 +176,28 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(token)
+}
+
+func EmailExists(writer http.ResponseWriter, request *http.Request) {
+	exists, err := repo.EmailExists(mux.Vars(request)["email"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(exists)
+}
+
+func UsernameExists(writer http.ResponseWriter, request *http.Request) {
+	exists, err := repo.UsernameExists(mux.Vars(request)["username"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(exists)
 }
 
 // SendResetToken sends a password reset email if the user is valid.
@@ -365,6 +388,7 @@ var buildToken = func(user repo.UserDto) (string, error) {
 		XP:                      user.XP,
 		IsAdmin:                 user.IsAdmin,
 		IsPremium:               user.IsPremium,
+		Joined:                  user.Joined,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
 			ExpiresAt: time.Now().AddDate(0, 0, 3).Unix(),

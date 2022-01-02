@@ -39,6 +39,31 @@ CREATE TABLE quizzes (
     enabled BOOLEAN NOT NULL
 );
 
+CREATE TABLE dailyTrivia (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    date DATE NOT NULL
+);
+
+CREATE TABLE dailyTriviaQuestions (
+    id SERIAL PRIMARY KEY,
+    dailyTriviaId INTEGER references dailyTrivia(id) NOT NULL,
+    type TEXT NOT NULL,
+    question TEXT NOT NULL,
+    map TEXT,
+    highlighted TEXT,
+    flagCode TEXT,
+    imageUrl TEXT
+);
+
+CREATE TABLE dailyTriviaAnswers (
+    id SERIAL PRIMARY KEY,
+    dailyTriviaQuestionId INTEGER references dailyTriviaQuestions(id) NOT NULL,
+    text TEXT NOT NULL,
+    isCorrect BOOLEAN NOT NULL,
+    flagCode TEXT
+);
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     avatarId INTEGER references avatars(id) NOT NULL,
@@ -50,7 +75,8 @@ CREATE TABLE users (
     isPremium BOOLEAN NOT NULL,
     isAdmin BOOLEAN NOT NULL,
     passwordResetToken TEXT,
-    passwordResetExpiry DATE
+    passwordResetExpiry DATE,
+    joined DATE
 );
 
 CREATE TABLE tempscores (
@@ -82,7 +108,7 @@ CREATE TABLE merch (
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     sizeGuideImageUrl TEXT,
-    price DECIMAL,
+    price DECIMAL(12,2),
     externalLink TEXT
 );
 
@@ -104,7 +130,7 @@ CREATE TABLE discounts (
     id SERIAL PRIMARY KEY,
     merchId INTEGER references merch(id),
     code TEXT NOT NULL,
-    amount INTEGER NOT NULL
+    amount DECIMAL(12,2) NOT NULL
 );
 
 CREATE TABLE orderStatus (
@@ -283,7 +309,7 @@ INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
 (10, '/researcher-two-primary.svg', TRUE);
 
 INSERT INTO discounts (merchId, code, amount) values
-(null, 'NOSHIP420', 5);
+(null, 'NOSHIP420', 4.99);
 
 INSERT INTO orderStatus (status) values
 ('Pending'),
