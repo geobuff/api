@@ -63,17 +63,20 @@ func CreateDailyTrivia() error {
 }
 
 func generateQuestions(dailyTriviaId int) error {
-	questionId, err := whatCountry(dailyTriviaId)
+	err := whatCountry(dailyTriviaId)
 	if err != nil {
 		return err
 	}
-	questionId = questionId + 1
 
-	err = whatCapital(dailyTriviaId, questionId)
+	err = whatCapital(dailyTriviaId)
 	if err != nil {
 		return err
 	}
-	questionId = questionId + 1
+
+	err = whatFlag(dailyTriviaId)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -91,7 +94,7 @@ func createAnswer(answer DailyTriviaAnswer) error {
 	return Connection.QueryRow(statement, answer.DailyTriviaQuestionID, answer.Text, answer.IsCorrect, answer.FlagCode).Scan(&id)
 }
 
-func whatCountry(dailyTriviaId int) (int, error) {
+func whatCountry(dailyTriviaId int) error {
 	countries := mapping.Mappings["world-countries"]
 	rand.Seed(time.Now().UnixNano())
 	max := len(countries)
@@ -103,25 +106,24 @@ func whatCountry(dailyTriviaId int) (int, error) {
 	question := DailyTriviaQuestion{
 		DailyTriviaId: dailyTriviaId,
 		Type:          "map",
-		Question:      "What country is highlighted below?",
+		Question:      "Which country is highlighted above?",
 		Map:           "WorldCountries",
 		Highlighted:   country.SVGName,
 	}
 
 	questionId, err := createQuestion(question)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	answer := DailyTriviaAnswer{
 		DailyTriviaQuestionID: questionId,
 		Text:                  country.SVGName,
 		IsCorrect:             true,
-		FlagCode:              country.Code,
 	}
 	err = createAnswer(answer)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	for i := 0; i < 3; i++ {
@@ -131,22 +133,21 @@ func whatCountry(dailyTriviaId int) (int, error) {
 			DailyTriviaQuestionID: questionId,
 			Text:                  country.SVGName,
 			IsCorrect:             false,
-			FlagCode:              country.Code,
 		}
 
 		err = createAnswer(answer)
 		if err != nil {
-			return 0, err
+			return err
 		}
 
 		countries = append(countries[:index], countries[index+1:]...)
 		max = max - 1
 	}
 
-	return questionId, nil
+	return nil
 }
 
-func whatCapital(dailyTriviaId, questionId int) error {
+func whatCapital(dailyTriviaId int) error {
 	capitals := mapping.Mappings["world-capitals"]
 	rand.Seed(time.Now().UnixNano())
 	max := len(capitals)
@@ -173,7 +174,6 @@ func whatCapital(dailyTriviaId, questionId int) error {
 		DailyTriviaQuestionID: questionId,
 		Text:                  capital.SVGName,
 		IsCorrect:             true,
-		FlagCode:              capital.Code,
 	}
 	err = createAnswer(answer)
 	if err != nil {
@@ -187,7 +187,6 @@ func whatCapital(dailyTriviaId, questionId int) error {
 			DailyTriviaQuestionID: questionId,
 			Text:                  capital.SVGName,
 			IsCorrect:             false,
-			FlagCode:              capital.Code,
 		}
 
 		err = createAnswer(answer)
@@ -209,6 +208,58 @@ func getCountryName(code string) string {
 		}
 	}
 	return ""
+}
+
+func whatFlag(dailyTriviaId int) error {
+	countries := mapping.Mappings["world-countries"]
+	rand.Seed(time.Now().UnixNano())
+	max := len(countries)
+	index := rand.Intn(max + 1)
+	country := countries[index]
+	countries = append(countries[:index], countries[index+1:]...)
+	max = max - 1
+
+	question := DailyTriviaQuestion{
+		DailyTriviaId: dailyTriviaId,
+		Type:          "flag",
+		Question:      "Which country has this flag?",
+		FlagCode:      country.Code,
+	}
+
+	questionId, err := createQuestion(question)
+	if err != nil {
+		return err
+	}
+
+	answer := DailyTriviaAnswer{
+		DailyTriviaQuestionID: questionId,
+		Text:                  country.SVGName,
+		IsCorrect:             true,
+	}
+	err = createAnswer(answer)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < 3; i++ {
+		index := rand.Intn(max + 1)
+		country = countries[index]
+		answer := DailyTriviaAnswer{
+			DailyTriviaQuestionID: questionId,
+			Text:                  country.SVGName,
+			IsCorrect:             false,
+		}
+
+		err = createAnswer(answer)
+		if err != nil {
+			return err
+		}
+
+		countries = append(countries[:index], countries[index+1:]...)
+		max = max - 1
+	}
+
+	return nil
 }
 
 func GetDailyTrivia(date string) ([]QuestionDto, error) {
