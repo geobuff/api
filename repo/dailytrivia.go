@@ -2,7 +2,10 @@ package repo
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
+
+	"github.com/geobuff/mapping"
 )
 
 type DailyTrivia struct {
@@ -17,6 +20,7 @@ type DailyTriviaQuestion struct {
 	Type          string `json:"type"`
 	Question      string `json:"question"`
 	Map           string `json:"map"`
+	Highlighted   string `json:"hightlighted`
 	FlagCode      string `json:"flagCode"`
 	ImageURL      string `json:"imageUrl"`
 }
@@ -45,112 +49,6 @@ type AnswerDto struct {
 	FlagCode  string `json:"flagCode"`
 }
 
-var questions = []DailyTriviaQuestion{
-	{
-		DailyTriviaId: 1,
-		Type:          "text",
-		Question:      "If I’m visiting the ancient city of Petra, which country am I in?",
-	},
-	{
-		DailyTriviaId: 1,
-		Type:          "flag",
-		Question:      "What country does this flag belong to?",
-		FlagCode:      "nz",
-	},
-	{
-		DailyTriviaId: 1,
-		Type:          "map",
-		Question:      "What Country is this?",
-		Map:           "NewZealandRegions",
-	},
-	{
-		DailyTriviaId: 1,
-		Type:          "text",
-		Question:      "Is Australia Real?",
-	},
-}
-
-var answers = []DailyTriviaAnswer{
-	{
-		DailyTriviaQuestionID: 1,
-		Text:                  "Peru",
-		FlagCode:              "pe",
-		IsCorrect:             false,
-	},
-	{
-		DailyTriviaQuestionID: 1,
-		Text:                  "United Arab Emirates",
-		FlagCode:              "ae",
-		IsCorrect:             false,
-	},
-	{
-		DailyTriviaQuestionID: 1,
-		Text:                  "Jordan",
-		FlagCode:              "jo",
-		IsCorrect:             true,
-	},
-	{
-		DailyTriviaQuestionID: 1,
-		Text:                  "Jeff Bezos",
-		FlagCode:              "us",
-		IsCorrect:             false,
-	},
-	{
-		DailyTriviaQuestionID: 2,
-		Text:                  "Peru",
-		IsCorrect:             false,
-	},
-	{
-		DailyTriviaQuestionID: 2,
-		Text:                  "United Arab Emirates",
-		IsCorrect:             false,
-	},
-	{
-		DailyTriviaQuestionID: 2,
-		Text:                  "Jordan",
-		IsCorrect:             false,
-	},
-	{
-		DailyTriviaQuestionID: 2,
-		Text:                  "New Zealand",
-		IsCorrect:             true,
-	},
-	{
-		DailyTriviaQuestionID: 3,
-		Text:                  "Peru",
-		FlagCode:              "pe",
-		IsCorrect:             false,
-	},
-	{
-		DailyTriviaQuestionID: 3,
-		Text:                  "United Arab Emirates",
-		FlagCode:              "ae",
-		IsCorrect:             false,
-	},
-	{
-		DailyTriviaQuestionID: 3,
-		Text:                  "New Zealand",
-		FlagCode:              "nz",
-		IsCorrect:             true,
-	},
-	{
-		DailyTriviaQuestionID: 3,
-		Text:                  "Jeff Bezos",
-		FlagCode:              "us",
-		IsCorrect:             false,
-	},
-	{
-		DailyTriviaQuestionID: 4,
-		Text:                  "True",
-		IsCorrect:             true,
-	},
-	{
-		DailyTriviaQuestionID: 4,
-		Text:                  "False",
-		IsCorrect:             false,
-	},
-}
-
 func CreateDailyTrivia() error {
 	date := time.Now()
 	year, month, day := date.Date()
@@ -161,25 +59,84 @@ func CreateDailyTrivia() error {
 		return err
 	}
 
-	for _, value := range questions {
-		statement = "INSERT INTO dailyTriviaQuestions (dailyTriviaId, type, question, map, flagCode, imageUrl) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;"
-		var id int
-		err := Connection.QueryRow(statement, value.DailyTriviaId, value.Type, value.Question, value.Map, value.FlagCode, value.ImageURL).Scan(&id)
-		if err != nil {
-			return err
-		}
+	return generateQuestions(id)
+}
+
+func generateQuestions(dailyTriviaId int) error {
+	questionId, err := whatCountry(dailyTriviaId)
+	if err != nil {
+		return err
+	}
+	questionId = questionId + 1
+	return nil
+}
+
+func createQuestion(question DailyTriviaQuestion) (int, error) {
+	statement := "INSERT INTO dailyTriviaQuestions (dailyTriviaId, type, question, map, highlighted, flagCode, imageUrl) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
+	var id int
+	err := Connection.QueryRow(statement, question.DailyTriviaId, question.Type, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageURL).Scan(&id)
+	return id, err
+}
+
+func createAnswer(answer DailyTriviaAnswer) error {
+	statement := "INSERT INTO dailyTriviaAnswers (dailyTriviaQuestionId, text, isCorrect, flagCode) VALUES ($1, $2, $3, $4) RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, answer.DailyTriviaQuestionID, answer.Text, answer.IsCorrect, answer.FlagCode).Scan(&id)
+}
+
+func whatCountry(dailyTriviaId int) (int, error) {
+	countries := mapping.Mappings["world-countries"]
+	rand.Seed(time.Now().UnixNano())
+	max := len(countries)
+	index := rand.Intn(max + 1)
+	country := countries[index]
+	countries = append(countries[:index], countries[index+1:]...)
+	max = max - 1
+
+	question := DailyTriviaQuestion{
+		DailyTriviaId: dailyTriviaId,
+		Type:          "map",
+		Question:      "What country is highlighted below?",
+		Map:           "WorldCountries",
+		Highlighted:   country.SVGName,
 	}
 
-	for _, value := range answers {
-		statement = "INSERT INTO dailyTriviaAnswers (dailyTriviaQuestionId, text, isCorrect, flagCode) VALUES ($1, $2, $3, $4) RETURNING id;"
-		var id int
-		err := Connection.QueryRow(statement, value.DailyTriviaQuestionID, value.Text, value.IsCorrect, value.FlagCode).Scan(&id)
-		if err != nil {
-			return err
-		}
+	questionId, err := createQuestion(question)
+	if err != nil {
+		return 0, err
 	}
 
-	return err
+	answer := DailyTriviaAnswer{
+		DailyTriviaQuestionID: questionId,
+		Text:                  country.SVGName,
+		IsCorrect:             true,
+		FlagCode:              country.Code,
+	}
+	err = createAnswer(answer)
+	if err != nil {
+		return 0, err
+	}
+
+	for i := 0; i < 3; i++ {
+		index := rand.Intn(max + 1)
+		country = countries[index]
+		answer := DailyTriviaAnswer{
+			DailyTriviaQuestionID: questionId,
+			Text:                  country.SVGName,
+			IsCorrect:             false,
+			FlagCode:              country.Code,
+		}
+
+		err = createAnswer(answer)
+		if err != nil {
+			return 0, err
+		}
+
+		countries = append(countries[:index], countries[index+1:]...)
+		max = max - 1
+	}
+
+	return questionId, nil
 }
 
 func GetDailyTrivia(date string) ([]QuestionDto, error) {
