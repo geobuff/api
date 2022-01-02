@@ -268,6 +268,23 @@ func whatFlag(dailyTriviaId int) error {
 
 	return nil
 }
+func GetAllDailyTrivia() ([]DailyTrivia, error) {
+	rows, err := Connection.Query("SELECT * FROM dailyTrivia LIMIT 20;")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var trivia = []DailyTrivia{}
+	for rows.Next() {
+		var quiz DailyTrivia
+		if err = rows.Scan(&quiz.ID, &quiz.Name, &quiz.Date); err != nil {
+			return nil, err
+		}
+		trivia = append(trivia, quiz)
+	}
+	return trivia, rows.Err()
+}
 
 func GetDailyTrivia(date string) (*DailyTriviaDto, error) {
 	var result DailyTriviaDto
