@@ -171,12 +171,12 @@ INSERT INTO badges (name, description, total, imageUrl, background, border) valu
 ('PacificBuff', 'Complete all Oceania quizzes.', 4, 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3dd.svg', '#D3ECFF', '#F4900C');
 
 INSERT INTO avatars (name, description, primaryImageUrl, secondaryImageUrl) values
-('Commando One', 'Commando One ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/commando-one-primary.svg', '/commando-one-secondary.svg'),
-('Commando Two', 'Commando Two ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/commando-two-primary.svg', '/commando-two-secondary.svg'),
-('Traveller One', 'Traveller One ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/traveller-one-primary.svg', '/traveller-one-secondary.svg'),
-('Traveller Two', 'Traveller Two ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/traveller-two-primary.svg', '/traveller-two-secondary.svg'),
-('Researcher One', 'Researcher One ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/researcher-one-primary.svg', '/researcher-one-secondary.svg'),
-('Researcher Two', 'Researcher Two ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Fames ac turpis egestas integer eget aliquet nibh praesent.', '/researcher-two-primary.svg', '/researcher-two-secondary.svg');
+('Sarg', 'After a 20 year stint in the NZSAS, Sarg spent some time smuggling precious stones into all those places that are on the tip of your tongue and rather difficult to spell. Cool, calm, collected and very handy with a zipwire; I keep my distance once this man''s on a Countries of the World roll. I advise you do the same...', '/commando-one-primary.svg', '/commando-one-secondary.svg'),
+('Cypher', 'Bonafide hacker and rare NFT collector Cypher cut her teeth toying with Wall St. bankers before becoming the head of operations at GCSB. Word on the street is she lost her eye at 16 when a pirated mint of the original CryptoPunks went horribly wrong. Get a little bit too close to her score on the leaderboard and watch it get ''adjusted'' to zero in no time.', '/commando-two-primary.svg', '/commando-two-secondary.svg'),
+('RoboGazza', 'Is he a man or is he a robot? No-one living knows. With a particular aptitude for shooting things with a bow and bombing hills on his bike, Gazza isn''t a man you want on your tail. Well travelled and well-seasoned; keep this in mind before going head-to-head with him on Flags of the World.', '/traveller-one-primary.svg', '/traveller-one-secondary.svg'),
+('Kathy2.0', 'A Yorkshire clone resulting from an experiment run by GeoBuff Research Institute at an undisclosed location off the British coastline. The intent was to genitically increase VO2 max and number of steps per day, and increase it we did. Kathy has walked the Pennines start to finish 7 times this year. Speaking of, has anyone seen the original Kathy?', '/traveller-two-primary.svg', '/traveller-two-secondary.svg'),
+('Professor Lungu', 'Top of his class in MIT and hell-bent on being the only academic to publish a paper for the esteemed school AND score max points on countries of the world in under 5 minutes. Sharp as a tack and quick as a whippet; don''t underestimate the power of a nerd on a mission.', '/researcher-one-primary.svg', '/researcher-one-secondary.svg'),
+('Sanchez', 'Ex-champion Jarabe dancer in her home Mexico City, Sanchez was taken under Prof. Lungo''s wing as a field researcher after he discovered she has a photographic memory and is the only person alive that can spell Kyrgyzstan correct on the first try. Dance with Miss Sanchez, and well, it may just be your last...', '/researcher-two-primary.svg', '/researcher-two-secondary.svg');
 
 INSERT INTO quiztype (name) values ('Map'), ('Flag');
 
@@ -272,16 +272,10 @@ INSERT INTO plays (quizId, value) values
 (43, 0);
 
 INSERT INTO merch (name, description, sizeGuideImageUrl, price, externalLink) values
-('Tee', 'Tee ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', '/tee-size-guide.png', 49.99, null),
-('Socks', 'Socks ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', null, 11.99, null),
-('Poster Combo', 'Poster ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', null, 29.99, null),
-('Sticker Pack', 'Sticker pack ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', null, 24.99, null),
-('Commando One NFT', '', null, null, 'https://opensea.io'),
-('Commando Two NFT', '', null, null, 'https://opensea.io'),
-('Traveller One NFT', '', null, null, 'https://opensea.io'),
-('Traveller Two NFT', '', null, null, 'https://opensea.io'),
-('Researcher One NFT', '', null, null, 'https://opensea.io'),
-('Researcher Two NFT', '', null, null, 'https://opensea.io');
+('Tee', 'With summer just around the corner, we teamed up with the only carbon neutral clothing company in New Zealand (Koa Goods) to bring you guys the freshest eco-friendly tee to let the squad know you''re ready to drop those countries of the world at a moments notice. By copping one of these OG pieces you''re directly contributing to hosting costs and helping us keep this thing afloat. Kia Kaha!', '/tee-size-guide.png', 39.99, null),
+('Socks', 'With summer just around the corner, we teamed up with the only carbon neutral clothing company in New Zealand (Koa Goods) to bring you guys the freshest eco-friendly hoof covers to let the squad know you don''t mess around when it comes to capital cities. By copping one of these OG pieces you''re directly contributing to hosting costs and helping us keep this thing afloat. Kia Kaha!', null, 11.99, null),
+('Poster Combo', 'Just moved flats and the bedroom walls are looking bare, boring and barren? The boys at GeoBuff HQ have got you covered. We''ve teamed up with the goodfella''s at The Big Picture to spruce up that decor and let the homies know that when the flags come out, you mean business. By copping one of these OG pieces you''re directly contributing to hosting costs and helping us keep this thing afloat. Kia Kaha!', null, 24.99, null),
+('Sticker Pack', 'Rear window on the wagon covered in dust and Raglan Roast have run out of stickers? The boys at GeoBuff HQ have got you covered. We''ve teamed up with the goodfella''s at The Big Picture to spice up that rear window and let the geezers in the slow lane know that you get your geoflex on. By copping one of these OG pieces you''re directly contributing to hosting costs and helping us keep this thing afloat. Kia Kaha!', null, 24.99, null);
 
 INSERT INTO merchSizes (merchId, size, quantity) values
 (1, 'S', 8),
@@ -300,13 +294,7 @@ INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
 (3, '/logo-poster.png', FALSE),
 (4, '/sticker-pack-avatars-primary.png', TRUE),
 (4, '/sticker-pack-avatars-secondary.png', FALSE),
-(4, '/sticker-pack-logo.png', FALSE),
-(5, '/commando-one-primary.svg', TRUE),
-(6, '/commando-two-primary.svg', TRUE),
-(7, '/traveller-one-primary.svg', TRUE),
-(8, '/traveller-two-primary.svg', TRUE),
-(9, '/researcher-one-primary.svg', TRUE),
-(10, '/researcher-two-primary.svg', TRUE);
+(4, '/sticker-pack-logo.png', FALSE);
 
 INSERT INTO discounts (merchId, code, amount) values
 (null, 'NOSHIP420', 4.99);
