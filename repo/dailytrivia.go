@@ -5,15 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/geobuff/mapping"
 )
 
 type DailyTrivia struct {
-	ID   int       `json:"id"`
-	Name string    `json:"name"`
-	Date time.Time `json:"date"`
+	ID       int       `json:"id"`
+	Name     string    `json:"name"`
+	ImageUrl string    `json:"imageUrl"`
+	Date     time.Time `json:"date"`
 }
 
 type DailyTriviaQuestion struct {
@@ -59,15 +61,17 @@ type AnswerDto struct {
 }
 
 func CreateDailyTrivia() error {
-	date := time.Now()
+	date := time.Now().AddDate(0, 0, 1)
 	var id int
 	if err := Connection.QueryRow("SELECT id FROM dailyTrivia WHERE date = $1", date).Scan(&id); err != sql.ErrNoRows {
 		return errors.New("daily trivia for current date already created")
 	}
 
 	_, month, day := date.Date()
-	statement := "INSERT INTO dailyTrivia (name, date) VALUES ($1, $2) RETURNING id;"
-	err := Connection.QueryRow(statement, fmt.Sprintf("Daily Trivia - %s %d", month, day), date).Scan(&id)
+	weekday := date.Weekday().String()
+	imageUrl := fmt.Sprintf("%s.jpg", strings.ToLower(weekday))
+	statement := "INSERT INTO dailyTrivia (name, imageUrl, date) VALUES ($1, $2, $3) RETURNING id;"
+	err := Connection.QueryRow(statement, fmt.Sprintf("Daily Trivia - %s %d", month, day), imageUrl, date).Scan(&id)
 	if err != nil {
 		return err
 	}
@@ -273,8 +277,9 @@ func whatFlag(dailyTriviaId int) error {
 
 	return nil
 }
+
 func GetAllDailyTrivia() ([]DailyTrivia, error) {
-	rows, err := Connection.Query("SELECT * FROM dailyTrivia LIMIT 20;")
+	rows, err := Connection.Query("SELECT * FROM dailyTrivia ORDER BY date DESC LIMIT 20;")
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +288,7 @@ func GetAllDailyTrivia() ([]DailyTrivia, error) {
 	var trivia = []DailyTrivia{}
 	for rows.Next() {
 		var quiz DailyTrivia
-		if err = rows.Scan(&quiz.ID, &quiz.Name, &quiz.Date); err != nil {
+		if err = rows.Scan(&quiz.ID, &quiz.Name, &quiz.ImageUrl, &quiz.Date); err != nil {
 			return nil, err
 		}
 		trivia = append(trivia, quiz)
