@@ -5,17 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/geobuff/mapping"
 )
 
 type DailyTrivia struct {
-	ID       int       `json:"id"`
-	Name     string    `json:"name"`
-	ImageUrl string    `json:"imageUrl"`
-	Date     time.Time `json:"date"`
+	ID   int       `json:"id"`
+	Name string    `json:"name"`
+	Date time.Time `json:"date"`
 }
 
 type DailyTriviaQuestion struct {
@@ -69,9 +67,8 @@ func CreateDailyTrivia() error {
 
 	_, month, day := date.Date()
 	weekday := date.Weekday().String()
-	imageUrl := fmt.Sprintf("%s.jpg", strings.ToLower(weekday))
-	statement := "INSERT INTO dailyTrivia (name, imageUrl, date) VALUES ($1, $2, $3) RETURNING id;"
-	err := Connection.QueryRow(statement, fmt.Sprintf("Daily Trivia - %s %d", month, day), imageUrl, date).Scan(&id)
+	statement := "INSERT INTO dailyTrivia (name, date) VALUES ($1, $2) RETURNING id;"
+	err := Connection.QueryRow(statement, fmt.Sprintf("%s, %s %d", weekday, month, day), date).Scan(&id)
 	if err != nil {
 		return err
 	}
@@ -288,7 +285,7 @@ func GetAllDailyTrivia() ([]DailyTrivia, error) {
 	var trivia = []DailyTrivia{}
 	for rows.Next() {
 		var quiz DailyTrivia
-		if err = rows.Scan(&quiz.ID, &quiz.Name, &quiz.ImageUrl, &quiz.Date); err != nil {
+		if err = rows.Scan(&quiz.ID, &quiz.Name, &quiz.Date); err != nil {
 			return nil, err
 		}
 		trivia = append(trivia, quiz)

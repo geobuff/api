@@ -42,7 +42,6 @@ CREATE TABLE quizzes (
 CREATE TABLE dailyTrivia (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    imageUrl TEXT NOT NULL,
     date DATE NOT NULL
 );
 
