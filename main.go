@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/avatars"
@@ -33,6 +35,7 @@ import (
 )
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
 	err := loadConfig()
 	if err != nil {
 		panic(err)
