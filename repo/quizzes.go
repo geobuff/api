@@ -62,7 +62,7 @@ func GetQuizID(name string) (int, error) {
 }
 
 func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
-	statement := "SELECT name, mapsvg, apipath FROM quizzes WHERE type = 1 AND name NOT LIKE '%World%' AND name NOT LIKE '%Countries%';"
+	statement := "SELECT name, mapsvg, apipath FROM quizzes WHERE type = 1 AND name NOT LIKE '%World%' AND name NOT LIKE '%Countries%' AND name NOT LIKE '%US States%';"
 	rows, err := Connection.Query(statement)
 	if err != nil {
 		return nil, err

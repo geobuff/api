@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/geobuff/mapping"
@@ -86,6 +87,11 @@ func generateQuestions(dailyTriviaId int) error {
 		return err
 	}
 
+	err = whatUSState(dailyTriviaId)
+	if err != nil {
+		return err
+	}
+
 	err = whatFlag(dailyTriviaId)
 	if err != nil {
 		return err
@@ -97,6 +103,26 @@ func generateQuestions(dailyTriviaId int) error {
 	}
 
 	err = whatFlagInCountry(dailyTriviaId)
+	if err != nil {
+		return err
+	}
+
+	err = trueCountryInContinent(dailyTriviaId)
+	if err != nil {
+		return err
+	}
+
+	err = trueCapitalOfCountry(dailyTriviaId)
+	if err != nil {
+		return err
+	}
+
+	err = trueRegionInCountry(dailyTriviaId)
+	if err != nil {
+		return err
+	}
+
+	err = trueFlagForCountry(dailyTriviaId)
 	if err != nil {
 		return err
 	}
@@ -216,6 +242,59 @@ func whatCapital(dailyTriviaId int) error {
 		}
 
 		capitals = append(capitals[:index], capitals[index+1:]...)
+		max = max - 1
+	}
+
+	return nil
+}
+
+func whatUSState(dailyTriviaId int) error {
+	states := mapping.Mappings["us-states"]
+	max := len(states)
+	index := rand.Intn(max)
+	state := states[index]
+	states = append(states[:index], states[index+1:]...)
+	max = max - 1
+
+	question := DailyTriviaQuestion{
+		DailyTriviaId: dailyTriviaId,
+		Type:          "map",
+		Question:      "Which US state is highlighted above?",
+		Map:           "UsStates",
+		Highlighted:   state.SVGName,
+	}
+
+	questionId, err := createQuestion(question)
+	if err != nil {
+		return err
+	}
+
+	answer := DailyTriviaAnswer{
+		DailyTriviaQuestionID: questionId,
+		Text:                  state.SVGName,
+		IsCorrect:             true,
+	}
+
+	err = createAnswer(answer)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < 3; i++ {
+		index := rand.Intn(max + 1)
+		state = states[index]
+		answer := DailyTriviaAnswer{
+			DailyTriviaQuestionID: questionId,
+			Text:                  state.SVGName,
+			IsCorrect:             false,
+		}
+
+		err = createAnswer(answer)
+		if err != nil {
+			return err
+		}
+
+		states = append(states[:index], states[index+1:]...)
 		max = max - 1
 	}
 
@@ -396,6 +475,187 @@ func whatFlagInCountry(dailyTriviaId int) error {
 
 		mapping = append(mapping[:index], mapping[index+1:]...)
 		max = max - 1
+	}
+
+	return nil
+}
+
+func trueCountryInContinent(dailyTriviaId int) error {
+	countries := mapping.Mappings["world-countries"]
+	max := len(countries)
+	index := rand.Intn(max)
+	country := countries[index]
+
+	question := DailyTriviaQuestion{
+		DailyTriviaId: dailyTriviaId,
+		Type:          "text",
+		Question:      fmt.Sprintf("%s is in %s", country.SVGName, strings.Title(country.Group)),
+	}
+
+	questionId, err := createQuestion(question)
+	if err != nil {
+		return err
+	}
+
+	answers := []DailyTriviaAnswer{
+		{
+			DailyTriviaQuestionID: questionId,
+			Text:                  "True",
+			IsCorrect:             true,
+		},
+		{
+			DailyTriviaQuestionID: questionId,
+			Text:                  "False",
+			IsCorrect:             false,
+		},
+	}
+
+	for _, answer := range answers {
+		err = createAnswer(answer)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func trueCapitalOfCountry(dailyTriviaId int) error {
+	capitals := mapping.Mappings["world-capitals"]
+	max := len(capitals)
+	index := rand.Intn(max)
+	capital := capitals[index]
+	countryName := getCountryName(capital.Code)
+
+	question := DailyTriviaQuestion{
+		DailyTriviaId: dailyTriviaId,
+		Type:          "text",
+		Question:      fmt.Sprintf("%s is the capital city of %s", capital.SVGName, countryName),
+	}
+
+	questionId, err := createQuestion(question)
+	if err != nil {
+		return err
+	}
+
+	answers := []DailyTriviaAnswer{
+		{
+			DailyTriviaQuestionID: questionId,
+			Text:                  "True",
+			IsCorrect:             true,
+		},
+		{
+			DailyTriviaQuestionID: questionId,
+			Text:                  "False",
+			IsCorrect:             false,
+		},
+	}
+
+	for _, answer := range answers {
+		err = createAnswer(answer)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func trueRegionInCountry(dailyTriviaId int) error {
+	quizzes, err := getCountryRegionQuizzes()
+	if err != nil {
+		return err
+	}
+
+	max := len(quizzes)
+	index := rand.Intn(max)
+	quiz := quizzes[index]
+	mapping := mapping.Mappings[quiz.APIPath]
+
+	max = len(mapping)
+	index = rand.Intn(max)
+	region := mapping[index]
+
+	quizNameSplit := strings.Split(quiz.Name, " ")
+	question := DailyTriviaQuestion{
+		DailyTriviaId: dailyTriviaId,
+		Type:          "text",
+		Question:      fmt.Sprintf("%s is a %s of %s?", region.SVGName, quizNameSplit[0], quizNameSplit[len(quizNameSplit)-1]),
+	}
+
+	questionId, err := createQuestion(question)
+	if err != nil {
+		return err
+	}
+
+	answers := []DailyTriviaAnswer{
+		{
+			DailyTriviaQuestionID: questionId,
+			Text:                  "True",
+			IsCorrect:             true,
+		},
+		{
+			DailyTriviaQuestionID: questionId,
+			Text:                  "False",
+			IsCorrect:             false,
+		},
+	}
+
+	for _, answer := range answers {
+		err = createAnswer(answer)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func trueFlagForCountry(dailyTriviaId int) error {
+	quizzes, err := getFlagRegionQuizzes()
+	if err != nil {
+		return err
+	}
+
+	max := len(quizzes)
+	index := rand.Intn(max)
+	quiz := quizzes[index]
+	mapping := mapping.Mappings[quiz.APIPath]
+
+	max = len(mapping)
+	index = rand.Intn(max)
+	region := mapping[index]
+
+	quizNameSplit := strings.Split(quiz.Name, " ")
+	question := DailyTriviaQuestion{
+		DailyTriviaId: dailyTriviaId,
+		Type:          "flag",
+		Question:      fmt.Sprintf("This is a flag of %s?", quizNameSplit[len(quizNameSplit)-1]),
+		FlagCode:      region.Code,
+	}
+	questionId, err := createQuestion(question)
+	if err != nil {
+		return err
+	}
+
+	answers := []DailyTriviaAnswer{
+		{
+			DailyTriviaQuestionID: questionId,
+			Text:                  "True",
+			IsCorrect:             true,
+		},
+		{
+			DailyTriviaQuestionID: questionId,
+			Text:                  "False",
+			IsCorrect:             false,
+		},
+	}
+
+	for _, answer := range answers {
+		err = createAnswer(answer)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
