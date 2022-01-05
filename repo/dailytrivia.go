@@ -585,7 +585,7 @@ func trueRegionInCountry(dailyTriviaId int) error {
 	question := DailyTriviaQuestion{
 		DailyTriviaId: dailyTriviaId,
 		Type:          "text",
-		Question:      fmt.Sprintf("%s is a %s of %s?", region.SVGName, p.Singular(strings.ToLower(quizNameSplit[0])), quizNameSplit[len(quizNameSplit)-1]),
+		Question:      fmt.Sprintf("%s is a %s of %s", region.SVGName, p.Singular(strings.ToLower(quizNameSplit[0])), quizNameSplit[len(quizNameSplit)-1]),
 	}
 
 	questionId, err := createQuestion(question)
@@ -635,7 +635,7 @@ func trueFlagForCountry(dailyTriviaId int) error {
 	question := DailyTriviaQuestion{
 		DailyTriviaId: dailyTriviaId,
 		Type:          "flag",
-		Question:      fmt.Sprintf("This is a flag of %s?", quizNameSplit[len(quizNameSplit)-1]),
+		Question:      fmt.Sprintf("This is a flag of %s", quizNameSplit[len(quizNameSplit)-1]),
 		FlagCode:      region.Code,
 	}
 	questionId, err := createQuestion(question)
@@ -727,17 +727,8 @@ func GetDailyTrivia(date string) (*DailyTriviaDto, error) {
 		questions = append(questions, question)
 	}
 
-	shuffleQuestions(questions)
 	result.Questions = questions
-
 	return &result, rows.Err()
-}
-
-func shuffleQuestions(slice []QuestionDto) {
-	for i := range slice {
-		j := rand.Intn(i + 1)
-		slice[i], slice[j] = slice[j], slice[i]
-	}
 }
 
 func shuffleAnswers(slice []AnswerDto) {
