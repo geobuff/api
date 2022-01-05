@@ -713,11 +713,31 @@ func GetDailyTrivia(date string) (*DailyTriviaDto, error) {
 			}
 			answers = append(answers, answer)
 		}
-		question.Answers = answers
 
+		if len(answers) > 2 {
+			shuffleAnswers(answers)
+		}
+
+		question.Answers = answers
 		questions = append(questions, question)
 	}
+
+	shuffleQuestions(questions)
 	result.Questions = questions
 
 	return &result, rows.Err()
+}
+
+func shuffleQuestions(slice []QuestionDto) {
+	for i := range slice {
+		j := rand.Intn(i + 1)
+		slice[i], slice[j] = slice[j], slice[i]
+	}
+}
+
+func shuffleAnswers(slice []AnswerDto) {
+	for i := range slice {
+		j := rand.Intn(i + 1)
+		slice[i], slice[j] = slice[j], slice[i]
+	}
 }
