@@ -91,6 +91,16 @@ func generateQuestions(dailyTriviaId int) error {
 		return err
 	}
 
+	err = whatRegionInCountry(dailyTriviaId)
+	if err != nil {
+		return err
+	}
+
+	err = whatFlagInCountry(dailyTriviaId)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -109,9 +119,8 @@ func createAnswer(answer DailyTriviaAnswer) error {
 
 func whatCountry(dailyTriviaId int) error {
 	countries := mapping.Mappings["world-countries"]
-	rand.Seed(time.Now().UnixNano())
 	max := len(countries)
-	index := rand.Intn(max + 1)
+	index := rand.Intn(max)
 	country := countries[index]
 	countries = append(countries[:index], countries[index+1:]...)
 	max = max - 1
@@ -162,9 +171,8 @@ func whatCountry(dailyTriviaId int) error {
 
 func whatCapital(dailyTriviaId int) error {
 	capitals := mapping.Mappings["world-capitals"]
-	rand.Seed(time.Now().UnixNano())
 	max := len(capitals)
-	index := rand.Intn(max + 1)
+	index := rand.Intn(max)
 	capital := capitals[index]
 	capitals = append(capitals[:index], capitals[index+1:]...)
 	max = max - 1
@@ -194,7 +202,7 @@ func whatCapital(dailyTriviaId int) error {
 	}
 
 	for i := 0; i < 3; i++ {
-		index := rand.Intn(max + 1)
+		index := rand.Intn(max)
 		capital := capitals[index]
 		answer := DailyTriviaAnswer{
 			DailyTriviaQuestionID: questionId,
@@ -225,9 +233,8 @@ func getCountryName(code string) string {
 
 func whatFlag(dailyTriviaId int) error {
 	countries := mapping.Mappings["world-countries"]
-	rand.Seed(time.Now().UnixNano())
 	max := len(countries)
-	index := rand.Intn(max + 1)
+	index := rand.Intn(max)
 	country := countries[index]
 	countries = append(countries[:index], countries[index+1:]...)
 	max = max - 1
@@ -269,6 +276,125 @@ func whatFlag(dailyTriviaId int) error {
 		}
 
 		countries = append(countries[:index], countries[index+1:]...)
+		max = max - 1
+	}
+
+	return nil
+}
+
+func whatRegionInCountry(dailyTriviaId int) error {
+	quizzes, err := getCountryRegionQuizzes()
+	if err != nil {
+		return err
+	}
+
+	max := len(quizzes)
+	index := rand.Intn(max)
+	quiz := quizzes[index]
+	mapping := mapping.Mappings[quiz.APIPath]
+
+	max = len(mapping)
+	index = rand.Intn(max)
+	region := mapping[index]
+
+	question := DailyTriviaQuestion{
+		DailyTriviaId: dailyTriviaId,
+		Type:          "map",
+		Question:      fmt.Sprintf("Name the %s that are highlighted above", quiz.Name),
+		Map:           quiz.MapSVG,
+		Highlighted:   region.SVGName,
+	}
+	questionId, err := createQuestion(question)
+	if err != nil {
+		return err
+	}
+
+	answer := DailyTriviaAnswer{
+		DailyTriviaQuestionID: questionId,
+		Text:                  region.SVGName,
+		IsCorrect:             true,
+	}
+	err = createAnswer(answer)
+	if err != nil {
+		return err
+	}
+
+	mapping = append(mapping[:index], mapping[index+1:]...)
+	max = max - 1
+	for i := 0; i < 3; i++ {
+		index := rand.Intn(max)
+		region = mapping[index]
+		answer := DailyTriviaAnswer{
+			DailyTriviaQuestionID: questionId,
+			Text:                  region.SVGName,
+			IsCorrect:             false,
+		}
+
+		err = createAnswer(answer)
+		if err != nil {
+			return err
+		}
+
+		mapping = append(mapping[:index], mapping[index+1:]...)
+		max = max - 1
+	}
+
+	return nil
+}
+
+func whatFlagInCountry(dailyTriviaId int) error {
+	quizzes, err := getFlagRegionQuizzes()
+	if err != nil {
+		return err
+	}
+
+	max := len(quizzes)
+	index := rand.Intn(max)
+	quiz := quizzes[index]
+	mapping := mapping.Mappings[quiz.APIPath]
+
+	max = len(mapping)
+	index = rand.Intn(max)
+	region := mapping[index]
+
+	question := DailyTriviaQuestion{
+		DailyTriviaId: dailyTriviaId,
+		Type:          "flag",
+		Question:      fmt.Sprintf("Name the %s shown above", quiz.Name),
+		FlagCode:      region.Code,
+	}
+	questionId, err := createQuestion(question)
+	if err != nil {
+		return err
+	}
+
+	answer := DailyTriviaAnswer{
+		DailyTriviaQuestionID: questionId,
+		Text:                  region.SVGName,
+		IsCorrect:             true,
+	}
+	err = createAnswer(answer)
+	if err != nil {
+		return err
+	}
+
+	mapping = append(mapping[:index], mapping[index+1:]...)
+	max = max - 1
+	for i := 0; i < 3; i++ {
+		index := rand.Intn(max)
+		region = mapping[index]
+		answer := DailyTriviaAnswer{
+			DailyTriviaQuestionID: questionId,
+			Text:                  region.SVGName,
+			IsCorrect:             false,
+		}
+
+		err = createAnswer(answer)
+		if err != nil {
+			return err
+		}
+
+		mapping = append(mapping[:index], mapping[index+1:]...)
 		max = max - 1
 	}
 
