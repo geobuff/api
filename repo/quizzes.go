@@ -19,6 +19,12 @@ type Quiz struct {
 	Enabled        bool   `json:"enabled"`
 }
 
+type TriviaQuizDto struct {
+	Name    string `json:"name"`
+	MapSVG  string `json:"mapSVG"`
+	APIPath string `json:"apiPath"`
+}
+
 // GetQuizzes returns all quizzes.
 var GetQuizzes = func(filter string) ([]Quiz, error) {
 	statement := "SELECT * FROM quizzes WHERE name ILIKE '%' || $1 || '%';"
@@ -53,4 +59,42 @@ func GetQuizID(name string) (int, error) {
 	var id int
 	err := Connection.QueryRow(statement, name).Scan(&id)
 	return id, err
+}
+
+func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
+	statement := "SELECT name, mapsvg, apipath FROM quizzes WHERE type = 1 AND name NOT LIKE '%World%' AND name NOT LIKE '%Countries%' AND name NOT LIKE '%US States%';"
+	rows, err := Connection.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var quizzes = []TriviaQuizDto{}
+	for rows.Next() {
+		var quiz TriviaQuizDto
+		if err = rows.Scan(&quiz.Name, &quiz.MapSVG, &quiz.APIPath); err != nil {
+			return nil, err
+		}
+		quizzes = append(quizzes, quiz)
+	}
+	return quizzes, rows.Err()
+}
+
+func getFlagRegionQuizzes() ([]TriviaQuizDto, error) {
+	statement := "SELECT name, mapsvg, apipath FROM quizzes WHERE type = 2 AND name NOT LIKE '%World%';"
+	rows, err := Connection.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var quizzes = []TriviaQuizDto{}
+	for rows.Next() {
+		var quiz TriviaQuizDto
+		if err = rows.Scan(&quiz.Name, &quiz.MapSVG, &quiz.APIPath); err != nil {
+			return nil, err
+		}
+		quizzes = append(quizzes, quiz)
+	}
+	return quizzes, rows.Err()
 }
