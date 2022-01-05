@@ -20,6 +20,7 @@ require (
 )
 
 require (
+	github.com/gertd/go-pluralize v0.1.7 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
