@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/geobuff/mapping"
+	pluralize "github.com/gertd/go-pluralize"
 )
 
 type DailyTrivia struct {
@@ -58,6 +59,8 @@ type AnswerDto struct {
 	IsCorrect bool   `json:"isCorrect"`
 	FlagCode  string `json:"flagCode"`
 }
+
+var p = pluralize.NewClient()
 
 func CreateDailyTrivia() error {
 	date := time.Now().AddDate(0, 0, 1)
@@ -207,7 +210,7 @@ func whatCapital(dailyTriviaId int) error {
 	question := DailyTriviaQuestion{
 		DailyTriviaId: dailyTriviaId,
 		Type:          "map",
-		Question:      fmt.Sprintf("The capital city of %s is _______", countryName),
+		Question:      fmt.Sprintf("What is the capital city of %s?", countryName),
 		Map:           "WorldCapitals",
 		Highlighted:   capital.SVGName,
 	}
@@ -376,10 +379,11 @@ func whatRegionInCountry(dailyTriviaId int) error {
 	index = rand.Intn(max)
 	region := mapping[index]
 
+	quizNameSplit := strings.Split(quiz.Name, " ")
 	question := DailyTriviaQuestion{
 		DailyTriviaId: dailyTriviaId,
 		Type:          "map",
-		Question:      fmt.Sprintf("Name the %s that are highlighted above", quiz.Name),
+		Question:      fmt.Sprintf("Which %s of %s is highlighted above?", p.Singular(strings.ToLower(quizNameSplit[0])), quizNameSplit[len(quizNameSplit)-1]),
 		Map:           quiz.MapSVG,
 		Highlighted:   region.SVGName,
 	}
@@ -436,10 +440,11 @@ func whatFlagInCountry(dailyTriviaId int) error {
 	index = rand.Intn(max)
 	region := mapping[index]
 
+	quizNameSplit := strings.Split(quiz.Name, " ")
 	question := DailyTriviaQuestion{
 		DailyTriviaId: dailyTriviaId,
 		Type:          "flag",
-		Question:      fmt.Sprintf("Name the %s shown above", quiz.Name),
+		Question:      fmt.Sprintf("Which of the flags of %s is shown above?", quizNameSplit[len(quizNameSplit)-1]),
 		FlagCode:      region.Code,
 	}
 	questionId, err := createQuestion(question)
@@ -580,7 +585,7 @@ func trueRegionInCountry(dailyTriviaId int) error {
 	question := DailyTriviaQuestion{
 		DailyTriviaId: dailyTriviaId,
 		Type:          "text",
-		Question:      fmt.Sprintf("%s is a %s of %s?", region.SVGName, quizNameSplit[0], quizNameSplit[len(quizNameSplit)-1]),
+		Question:      fmt.Sprintf("%s is a %s of %s?", region.SVGName, p.Singular(strings.ToLower(quizNameSplit[0])), quizNameSplit[len(quizNameSplit)-1]),
 	}
 
 	questionId, err := createQuestion(question)
