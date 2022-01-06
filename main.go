@@ -105,9 +105,10 @@ func router() http.Handler {
 	router.HandleFunc("/api/quizzes/{id}", quizzes.GetQuiz).Methods("GET")
 
 	// Daily Trivia endpoints.
-	router.HandleFunc("/api/daily-trivia", dailytrivia.GenerateDailyTrivia).Methods("POST")
 	router.HandleFunc("/api/daily-trivia", dailytrivia.GetAllDailyTrivia).Methods("GET")
 	router.HandleFunc("/api/daily-trivia/{date}", dailytrivia.GetDailyTriviaByDate).Methods("GET")
+	router.HandleFunc("/api/daily-trivia", dailytrivia.GenerateDailyTrivia).Methods("POST")
+	router.HandleFunc("/api/daily-trivia/plays/{id}", dailytrivia.IncrementPlays).Methods("PUT")
 
 	// Mapping endpoints.
 	router.HandleFunc("/api/mappings/{key}", mappings.GetMapping).Methods("GET")
