@@ -53,6 +53,11 @@ type UpdateUserDto struct {
 	XP                      *int   `json:"xp" validate:"required"`
 }
 
+type UpdateUserXPDto struct {
+	Score    int `json:"score"`
+	MaxScore int `json:"maxScore"`
+}
+
 // GetUsers returns a page of users.
 var GetUsers = func(limit int, offset int) ([]UserDto, error) {
 	rows, err := Connection.Query("SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.xp, u.isadmin, u.ispremium, u.passwordresettoken, u.passwordresetexpiry, u.joined FROM users u JOIN avatars a on a.id = u.avatarid LIMIT $1 OFFSET $2;", limit, offset)
@@ -109,6 +114,41 @@ var UpdateUser = func(userID int, user UpdateUserDto) error {
 	statement := "UPDATE users set avatarid = $2, username = $3, email = $4, countryCode = $5, xp = $6 WHERE id = $1 RETURNING id;"
 	var id int
 	return Connection.QueryRow(statement, userID, user.AvatarId, user.Username, user.Email, user.CountryCode, user.XP).Scan(&id)
+}
+
+func UpdateUserXP(userID, score, maxScore int) (int, error) {
+	increase := calculateXPIncrease(score, maxScore)
+	statement := "UPDATE users set xp = xp + $2 WHERE id = $1 RETURNING id;"
+	var id int
+	err := Connection.QueryRow(statement, userID, increase).Scan(&id)
+	return increase, err
+}
+
+func calculateXPIncrease(score, maxScore int) int {
+	percent := (float64(score) / float64(maxScore)) * 100
+	if maxScore <= 112 {
+		if percent > 66.6 {
+			return 3
+		}
+		if percent > 33.3 {
+			return 2
+		}
+		return 1
+	}
+
+	if percent > 90 {
+		return 5
+	}
+	if percent > 75 {
+		return 4
+	}
+	if percent > 50 {
+		return 3
+	}
+	if percent > 25 {
+		return 2
+	}
+	return 1
 }
 
 // DeleteUser deletes a users scores, leaderboard entries and then the user entry in the users table.
