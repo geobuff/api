@@ -75,7 +75,7 @@ func Login(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	user, err := repo.GetUserUsingEmail(loginDto.Email)
+	user, err := repo.GetAuthUserUsingEmail(loginDto.Email)
 	if err == sql.ErrNoRows {
 		http.Error(writer, "Invalid email. Please try again.", http.StatusBadRequest)
 		return
@@ -162,7 +162,7 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	user, err := repo.GetUser(id)
+	user, err := repo.GetAuthUser(id)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -215,7 +215,7 @@ func SendResetToken(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	user, err := repo.GetUserUsingEmail(passwordResetDto.Email)
+	user, err := repo.GetAuthUserUsingEmail(passwordResetDto.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(writer, fmt.Sprintf("User with email %s does not exist.", passwordResetDto.Email), http.StatusBadRequest)
@@ -250,7 +250,7 @@ func ResetTokenValid(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	user, err := repo.GetUser(userID)
+	user, err := repo.GetAuthUser(userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(writer, fmt.Sprintf("User with id %d does not exist.", userID), http.StatusBadRequest)
@@ -281,7 +281,7 @@ func UpdatePasswordUsingToken(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	user, err := repo.GetUser(resetTokenUpdateDto.UserID)
+	user, err := repo.GetAuthUser(resetTokenUpdateDto.UserID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(writer, fmt.Sprintf("User with id %d does not exist.", resetTokenUpdateDto.UserID), http.StatusBadRequest)
@@ -374,7 +374,7 @@ var getClaims = func(tokenString string) (*CustomClaims, error) {
 	return nil, err
 }
 
-var buildToken = func(user repo.UserDto) (string, error) {
+var buildToken = func(user repo.AuthUserDto) (string, error) {
 	claims := CustomClaims{
 		UserID:                  user.ID,
 		AvatarId:                user.AvatarId,
