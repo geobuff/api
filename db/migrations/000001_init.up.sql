@@ -42,7 +42,8 @@ CREATE TABLE quizzes (
 CREATE TABLE dailyTrivia (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    date DATE NOT NULL
+    date DATE NOT NULL,
+    plays INTEGER NOT NUll
 );
 
 CREATE TABLE dailyTriviaQuestions (
