@@ -70,6 +70,29 @@ var continents = []string{
 	"Oceania",
 }
 
+var topLandmass = []string{
+	"Russia",
+	"Canada",
+	"China",
+	"United States",
+	"Brazil",
+	"Australia",
+	"India",
+	"Argentina",
+	"Kazakhstan",
+	"Algeria",
+	"Democratic Republic of the Congo",
+	"Denmark",
+	"Saudi Arabia",
+	"Mexico",
+	"Indonesia",
+	"Sudan",
+	"Libya",
+	"Iran",
+	"Mongolia",
+	"Peru",
+}
+
 var p = pluralize.NewClient()
 
 func CreateDailyTrivia() error {
@@ -161,19 +184,16 @@ func createAnswer(answer DailyTriviaAnswer) error {
 }
 
 func whatCountry(dailyTriviaId int) error {
-	countries := mapping.Mappings["world-countries"]
-	max := len(countries)
+	max := len(topLandmass)
 	index := rand.Intn(max)
-	country := countries[index]
-	countries = append(countries[:index], countries[index+1:]...)
-	max = max - 1
+	country := topLandmass[index]
 
 	question := DailyTriviaQuestion{
 		DailyTriviaId: dailyTriviaId,
 		Type:          "map",
 		Question:      "Which country is highlighted above?",
 		Map:           "WorldCountries",
-		Highlighted:   country.SVGName,
+		Highlighted:   country,
 	}
 
 	questionId, err := createQuestion(question)
@@ -183,7 +203,7 @@ func whatCountry(dailyTriviaId int) error {
 
 	answer := DailyTriviaAnswer{
 		DailyTriviaQuestionID: questionId,
-		Text:                  country.SVGName,
+		Text:                  country,
 		IsCorrect:             true,
 	}
 	err = createAnswer(answer)
@@ -191,12 +211,22 @@ func whatCountry(dailyTriviaId int) error {
 		return err
 	}
 
+	countries := mapping.Mappings["world-countries"]
+	for i, val := range countries {
+		if val.SVGName == country {
+			index = i
+			break
+		}
+	}
+	countries = append(countries[:index], countries[index+1:]...)
+	max = len(countries)
+
 	for i := 0; i < 3; i++ {
 		index := rand.Intn(max + 1)
-		country = countries[index]
+		country = countries[index].SVGName
 		answer := DailyTriviaAnswer{
 			DailyTriviaQuestionID: questionId,
-			Text:                  country.SVGName,
+			Text:                  country,
 			IsCorrect:             false,
 		}
 
