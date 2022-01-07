@@ -17,12 +17,16 @@ type Quiz struct {
 	HasGrouping    bool   `json:"hasGrouping"`
 	HasFlags       bool   `json:"hasFlags"`
 	Enabled        bool   `json:"enabled"`
+	Singular       string `json:"singular"`
+	Country        string `json:"country"`
 }
 
 type TriviaQuizDto struct {
-	Name    string `json:"name"`
-	MapSVG  string `json:"mapSVG"`
-	APIPath string `json:"apiPath"`
+	Name     string `json:"name"`
+	MapSVG   string `json:"mapSVG"`
+	APIPath  string `json:"apiPath"`
+	Singular string `json:"singular"`
+	Country  string `json:"country"`
 }
 
 // GetQuizzes returns all quizzes.
@@ -37,7 +41,7 @@ var GetQuizzes = func(filter string) ([]Quiz, error) {
 	var quizzes = []Quiz{}
 	for rows.Next() {
 		var quiz Quiz
-		if err = rows.Scan(&quiz.ID, &quiz.Type, &quiz.BadgeGroup, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled); err != nil {
+		if err = rows.Scan(&quiz.ID, &quiz.Type, &quiz.BadgeGroup, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled, &quiz.Singular, &quiz.Country); err != nil {
 			return nil, err
 		}
 		quizzes = append(quizzes, quiz)
@@ -49,7 +53,7 @@ var GetQuizzes = func(filter string) ([]Quiz, error) {
 var GetQuiz = func(id int) (Quiz, error) {
 	statement := "SELECT * FROM quizzes WHERE id = $1;"
 	var quiz Quiz
-	err := Connection.QueryRow(statement, id).Scan(&quiz.ID, &quiz.Type, &quiz.BadgeGroup, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
+	err := Connection.QueryRow(statement, id).Scan(&quiz.ID, &quiz.Type, &quiz.BadgeGroup, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled, &quiz.Singular, &quiz.Country)
 	return quiz, err
 }
 
@@ -62,7 +66,7 @@ func GetQuizID(name string) (int, error) {
 }
 
 func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
-	statement := "SELECT name, mapsvg, apipath FROM quizzes WHERE type = 1 AND name NOT LIKE '%World%' AND name NOT LIKE '%Countries%' AND name NOT LIKE '%US States%';"
+	statement := "SELECT name, mapsvg, apipath, singular, country FROM quizzes WHERE type = 1 AND name NOT LIKE '%World%' AND name NOT LIKE '%Countries%' AND name NOT LIKE '%US States%';"
 	rows, err := Connection.Query(statement)
 	if err != nil {
 		return nil, err
@@ -72,7 +76,7 @@ func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
 	var quizzes = []TriviaQuizDto{}
 	for rows.Next() {
 		var quiz TriviaQuizDto
-		if err = rows.Scan(&quiz.Name, &quiz.MapSVG, &quiz.APIPath); err != nil {
+		if err = rows.Scan(&quiz.Name, &quiz.MapSVG, &quiz.APIPath, &quiz.Singular, &quiz.Country); err != nil {
 			return nil, err
 		}
 		quizzes = append(quizzes, quiz)
@@ -81,7 +85,7 @@ func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
 }
 
 func getFlagRegionQuizzes() ([]TriviaQuizDto, error) {
-	statement := "SELECT name, mapsvg, apipath FROM quizzes WHERE type = 2 AND name NOT LIKE '%World%';"
+	statement := "SELECT name, mapsvg, apipath, singular, country FROM quizzes WHERE type = 2 AND name NOT LIKE '%World%';"
 	rows, err := Connection.Query(statement)
 	if err != nil {
 		return nil, err
@@ -91,7 +95,7 @@ func getFlagRegionQuizzes() ([]TriviaQuizDto, error) {
 	var quizzes = []TriviaQuizDto{}
 	for rows.Next() {
 		var quiz TriviaQuizDto
-		if err = rows.Scan(&quiz.Name, &quiz.MapSVG, &quiz.APIPath); err != nil {
+		if err = rows.Scan(&quiz.Name, &quiz.MapSVG, &quiz.APIPath, &quiz.Singular, &quiz.Country); err != nil {
 			return nil, err
 		}
 		quizzes = append(quizzes, quiz)
