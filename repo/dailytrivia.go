@@ -867,6 +867,10 @@ func GetDailyTrivia(date string) (*DailyTriviaDto, error) {
 		questions = append(questions, question)
 	}
 
+	rand.Shuffle(len(questions), func(i, j int) {
+		questions[i], questions[j] = questions[j], questions[i]
+	})
+
 	result.Questions = questions
 	return &result, rows.Err()
 }
