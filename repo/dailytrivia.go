@@ -240,20 +240,24 @@ func whatCountry(dailyTriviaId int) error {
 }
 
 func whatCapital(dailyTriviaId int) error {
-	capitals := mapping.Mappings["world-capitals"]
-	max := len(capitals)
+	max := len(topLandmass)
 	index := rand.Intn(max)
-	capital := capitals[index]
-	capitals = append(capitals[:index], capitals[index+1:]...)
-	max = max - 1
-	countryName := getCountryName(capital.Code)
+	country := topLandmass[index]
+	var code string
+	for _, val := range mapping.Mappings["world-countries"] {
+		if val.SVGName == country {
+			code = val.Code
+			break
+		}
+	}
+	capitalName := getCapitalName(code)
 
 	question := DailyTriviaQuestion{
 		DailyTriviaId: dailyTriviaId,
 		Type:          "map",
-		Question:      fmt.Sprintf("What is the capital city of %s?", countryName),
+		Question:      fmt.Sprintf("What is the capital city of %s?", country),
 		Map:           "WorldCapitals",
-		Highlighted:   capital.SVGName,
+		Highlighted:   capitalName,
 	}
 
 	questionId, err := createQuestion(question)
@@ -263,7 +267,7 @@ func whatCapital(dailyTriviaId int) error {
 
 	answer := DailyTriviaAnswer{
 		DailyTriviaQuestionID: questionId,
-		Text:                  capital.SVGName,
+		Text:                  capitalName,
 		IsCorrect:             true,
 	}
 	err = createAnswer(answer)
@@ -271,6 +275,16 @@ func whatCapital(dailyTriviaId int) error {
 		return err
 	}
 
+	capitals := mapping.Mappings["world-capitals"]
+	for i, val := range capitals {
+		if val.SVGName == capitalName {
+			index = i
+			break
+		}
+	}
+
+	capitals = append(capitals[:index], capitals[index+1:]...)
+	max = len(capitals)
 	for i := 0; i < 3; i++ {
 		index := rand.Intn(max)
 		capital := capitals[index]
