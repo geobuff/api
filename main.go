@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/geobuff/api/admin"
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
@@ -168,6 +169,9 @@ func router() http.Handler {
 
 	// Support endpoints.
 	router.HandleFunc("/api/support", support.SendSupportRequest).Methods("POST")
+
+	// Admin endpoints.
+	router.HandleFunc("/api/admin", admin.GetDashboardData).Methods("GET")
 
 	return router
 }

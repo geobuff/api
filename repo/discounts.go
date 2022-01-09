@@ -10,6 +10,24 @@ type Discount struct {
 	Amount  float64       `json:"amount"`
 }
 
+var GetDiscounts = func() ([]Discount, error) {
+	rows, err := Connection.Query("SELECT * from discounts;")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var discounts = []Discount{}
+	for rows.Next() {
+		var discount Discount
+		if err = rows.Scan(&discount.ID, &discount.MerchID, &discount.Code, &discount.Amount); err != nil {
+			return nil, err
+		}
+		discounts = append(discounts, discount)
+	}
+	return discounts, rows.Err()
+}
+
 // GetDiscount returns a discount by code.
 var GetDiscount = func(code string) (Discount, error) {
 	statement := "SELECT * from discounts WHERE code = $1;"
