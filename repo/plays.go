@@ -45,3 +45,21 @@ func GetTopFiveQuizPlays() ([]PlaysDto, error) {
 	}
 	return plays, rows.Err()
 }
+
+func GetLastFiveTriviaPlays() ([]PlaysDto, error) {
+	rows, err := Connection.Query("SELECT name, plays FROM dailytrivia ORDER BY date DESC LIMIT 5;")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var plays = []PlaysDto{}
+	for rows.Next() {
+		var play PlaysDto
+		if err = rows.Scan(&play.QuizName, &play.Plays); err != nil {
+			return nil, err
+		}
+		plays = append(plays, play)
+	}
+	return plays, rows.Err()
+}

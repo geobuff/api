@@ -1,9 +1,10 @@
 package repo
 
 type AdminDashboardData struct {
-	UserCount int        `json:"userCount"`
-	Discounts []Discount `json:"discounts"`
-	QuizPlays []PlaysDto `json:"quizPlays"`
+	UserCount   int        `json:"userCount"`
+	Discounts   []Discount `json:"discounts"`
+	QuizPlays   []PlaysDto `json:"quizPlays"`
+	TriviaPlays []PlaysDto `json:"triviaPlays"`
 }
 
 func GetAdminDashboardData() (*AdminDashboardData, error) {
@@ -23,10 +24,16 @@ func GetAdminDashboardData() (*AdminDashboardData, error) {
 		return nil, err
 	}
 
+	triviaPlays, err := GetLastFiveTriviaPlays()
+	if err != nil {
+		return nil, err
+	}
+
 	result := AdminDashboardData{
-		UserCount: userCount,
-		Discounts: discounts,
-		QuizPlays: quizPlays,
+		UserCount:   userCount,
+		Discounts:   discounts,
+		QuizPlays:   quizPlays,
+		TriviaPlays: triviaPlays,
 	}
 	return &result, nil
 }
