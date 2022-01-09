@@ -9,7 +9,7 @@ type AdminDashboardData struct {
 
 func GetAdminDashboardData() (*AdminDashboardData, error) {
 	var userCount int
-	err := Connection.QueryRow("SELECT SUM(id) FROM users;").Scan(&userCount)
+	err := Connection.QueryRow("SELECT COUNT(id) FROM users;").Scan(&userCount)
 	if err != nil {
 		return nil, err
 	}
