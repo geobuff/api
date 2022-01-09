@@ -147,6 +147,47 @@ func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(updatedUser)
 }
 
+func UpdateUserXP(writer http.ResponseWriter, request *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(request)["id"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	if code, err := auth.ValidUser(request, id); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var dto repo.UpdateUserXPDto
+	err = json.Unmarshal(requestBody, &dto)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	err = validation.Validator.Struct(dto)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	increase, err := repo.UpdateUserXP(id, dto.Score, dto.MaxScore)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(increase)
+}
+
 // DeleteUser deletes an existing user entry.
 func DeleteUser(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])

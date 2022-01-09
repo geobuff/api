@@ -12,7 +12,7 @@ import (
 
 func GetOrders(writer http.ResponseWriter, request *http.Request) {
 	email := mux.Vars(request)["email"]
-	user, err := repo.GetUserUsingEmail(email)
+	user, err := repo.GetAuthUserUsingEmail(email)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/geobuff/api/admin"
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
@@ -105,9 +106,10 @@ func router() http.Handler {
 	router.HandleFunc("/api/quizzes/{id}", quizzes.GetQuiz).Methods("GET")
 
 	// Daily Trivia endpoints.
-	router.HandleFunc("/api/daily-trivia", dailytrivia.GenerateDailyTrivia).Methods("POST")
 	router.HandleFunc("/api/daily-trivia", dailytrivia.GetAllDailyTrivia).Methods("GET")
 	router.HandleFunc("/api/daily-trivia/{date}", dailytrivia.GetDailyTriviaByDate).Methods("GET")
+	router.HandleFunc("/api/daily-trivia", dailytrivia.GenerateDailyTrivia).Methods("POST")
+	router.HandleFunc("/api/daily-trivia/plays/{id}", dailytrivia.IncrementPlays).Methods("PUT")
 
 	// Mapping endpoints.
 	router.HandleFunc("/api/mappings/{key}", mappings.GetMapping).Methods("GET")
@@ -125,6 +127,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/users", users.GetUsers).Methods("GET")
 	router.HandleFunc("/api/users/{id}", users.GetUser).Methods("GET")
 	router.HandleFunc("/api/users/{id}", users.UpdateUser).Methods("PUT")
+	router.HandleFunc("/api/users/xp/{id}", users.UpdateUserXP).Methods("PUT")
 	router.HandleFunc("/api/users/{id}", users.DeleteUser).Methods("DELETE")
 
 	// Badge endpoints.
@@ -166,6 +169,9 @@ func router() http.Handler {
 
 	// Support endpoints.
 	router.HandleFunc("/api/support", support.SendSupportRequest).Methods("POST")
+
+	// Admin endpoints.
+	router.HandleFunc("/api/admin", admin.GetDashboardData).Methods("GET")
 
 	return router
 }
