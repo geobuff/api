@@ -1,5 +1,7 @@
 package repo
 
+import "database/sql"
+
 type PlaysDto struct {
 	QuizName string `json:"name"`
 	Plays    int    `json:"plays"`
@@ -23,7 +25,18 @@ var GetPlayCount = func(quizID int) (int, error) {
 
 // IncrementPlayCount increments a count for a given quiz's plays.
 var IncrementPlayCount = func(quizID int) error {
-	statement := "UPDATE plays set value = value + 1 WHERE quizId = $1 RETURNING value;"
+	var id int
+	statement := "SELECT id FROM plays WHERE quizId = $1;"
+	err := Connection.QueryRow(statement, quizID).Scan(&id)
+
+	if err == sql.ErrNoRows {
+		statement = "INSERT INTO plays (quizId, value) VALUES ($1, $2) RETURNING id;"
+		return Connection.QueryRow(statement, quizID, 1).Scan(&id)
+	} else if err != nil {
+		return err
+	}
+
+	statement = "UPDATE plays set value = value + 1 WHERE quizId = $1 RETURNING value;"
 	var count int
 	return Connection.QueryRow(statement, quizID).Scan(&count)
 }
