@@ -391,7 +391,7 @@ var buildToken = func(user repo.AuthUserDto) (string, error) {
 		Joined:                  user.Joined,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
-			ExpiresAt: time.Now().AddDate(0, 0, 3).Unix(),
+			ExpiresAt: time.Now().AddDate(0, 0, 30).Unix(),
 			Issuer:    os.Getenv("AUTH_ISSUER"),
 		},
 	}
