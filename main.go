@@ -131,7 +131,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/users/{id}", users.DeleteUser).Methods("DELETE")
 
 	// Badge endpoints.
-	router.HandleFunc("/api/badges", badges.GetBadges).Methods("GET")
+	router.HandleFunc("/api/badges/{userId}", badges.GetUserBadges).Methods("GET")
 
 	// Temp Score endpoints.
 	router.HandleFunc("/api/tempscores/{id}", tempscores.GetTempScore).Methods("GET")

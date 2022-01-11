@@ -36,9 +36,9 @@ var IncrementPlayCount = func(quizID int) error {
 		return err
 	}
 
-	statement = "UPDATE plays set value = value + 1 WHERE quizId = $1 RETURNING value;"
+	statement = "UPDATE plays set value = value + 1 WHERE id = $1 RETURNING value;"
 	var count int
-	return Connection.QueryRow(statement, quizID).Scan(&count)
+	return Connection.QueryRow(statement, id).Scan(&count)
 }
 
 func GetTopFiveQuizPlays() ([]PlaysDto, error) {
