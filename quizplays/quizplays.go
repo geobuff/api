@@ -14,7 +14,7 @@ import (
 // GetAllPlays gets the total play count.
 func GetAllQuizPlays(writer http.ResponseWriter, request *http.Request) {
 	plays, err := repo.GetAllQuizPlays()
-	if strings.Contains(err.Error(), "sql: Scan error on column index 0") {
+	if err != nil && strings.Contains(err.Error(), "sql: Scan error on column index 0") {
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(0)
 		return
