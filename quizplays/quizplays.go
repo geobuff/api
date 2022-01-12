@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
@@ -13,7 +14,11 @@ import (
 // GetAllPlays gets the total play count.
 func GetAllQuizPlays(writer http.ResponseWriter, request *http.Request) {
 	plays, err := repo.GetAllQuizPlays()
-	if err != nil {
+	if strings.Contains(err.Error(), "sql: Scan error on column index 0") {
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(0)
+		return
+	} else if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}

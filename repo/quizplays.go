@@ -9,16 +9,16 @@ type PlaysDto struct {
 
 var GetAllQuizPlays = func() (int, error) {
 	statement := "SELECT SUM(plays) from quizplays;"
-	var count int
-	err := Connection.QueryRow(statement).Scan(&count)
-	return count, err
+	var plays int
+	err := Connection.QueryRow(statement).Scan(&plays)
+	return plays, err
 }
 
 var GetQuizPlayCount = func(quizID int) (int, error) {
 	statement := "SELECT plays from quizplays WHERE quizId = $1;"
-	var count int
-	err := Connection.QueryRow(statement, quizID).Scan(&count)
-	return count, err
+	var plays int
+	err := Connection.QueryRow(statement, quizID).Scan(&plays)
+	return plays, err
 }
 
 var IncrementQuizPlayCount = func(quizID int) error {
