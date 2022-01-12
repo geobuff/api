@@ -53,11 +53,22 @@ CREATE TABLE quizzes (
     enabled BOOLEAN NOT NULL
 );
 
+CREATE TABLE quizPlays (
+    id SERIAL PRIMARY KEY,
+    quizId INTEGER references quizzes(id) NOT NULL,
+    plays INTEGER NOT NULL
+);
+
 CREATE TABLE dailyTrivia (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    date DATE NOT NULL,
-    plays INTEGER NOT NUll
+    date DATE NOT NULL
+);
+
+CREATE TABLE dailyTriviaPlays (
+    id SERIAL PRIMARY KEY,
+    triviaId INTEGER references quizzes(id) NOT NULL,
+    plays INTEGER NOT NULL
 );
 
 CREATE TABLE dailyTriviaQuestions (
@@ -110,12 +121,6 @@ CREATE TABLE leaderboard (
     score INTEGER NOT NULL, 
     time INTEGER NOT NULL,
     added DATE NOT NULL
-);
-
-CREATE TABLE plays (
-    id SERIAL PRIMARY KEY,
-    quizId INTEGER references quizzes(id) NOT NULL,
-    value INTEGER NOT NULL
 );
 
 CREATE TABLE merch (
