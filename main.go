@@ -14,12 +14,13 @@ import (
 	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/checkout"
 	"github.com/geobuff/api/dailytrivia"
+	"github.com/geobuff/api/dailytriviaplays"
 	"github.com/geobuff/api/discounts"
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
 	"github.com/geobuff/api/merch"
 	"github.com/geobuff/api/orders"
-	"github.com/geobuff/api/plays"
+	"github.com/geobuff/api/quizplays"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
 	"github.com/geobuff/api/support"
@@ -105,11 +106,18 @@ func router() http.Handler {
 	router.HandleFunc("/api/quizzes", quizzes.GetQuizzes).Methods("GET")
 	router.HandleFunc("/api/quizzes/{id}", quizzes.GetQuiz).Methods("GET")
 
+	// Quiz Plays endpoints.
+	router.HandleFunc("/api/quiz-plays", quizplays.GetAllQuizPlays).Methods("GET")
+	router.HandleFunc("/api/quiz-plays/{quizId}", quizplays.GetQuizPlays).Methods("GET")
+	router.HandleFunc("/api/quiz-plays/{quizId}", quizplays.IncrementQuizPlays).Methods("PUT")
+
 	// Daily Trivia endpoints.
 	router.HandleFunc("/api/daily-trivia", dailytrivia.GetAllDailyTrivia).Methods("GET")
 	router.HandleFunc("/api/daily-trivia/{date}", dailytrivia.GetDailyTriviaByDate).Methods("GET")
 	router.HandleFunc("/api/daily-trivia", dailytrivia.GenerateDailyTrivia).Methods("POST")
-	router.HandleFunc("/api/daily-trivia/plays/{id}", dailytrivia.IncrementPlays).Methods("PUT")
+
+	// Daily Trivia Plays endpoints.
+	router.HandleFunc("/api/trivia-plays/{id}", dailytriviaplays.IncrementTriviaPlays).Methods("PUT")
 
 	// Mapping endpoints.
 	router.HandleFunc("/api/mappings/{key}", mappings.GetMapping).Methods("GET")
@@ -131,7 +139,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/users/{id}", users.DeleteUser).Methods("DELETE")
 
 	// Badge endpoints.
-	router.HandleFunc("/api/badges", badges.GetBadges).Methods("GET")
+	router.HandleFunc("/api/badges/{userId}", badges.GetUserBadges).Methods("GET")
 
 	// Temp Score endpoints.
 	router.HandleFunc("/api/tempscores/{id}", tempscores.GetTempScore).Methods("GET")
@@ -144,11 +152,6 @@ func router() http.Handler {
 	router.HandleFunc("/api/leaderboard", leaderboard.CreateEntry).Methods("POST")
 	router.HandleFunc("/api/leaderboard/{id}", leaderboard.UpdateEntry).Methods("PUT")
 	router.HandleFunc("/api/leaderboard/{id}", leaderboard.DeleteEntry).Methods("DELETE")
-
-	// Play endpoints.
-	router.HandleFunc("/api/plays", plays.GetAllPlays).Methods("GET")
-	router.HandleFunc("/api/plays/{quizId}", plays.GetPlays).Methods("GET")
-	router.HandleFunc("/api/plays/{quizId}", plays.IncrementPlays).Methods("PUT")
 
 	// Checkout endpoints.
 	router.HandleFunc("/api/checkout/create-checkout-session", checkout.HandleCreateCheckoutSession).Methods("POST")

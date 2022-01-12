@@ -116,7 +116,7 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 
 	err = validation.Validator.Struct(registerDto)
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
+		http.Error(writer, "There was a validation error on sign up. Please ensure all fields are filled in correctly and try again.", http.StatusBadRequest)
 		return
 	}
 
@@ -391,7 +391,7 @@ var buildToken = func(user repo.AuthUserDto) (string, error) {
 		Joined:                  user.Joined,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
-			ExpiresAt: time.Now().AddDate(0, 0, 3).Unix(),
+			ExpiresAt: time.Now().AddDate(0, 0, 30).Unix(),
 			Issuer:    os.Getenv("AUTH_ISSUER"),
 		},
 	}

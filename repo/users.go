@@ -2,6 +2,7 @@ package repo
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 )
 
@@ -182,30 +183,30 @@ var DeleteUser = func(userID int) error {
 }
 
 var UsernameExists = func(username string) (bool, error) {
-	statement := "SELECT COUNT(id) FROM users WHERE username = $1;"
+	statement := "SELECT COUNT(id) FROM users WHERE lower(username) = $1;"
 	var count int
-	err := Connection.QueryRow(statement, username).Scan(&count)
+	err := Connection.QueryRow(statement, strings.ToLower(username)).Scan(&count)
 	return count > 0, err
 }
 
 var AnotherUserWithUsername = func(id int, username string) (bool, error) {
-	statement := "SELECT COUNT(id) FROM users WHERE id != $1 AND username = $2;"
+	statement := "SELECT COUNT(id) FROM users WHERE id != $1 AND lower(username) = $2;"
 	var count int
-	err := Connection.QueryRow(statement, id, username).Scan(&count)
+	err := Connection.QueryRow(statement, id, strings.ToLower(username)).Scan(&count)
 	return count > 0, err
 }
 
 var EmailExists = func(email string) (bool, error) {
-	statement := "SELECT COUNT(id) FROM users WHERE email = $1;"
+	statement := "SELECT COUNT(id) FROM users WHERE lower(email) = $1;"
 	var count int
-	err := Connection.QueryRow(statement, email).Scan(&count)
+	err := Connection.QueryRow(statement, strings.ToLower(email)).Scan(&count)
 	return count > 0, err
 }
 
 var AnotherUserWithEmail = func(id int, email string) (bool, error) {
-	statement := "SELECT COUNT(id) FROM users WHERE id != $1 AND email = $2;"
+	statement := "SELECT COUNT(id) FROM users WHERE id != $1 AND lower(email) = $2;"
 	var count int
-	err := Connection.QueryRow(statement, id, email).Scan(&count)
+	err := Connection.QueryRow(statement, id, strings.ToLower(email)).Scan(&count)
 	return count > 0, err
 }
 

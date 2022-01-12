@@ -12,10 +12,9 @@ import (
 )
 
 type DailyTrivia struct {
-	ID    int       `json:"id"`
-	Name  string    `json:"name"`
-	Date  time.Time `json:"date"`
-	Plays int       `json:"plays"`
+	ID   int       `json:"id"`
+	Name string    `json:"name"`
+	Date time.Time `json:"date"`
 }
 
 type DailyTriviaQuestion struct {
@@ -60,15 +59,6 @@ type AnswerDto struct {
 	FlagCode  string `json:"flagCode"`
 }
 
-var continents = []string{
-	"Africa",
-	"Asia",
-	"Europe",
-	"South America",
-	"North America",
-	"Oceania",
-}
-
 var topLandmass = []string{
 	"Russia",
 	"Canada",
@@ -101,8 +91,8 @@ func CreateDailyTrivia() error {
 
 	_, month, day := date.Date()
 	weekday := date.Weekday().String()
-	statement := "INSERT INTO dailyTrivia (name, date, plays) VALUES ($1, $2, $3) RETURNING id;"
-	err := Connection.QueryRow(statement, fmt.Sprintf("%s, %s %d", weekday, month, day), date, 0).Scan(&id)
+	statement := "INSERT INTO dailyTrivia (name, date) VALUES ($1, $2) RETURNING id;"
+	err := Connection.QueryRow(statement, fmt.Sprintf("%s, %s %d", weekday, month, day), date).Scan(&id)
 	if err != nil {
 		return err
 	}
@@ -550,19 +540,23 @@ func trueFalseCountryInContinent(dailyTriviaId int, answer bool) error {
 		continent = strings.Title(country.Group)
 	} else {
 		group := strings.Title(country.Group)
-		temp := make([]string, len(continents))
-		copy(temp, continents)
+
+		continents, err := GetContinents()
+		if err != nil {
+			return err
+		}
+
 		var index int
-		for i, val := range temp {
-			if strings.ToLower(val) == group {
+		for i, val := range continents {
+			if strings.ToLower(val.Name) == group {
 				index = i
 				break
 			}
 		}
 
-		temp[index] = temp[len(temp)-1]
-		temp = temp[:len(temp)-1]
-		continent = temp[rand.Intn(len(temp))-1]
+		continents[index] = continents[len(continents)-1]
+		continents = continents[:len(continents)-1]
+		continent = continents[rand.Intn(len(continents))-1].Name
 	}
 
 	question := DailyTriviaQuestion{
@@ -825,7 +819,7 @@ func GetAllDailyTrivia() ([]DailyTrivia, error) {
 	var trivia = []DailyTrivia{}
 	for rows.Next() {
 		var quiz DailyTrivia
-		if err = rows.Scan(&quiz.ID, &quiz.Name, &quiz.Date, &quiz.Plays); err != nil {
+		if err = rows.Scan(&quiz.ID, &quiz.Name, &quiz.Date); err != nil {
 			return nil, err
 		}
 		trivia = append(trivia, quiz)
@@ -889,10 +883,4 @@ func shuffleAnswers(slice []AnswerDto) {
 		j := rand.Intn(i + 1)
 		slice[i], slice[j] = slice[j], slice[i]
 	}
-}
-
-func IncrementTriviaPlays(id int) error {
-	statement := "UPDATE dailytrivia set plays = plays + 1 WHERE id = $1 RETURNING id;"
-	var triviaId int
-	return Connection.QueryRow(statement, id).Scan(&triviaId)
 }

@@ -1,19 +1,24 @@
-package plays
+package quizplays
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
 )
 
 // GetAllPlays gets the total play count.
-func GetAllPlays(writer http.ResponseWriter, request *http.Request) {
-	plays, err := repo.GetAllPlays()
-	if err != nil {
+func GetAllQuizPlays(writer http.ResponseWriter, request *http.Request) {
+	plays, err := repo.GetAllQuizPlays()
+	if err != nil && strings.Contains(err.Error(), "sql: Scan error on column index 0") {
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(0)
+		return
+	} else if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
@@ -23,14 +28,14 @@ func GetAllPlays(writer http.ResponseWriter, request *http.Request) {
 }
 
 // GetPlays gets a play count for a given quiz.
-func GetPlays(writer http.ResponseWriter, request *http.Request) {
+func GetQuizPlays(writer http.ResponseWriter, request *http.Request) {
 	quizID, err := strconv.Atoi(mux.Vars(request)["quizId"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
-	count, err := repo.GetPlayCount(quizID)
+	count, err := repo.GetQuizPlayCount(quizID)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -41,14 +46,14 @@ func GetPlays(writer http.ResponseWriter, request *http.Request) {
 }
 
 // IncrementPlays increments the play count for a quiz.
-func IncrementPlays(writer http.ResponseWriter, request *http.Request) {
+func IncrementQuizPlays(writer http.ResponseWriter, request *http.Request) {
 	quizID, err := strconv.Atoi(mux.Vars(request)["quizId"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
-	err = repo.IncrementPlayCount(quizID)
+	err = repo.IncrementQuizPlayCount(quizID)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
