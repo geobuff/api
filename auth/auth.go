@@ -116,7 +116,7 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 
 	err = validation.Validator.Struct(registerDto)
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
+		http.Error(writer, "There was a validation error on sign up. Please ensure all fields are filled in correctly and try again.", http.StatusBadRequest)
 		return
 	}
 

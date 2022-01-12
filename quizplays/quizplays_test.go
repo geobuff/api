@@ -1,4 +1,4 @@
-package plays
+package quizplays
 
 import (
 	"encoding/json"
@@ -13,32 +13,32 @@ import (
 )
 
 func TestGetAllPlays(t *testing.T) {
-	savedGetAllPlays := repo.GetAllPlays
+	savedGetAllQuizPlays := repo.GetAllQuizPlays
 
 	defer func() {
-		repo.GetAllPlays = savedGetAllPlays
+		repo.GetAllQuizPlays = savedGetAllQuizPlays
 	}()
 
 	tt := []struct {
-		name        string
-		getAllPlays func() (int, error)
-		status      int
+		name            string
+		getAllQuizPlays func() (int, error)
+		status          int
 	}{
 		{
-			name:        "error on GetMerch",
-			getAllPlays: func() (int, error) { return 0, errors.New("test") },
-			status:      http.StatusInternalServerError,
+			name:            "error on GetMerch",
+			getAllQuizPlays: func() (int, error) { return 0, errors.New("test") },
+			status:          http.StatusInternalServerError,
 		},
 		{
-			name:        "happy path",
-			getAllPlays: func() (int, error) { return 1, nil },
-			status:      http.StatusOK,
+			name:            "happy path",
+			getAllQuizPlays: func() (int, error) { return 1, nil },
+			status:          http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			repo.GetAllPlays = tc.getAllPlays
+			repo.GetAllQuizPlays = tc.getAllQuizPlays
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -46,7 +46,7 @@ func TestGetAllPlays(t *testing.T) {
 			}
 
 			writer := httptest.NewRecorder()
-			GetAllPlays(writer, request)
+			GetAllQuizPlays(writer, request)
 			result := writer.Result()
 			defer result.Body.Close()
 
@@ -71,41 +71,41 @@ func TestGetAllPlays(t *testing.T) {
 }
 
 func TestGetPlays(t *testing.T) {
-	savedGetPlayCount := repo.GetPlayCount
+	savedGetPlayCount := repo.GetQuizPlayCount
 
 	defer func() {
-		repo.GetPlayCount = savedGetPlayCount
+		repo.GetQuizPlayCount = savedGetPlayCount
 	}()
 
 	tt := []struct {
-		name         string
-		getPlayCount func(quizID int) (int, error)
-		quizID       string
-		status       int
+		name             string
+		getQuizPlayCount func(quizID int) (int, error)
+		quizID           string
+		status           int
 	}{
 		{
-			name:         "invalid quizID",
-			getPlayCount: repo.GetPlayCount,
-			quizID:       "test",
-			status:       http.StatusBadRequest,
+			name:             "invalid quizID",
+			getQuizPlayCount: repo.GetQuizPlayCount,
+			quizID:           "test",
+			status:           http.StatusBadRequest,
 		},
 		{
-			name:         "valid quizId, error on GetPlayCount",
-			getPlayCount: func(quizID int) (int, error) { return 0, errors.New("test") },
-			quizID:       "1",
-			status:       http.StatusInternalServerError,
+			name:             "valid quizId, error on GetPlayCount",
+			getQuizPlayCount: func(quizID int) (int, error) { return 0, errors.New("test") },
+			quizID:           "1",
+			status:           http.StatusInternalServerError,
 		},
 		{
-			name:         "happy path",
-			getPlayCount: func(quizID int) (int, error) { return 1, nil },
-			quizID:       "1",
-			status:       http.StatusOK,
+			name:             "happy path",
+			getQuizPlayCount: func(quizID int) (int, error) { return 1, nil },
+			quizID:           "1",
+			status:           http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			repo.GetPlayCount = tc.getPlayCount
+			repo.GetQuizPlayCount = tc.getQuizPlayCount
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
@@ -117,7 +117,7 @@ func TestGetPlays(t *testing.T) {
 			})
 
 			writer := httptest.NewRecorder()
-			GetPlays(writer, request)
+			GetQuizPlays(writer, request)
 			result := writer.Result()
 			defer result.Body.Close()
 
@@ -142,41 +142,41 @@ func TestGetPlays(t *testing.T) {
 }
 
 func TestIncrementPlays(t *testing.T) {
-	savedIncrementPlayCount := repo.IncrementPlayCount
+	savedIncrementQuizPlayCount := repo.IncrementQuizPlayCount
 
 	defer func() {
-		repo.IncrementPlayCount = savedIncrementPlayCount
+		repo.IncrementQuizPlayCount = savedIncrementQuizPlayCount
 	}()
 
 	tt := []struct {
-		name               string
-		incrementPlayCount func(quizID int) error
-		quizID             string
-		status             int
+		name                   string
+		incrementQuizPlayCount func(quizID int) error
+		quizID                 string
+		status                 int
 	}{
 		{
-			name:               "invalid quizID",
-			incrementPlayCount: repo.IncrementPlayCount,
-			quizID:             "test",
-			status:             http.StatusBadRequest,
+			name:                   "invalid quizID",
+			incrementQuizPlayCount: repo.IncrementQuizPlayCount,
+			quizID:                 "test",
+			status:                 http.StatusBadRequest,
 		},
 		{
-			name:               "valid quizId, error on IncrementPlayCount",
-			incrementPlayCount: func(quizID int) error { return errors.New("test") },
-			quizID:             "1",
-			status:             http.StatusInternalServerError,
+			name:                   "valid quizId, error on IncrementPlayCount",
+			incrementQuizPlayCount: func(quizID int) error { return errors.New("test") },
+			quizID:                 "1",
+			status:                 http.StatusInternalServerError,
 		},
 		{
-			name:               "happy path",
-			incrementPlayCount: func(quizID int) error { return nil },
-			quizID:             "1",
-			status:             http.StatusOK,
+			name:                   "happy path",
+			incrementQuizPlayCount: func(quizID int) error { return nil },
+			quizID:                 "1",
+			status:                 http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			repo.IncrementPlayCount = tc.incrementPlayCount
+			repo.IncrementQuizPlayCount = tc.incrementQuizPlayCount
 
 			request, err := http.NewRequest("PUT", "", nil)
 			if err != nil {
@@ -188,7 +188,7 @@ func TestIncrementPlays(t *testing.T) {
 			})
 
 			writer := httptest.NewRecorder()
-			IncrementPlays(writer, request)
+			IncrementQuizPlays(writer, request)
 			result := writer.Result()
 			defer result.Body.Close()
 
