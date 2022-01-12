@@ -60,15 +60,6 @@ type AnswerDto struct {
 	FlagCode  string `json:"flagCode"`
 }
 
-var continents = []string{
-	"Africa",
-	"Asia",
-	"Europe",
-	"South America",
-	"North America",
-	"Oceania",
-}
-
 var topLandmass = []string{
 	"Russia",
 	"Canada",
@@ -550,19 +541,23 @@ func trueFalseCountryInContinent(dailyTriviaId int, answer bool) error {
 		continent = strings.Title(country.Group)
 	} else {
 		group := strings.Title(country.Group)
-		temp := make([]string, len(continents))
-		copy(temp, continents)
+
+		continents, err := GetContinents()
+		if err != nil {
+			return err
+		}
+
 		var index int
-		for i, val := range temp {
-			if strings.ToLower(val) == group {
+		for i, val := range continents {
+			if strings.ToLower(val.Name) == group {
 				index = i
 				break
 			}
 		}
 
-		temp[index] = temp[len(temp)-1]
-		temp = temp[:len(temp)-1]
-		continent = temp[rand.Intn(len(temp))-1]
+		continents[index] = continents[len(continents)-1]
+		continents = continents[:len(continents)-1]
+		continent = continents[rand.Intn(len(continents))-1].Name
 	}
 
 	question := DailyTriviaQuestion{
