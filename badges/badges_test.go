@@ -9,43 +9,57 @@ import (
 	"testing"
 
 	"github.com/geobuff/api/repo"
+	"github.com/gorilla/mux"
 )
 
 func TestGetBadges(t *testing.T) {
-	savedGetBadges := repo.GetBadges
+	savedGetUserBadges := repo.GetUserBadges
 
 	defer func() {
-		repo.GetBadges = savedGetBadges
+		repo.GetUserBadges = savedGetUserBadges
 	}()
 
 	tt := []struct {
-		name      string
-		getBadges func() ([]repo.Badge, error)
-		status    int
+		name          string
+		getUserBadges func(userID int) ([]repo.BadgeDto, error)
+		userId        string
+		status        int
 	}{
 		{
-			name:      "error on GetBadges",
-			getBadges: func() ([]repo.Badge, error) { return nil, errors.New("test") },
-			status:    http.StatusInternalServerError,
+			name:          "invalid userId",
+			getUserBadges: repo.GetUserBadges,
+			userId:        "test",
+			status:        http.StatusBadRequest,
 		},
 		{
-			name:      "happy path",
-			getBadges: func() ([]repo.Badge, error) { return []repo.Badge{}, nil },
-			status:    http.StatusOK,
+			name:          "error on GetBadges",
+			getUserBadges: func(userID int) ([]repo.BadgeDto, error) { return nil, errors.New("test") },
+			userId:        "1",
+			status:        http.StatusInternalServerError,
+		},
+		{
+			name:          "happy path",
+			getUserBadges: func(userID int) ([]repo.BadgeDto, error) { return []repo.BadgeDto{}, nil },
+			userId:        "1",
+			status:        http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			repo.GetBadges = tc.getBadges
+			repo.GetUserBadges = tc.getUserBadges
 
 			request, err := http.NewRequest("GET", "", nil)
 			if err != nil {
 				t.Fatalf("could not create GET request: %v", err)
 			}
 
+			request = mux.SetURLVars(request, map[string]string{
+				"userId": tc.userId,
+			})
+
 			writer := httptest.NewRecorder()
-			GetBadges(writer, request)
+			GetUserBadges(writer, request)
 			result := writer.Result()
 			defer result.Body.Close()
 
