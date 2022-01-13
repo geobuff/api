@@ -13,8 +13,6 @@ import (
 	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/checkout"
-	"github.com/geobuff/api/dailytrivia"
-	"github.com/geobuff/api/dailytriviaplays"
 	"github.com/geobuff/api/discounts"
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
@@ -25,6 +23,8 @@ import (
 	"github.com/geobuff/api/repo"
 	"github.com/geobuff/api/support"
 	"github.com/geobuff/api/tempscores"
+	"github.com/geobuff/api/trivia"
+	"github.com/geobuff/api/triviaplays"
 	"github.com/geobuff/api/users"
 	"github.com/geobuff/api/validation"
 	"github.com/golang-migrate/migrate/v4"
@@ -111,13 +111,13 @@ func router() http.Handler {
 	router.HandleFunc("/api/quiz-plays/{quizId}", quizplays.GetQuizPlays).Methods("GET")
 	router.HandleFunc("/api/quiz-plays/{quizId}", quizplays.IncrementQuizPlays).Methods("PUT")
 
-	// Daily Trivia endpoints.
-	router.HandleFunc("/api/daily-trivia", dailytrivia.GetAllDailyTrivia).Methods("GET")
-	router.HandleFunc("/api/daily-trivia/{date}", dailytrivia.GetDailyTriviaByDate).Methods("GET")
-	router.HandleFunc("/api/daily-trivia", dailytrivia.GenerateDailyTrivia).Methods("POST")
+	// Trivia endpoints.
+	router.HandleFunc("/api/trivia", trivia.GetAllTrivia).Methods("GET")
+	router.HandleFunc("/api/trivia/{date}", trivia.GetTriviaByDate).Methods("GET")
+	router.HandleFunc("/api/trivia", trivia.GenerateTrivia).Methods("POST")
 
-	// Daily Trivia Plays endpoints.
-	router.HandleFunc("/api/trivia-plays/{id}", dailytriviaplays.IncrementTriviaPlays).Methods("PUT")
+	// Trivia Plays endpoints.
+	router.HandleFunc("/api/trivia-plays/{id}", triviaplays.IncrementTriviaPlays).Methods("PUT")
 
 	// Mapping endpoints.
 	router.HandleFunc("/api/mappings/{key}", mappings.GetMapping).Methods("GET")

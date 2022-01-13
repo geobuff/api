@@ -1,4 +1,4 @@
-package dailytrivia
+package trivia
 
 import (
 	"encoding/json"
@@ -9,16 +9,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func GenerateDailyTrivia(writer http.ResponseWriter, request *http.Request) {
-	err := repo.CreateDailyTrivia()
+func GenerateTrivia(writer http.ResponseWriter, request *http.Request) {
+	err := repo.CreateTrivia()
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 }
 
-func GetAllDailyTrivia(writer http.ResponseWriter, request *http.Request) {
-	trivia, err := repo.GetAllDailyTrivia()
+func GetAllTrivia(writer http.ResponseWriter, request *http.Request) {
+	trivia, err := repo.GetAllTrivia()
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
@@ -28,8 +28,8 @@ func GetAllDailyTrivia(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(trivia)
 }
 
-func GetDailyTriviaByDate(writer http.ResponseWriter, request *http.Request) {
-	trivia, err := repo.GetDailyTrivia(mux.Vars(request)["date"])
+func GetTriviaByDate(writer http.ResponseWriter, request *http.Request) {
+	trivia, err := repo.GetTrivia(mux.Vars(request)["date"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
