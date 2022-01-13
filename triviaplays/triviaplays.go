@@ -1,4 +1,4 @@
-package dailytriviaplays
+package triviaplays
 
 import (
 	"fmt"
