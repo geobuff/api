@@ -7,8 +7,8 @@ import (
 // Quiz is the database object for a quiz entry.
 type Quiz struct {
 	ID             int           `json:"id"`
-	Type           int           `json:"type"`
-	BadgeGroup     int           `json:"badgeGroup"`
+	TypeID         int           `json:"typeId"`
+	BadgeID        int           `json:"badgeId"`
 	ContinentID    sql.NullInt64 `json:"continentId"`
 	Country        string        `json:"country"`
 	Singular       string        `json:"singular"`
@@ -46,7 +46,7 @@ var GetQuizzes = func(filter string) ([]Quiz, error) {
 	var quizzes = []Quiz{}
 	for rows.Next() {
 		var quiz Quiz
-		if err = rows.Scan(&quiz.ID, &quiz.Type, &quiz.BadgeGroup, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled); err != nil {
+		if err = rows.Scan(&quiz.ID, &quiz.TypeID, &quiz.BadgeID, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled); err != nil {
 			return nil, err
 		}
 		quizzes = append(quizzes, quiz)
@@ -58,7 +58,7 @@ var GetQuizzes = func(filter string) ([]Quiz, error) {
 var GetQuiz = func(id int) (Quiz, error) {
 	statement := "SELECT * FROM quizzes WHERE id = $1;"
 	var quiz Quiz
-	err := Connection.QueryRow(statement, id).Scan(&quiz.ID, &quiz.Type, &quiz.BadgeGroup, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
+	err := Connection.QueryRow(statement, id).Scan(&quiz.ID, &quiz.TypeID, &quiz.BadgeID, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
 	return quiz, err
 }
 
@@ -71,8 +71,8 @@ func GetQuizID(name string) (int, error) {
 }
 
 func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
-	statement := "SELECT country, singular, name, mapsvg, apipath FROM quizzes WHERE type = $1 AND name NOT LIKE '%World%' AND name NOT LIKE '%Countries%' AND name NOT LIKE '%US States%';"
-	rows, err := Connection.Query(statement, BADGE_TYPE_ONE_OFF)
+	statement := "SELECT country, singular, name, mapsvg, apipath FROM quizzes WHERE typeid = $1 AND name NOT LIKE '%World%' AND name NOT LIKE '%Countries%' AND name NOT LIKE '%US States%';"
+	rows, err := Connection.Query(statement, QUIZ_TYPE_MAP)
 	if err != nil {
 		return nil, err
 	}
@@ -90,8 +90,8 @@ func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
 }
 
 func getFlagRegionQuizzes() ([]TriviaQuizDto, error) {
-	statement := "SELECT country, singular, name, mapsvg, apipath FROM quizzes WHERE type = 2 AND name NOT LIKE '%World%';"
-	rows, err := Connection.Query(statement)
+	statement := "SELECT country, singular, name, mapsvg, apipath FROM quizzes WHERE typeId = $1 AND name NOT LIKE '%World%';"
+	rows, err := Connection.Query(statement, QUIZ_TYPE_FLAG)
 	if err != nil {
 		return nil, err
 	}
@@ -108,10 +108,10 @@ func getFlagRegionQuizzes() ([]TriviaQuizDto, error) {
 	return quizzes, rows.Err()
 }
 
-func getWorldQuizCount(badgeGroup int) (int, error) {
-	statement := "SELECT COUNT(id) FROM quizzes WHERE badgegroup = $1;"
+func getWorldQuizCount(badgeID int) (int, error) {
+	statement := "SELECT COUNT(id) FROM quizzes WHERE badgeid = $1;"
 	var count int
-	err := Connection.QueryRow(statement, badgeGroup).Scan(&count)
+	err := Connection.QueryRow(statement, badgeID).Scan(&count)
 	return count, err
 }
 

@@ -5,7 +5,7 @@ CREATE TABLE continents (
 
 CREATE TABLE badgeType (
     id SERIAL PRIMARY KEY,
-    description TEXT NOT NULL
+    name TEXT NOT NULL
 );
 
 CREATE TABLE badges (
@@ -34,8 +34,8 @@ CREATE TABLE quiztype (
 
 CREATE TABLE quizzes (
     id SERIAL PRIMARY KEY,
-    type INTEGER references quiztype(id) NOT NULL,
-    badgeGroup INTEGER references badges(id),
+    typeId INTEGER references quiztype(id) NOT NULL,
+    badgeId INTEGER references badges(id),
     continentId INTEGER references continents(id),
     country TEXT NOT NULL,
     singular TEXT NOT NULL,
@@ -193,7 +193,7 @@ INSERT INTO continents (name) values
 ('South America'),
 ('Oceania');
 
-INSERT INTO badgetype (description) values
+INSERT INTO badgetype (name) values
 ('One-off'),
 ('World'),
 ('Continent');
@@ -220,7 +220,7 @@ INSERT INTO quiztype (name) values
 ('Map'),
 ('Flag');
 
-INSERT INTO quizzes (type, badgeGroup, continentId, country, singular, name, maxScore, time, mapSVG, imageUrl, verb, apiPath, route, hasLeaderboard, hasGrouping, hasFlags, enabled) values
+INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxScore, time, mapSVG, imageUrl, verb, apiPath, route, hasLeaderboard, hasGrouping, hasFlags, enabled) values
 (1, 2, null, '', 'country', 'Countries of the World', 197, 900, 'WorldCountries', '/world-map-header.svg', 'countries', 'world-countries', 'countries-of-the-world', TRUE, TRUE, TRUE, TRUE),
 (1, 2, null, '', 'capital', 'Capitals of the World', 197, 900, 'WorldCapitals', '/world-map-header.svg', 'capitals', 'world-capitals', 'capitals-of-the-world', TRUE, TRUE, TRUE, TRUE),
 (1, 3, 1, '', 'country', 'Countries of Africa', 54, 300, 'AfricaCountries', '/africa-countries-header.svg', 'countries', 'africa-countries', 'countries-of-africa', TRUE, FALSE, TRUE, TRUE),

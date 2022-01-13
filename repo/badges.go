@@ -48,7 +48,7 @@ var GetUserBadges = func(userId int) ([]BadgeDto, error) {
 			return nil, err
 		}
 
-		total, err := getTotal(badge.TypeID, badge.ContinentID)
+		total, err := getTotal(badge.TypeID, badge.ID, badge.ContinentID)
 		if err != nil {
 			return nil, err
 		}
@@ -69,12 +69,12 @@ var GetUserBadges = func(userId int) ([]BadgeDto, error) {
 	return badges, rows.Err()
 }
 
-func getTotal(typeID int, continentID sql.NullInt64) (int, error) {
+func getTotal(typeID, badgeID int, continentID sql.NullInt64) (int, error) {
 	switch typeID {
 	case BADGE_TYPE_ONE_OFF:
 		return 1, nil
 	case BADGE_TYPE_WORLD:
-		return getWorldQuizCount(typeID)
+		return getWorldQuizCount(badgeID)
 	case BADGE_TYPE_CONTINENT:
 		return getContinentQuizCount(int(continentID.Int64))
 	default:
@@ -92,7 +92,7 @@ func getProgress(entries []UserLeaderboardEntryDto, badgeId, typeID int) int {
 
 	var count int
 	for _, val := range entries {
-		if val.BadgeGroup == badgeId {
+		if val.BadgeID == badgeId {
 			count = count + 1
 		}
 	}
