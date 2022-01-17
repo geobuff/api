@@ -1,0 +1,8 @@
+package repo
+
+const (
+	QUESTION_TYPE_TEXT int = iota + 1
+	QUESTION_TYPE_IMAGE
+	QUESTION_TYPE_FLAG
+	QUESTION_TYPE_MAP
+)

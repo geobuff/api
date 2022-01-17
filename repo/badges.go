@@ -1,6 +1,9 @@
 package repo
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
 
 // Badge is the database object for a badge entry.
 type Badge struct {
@@ -45,7 +48,7 @@ var GetUserBadges = func(userId int) ([]BadgeDto, error) {
 			return nil, err
 		}
 
-		total, err := getTotal(badge.TypeID, badge.ContinentID)
+		total, err := getTotal(badge.TypeID, badge.ID, badge.ContinentID)
 		if err != nil {
 			return nil, err
 		}
@@ -66,20 +69,21 @@ var GetUserBadges = func(userId int) ([]BadgeDto, error) {
 	return badges, rows.Err()
 }
 
-func getTotal(typeID int, continentID sql.NullInt64) (int, error) {
-	if typeID == 1 {
+func getTotal(typeID, badgeID int, continentID sql.NullInt64) (int, error) {
+	switch typeID {
+	case BADGE_TYPE_ONE_OFF:
 		return 1, nil
+	case BADGE_TYPE_WORLD:
+		return getWorldQuizCount(badgeID)
+	case BADGE_TYPE_CONTINENT:
+		return getContinentQuizCount(int(continentID.Int64))
+	default:
+		return 0, errors.New("invalid type id passed to getTotal")
 	}
-
-	if typeID == 2 {
-		return getWorldQuizCount(typeID)
-	}
-
-	return getContinentQuizCount(int(continentID.Int64))
 }
 
 func getProgress(entries []UserLeaderboardEntryDto, badgeId, typeID int) int {
-	if typeID == 1 {
+	if typeID == BADGE_TYPE_ONE_OFF {
 		if len(entries) > 0 {
 			return 1
 		}
@@ -88,7 +92,7 @@ func getProgress(entries []UserLeaderboardEntryDto, badgeId, typeID int) int {
 
 	var count int
 	for _, val := range entries {
-		if val.BadgeGroup == badgeId {
+		if val.BadgeID == badgeId {
 			count = count + 1
 		}
 	}

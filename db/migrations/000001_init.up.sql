@@ -5,7 +5,7 @@ CREATE TABLE continents (
 
 CREATE TABLE badgeType (
     id SERIAL PRIMARY KEY,
-    description TEXT NOT NULL
+    name TEXT NOT NULL
 );
 
 CREATE TABLE badges (
@@ -34,8 +34,8 @@ CREATE TABLE quiztype (
 
 CREATE TABLE quizzes (
     id SERIAL PRIMARY KEY,
-    type INTEGER references quiztype(id) NOT NULL,
-    badgeGroup INTEGER references badges(id),
+    typeId INTEGER references quiztype(id) NOT NULL,
+    badgeId INTEGER references badges(id),
     continentId INTEGER references continents(id),
     country TEXT NOT NULL,
     singular TEXT NOT NULL,
@@ -59,22 +59,21 @@ CREATE TABLE quizPlays (
     plays INTEGER NOT NULL
 );
 
-CREATE TABLE dailyTrivia (
+CREATE TABLE trivia (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     date DATE NOT NULL
 );
 
-CREATE TABLE dailyTriviaPlays (
+CREATE TABLE triviaQuestionType (
     id SERIAL PRIMARY KEY,
-    triviaId INTEGER references quizzes(id) NOT NULL,
-    plays INTEGER NOT NULL
+    name TEXT UNIQUE NOT NULL
 );
 
-CREATE TABLE dailyTriviaQuestions (
+CREATE TABLE triviaQuestions (
     id SERIAL PRIMARY KEY,
-    dailyTriviaId INTEGER references dailyTrivia(id) NOT NULL,
-    type TEXT NOT NULL,
+    triviaId INTEGER references trivia(id) NOT NULL,
+    typeId INTEGER references triviaQuestionType(id) NOT NULL,
     question TEXT NOT NULL,
     map TEXT,
     highlighted TEXT,
@@ -82,12 +81,18 @@ CREATE TABLE dailyTriviaQuestions (
     imageUrl TEXT
 );
 
-CREATE TABLE dailyTriviaAnswers (
+CREATE TABLE triviaAnswers (
     id SERIAL PRIMARY KEY,
-    dailyTriviaQuestionId INTEGER references dailyTriviaQuestions(id) NOT NULL,
+    triviaQuestionId INTEGER references triviaQuestions(id) NOT NULL,
     text TEXT NOT NULL,
     isCorrect BOOLEAN NOT NULL,
     flagCode TEXT
+);
+
+CREATE TABLE triviaPlays (
+    id SERIAL PRIMARY KEY,
+    triviaId INTEGER references trivia(id) NOT NULL,
+    plays INTEGER NOT NULL
 );
 
 CREATE TABLE users (
@@ -188,7 +193,7 @@ INSERT INTO continents (name) values
 ('South America'),
 ('Oceania');
 
-INSERT INTO badgetype (description) values
+INSERT INTO badgetype (name) values
 ('One-off'),
 ('World'),
 ('Continent');
@@ -211,9 +216,11 @@ INSERT INTO avatars (name, description, primaryImageUrl, secondaryImageUrl) valu
 ('Professor Lungu', 'Top of his class in MIT and hell-bent on being the only academic to publish a paper for the esteemed school AND score max points on countries of the world in under 5 minutes. Sharp as a tack and quick as a whippet; don''t underestimate the power of a nerd on a mission.', '/researcher-one-primary.svg', '/researcher-one-secondary.svg'),
 ('Sanchez', 'Ex-champion Jarabe dancer in her home Mexico City, Sanchez was taken under Prof. Lungo''s wing as a field researcher after he discovered she has a photographic memory and is the only person alive that can spell Kyrgyzstan correct on the first try. Dance with Miss Sanchez, and well, it may just be your last...', '/researcher-two-primary.svg', '/researcher-two-secondary.svg');
 
-INSERT INTO quiztype (name) values ('Map'), ('Flag');
+INSERT INTO quiztype (name) values
+('Map'),
+('Flag');
 
-INSERT INTO quizzes (type, badgeGroup, continentId, country, singular, name, maxScore, time, mapSVG, imageUrl, verb, apiPath, route, hasLeaderboard, hasGrouping, hasFlags, enabled) values
+INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxScore, time, mapSVG, imageUrl, verb, apiPath, route, hasLeaderboard, hasGrouping, hasFlags, enabled) values
 (1, 2, null, '', 'country', 'Countries of the World', 197, 900, 'WorldCountries', '/world-map-header.svg', 'countries', 'world-countries', 'countries-of-the-world', TRUE, TRUE, TRUE, TRUE),
 (1, 2, null, '', 'capital', 'Capitals of the World', 197, 900, 'WorldCapitals', '/world-map-header.svg', 'capitals', 'world-capitals', 'capitals-of-the-world', TRUE, TRUE, TRUE, TRUE),
 (1, 3, 1, '', 'country', 'Countries of Africa', 54, 300, 'AfricaCountries', '/africa-countries-header.svg', 'countries', 'africa-countries', 'countries-of-africa', TRUE, FALSE, TRUE, TRUE),
@@ -258,6 +265,12 @@ INSERT INTO quizzes (type, badgeGroup, continentId, country, singular, name, max
 (2, 4, 2, 'South Korea', 'flag', 'Flags of South Korea', 17, 300, '', 'https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg', 'flags', 'south-korea-provinces', 'flags-of-south-korea', TRUE, FALSE, TRUE, TRUE),
 (2, 5, 3, 'Spain', 'flag', 'Flags of Spain', 52, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ea-1f1f8.svg', 'flags', 'spain-provinces', 'flags-of-spain', TRUE, FALSE, TRUE, TRUE),
 (2, 6, 4, 'United States', 'flag', 'Flags of the US', 50, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1f8.svg', 'flags', 'us-states', 'flags-of-the-us', TRUE, FALSE, TRUE, TRUE);
+
+INSERT INTO triviaQuestionType (name) values
+('Text'),
+('Image'),
+('Flag'),
+('Map');
 
 INSERT INTO merch (name, description, sizeGuideImageUrl, price, externalLink) values
 ('Tee', 'With summer just around the corner, we teamed up with the only carbon neutral clothing company in New Zealand (Koa Goods) to bring you guys the freshest eco-friendly tee to let the squad know you''re ready to drop those countries of the world at a moments notice. By copping one of these OG pieces you''re directly contributing to hosting costs and helping us keep this thing afloat. Kia Kaha!', '/tee-size-guide.png', 39.99, null),
