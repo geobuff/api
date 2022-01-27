@@ -70,6 +70,14 @@ func GetQuizID(name string) (int, error) {
 	return id, err
 }
 
+var ScoreExceedsMax = func(quizID, score int) (bool, error) {
+	quiz, err := GetQuiz(quizID)
+	if err != nil {
+		return false, err
+	}
+	return score > quiz.MaxScore, nil
+}
+
 func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
 	statement := "SELECT country, singular, name, mapsvg, apipath FROM quizzes WHERE typeid = $1 AND name NOT LIKE '%World%' AND name NOT LIKE '%Countries%' AND name NOT LIKE '%US States%';"
 	rows, err := Connection.Query(statement, QUIZ_TYPE_MAP)
