@@ -324,11 +324,13 @@ func TestGetEntry(t *testing.T) {
 func TestCreateEntry(t *testing.T) {
 	savedGetUser := repo.GetUser
 	savedValidUser := auth.ValidUser
+	savedScoreExceedsMax := repo.ScoreExceedsMax
 	savedInsertLeaderboardEntry := repo.InsertLeaderboardEntry
 
 	defer func() {
 		repo.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
+		repo.ScoreExceedsMax = savedScoreExceedsMax
 		repo.InsertLeaderboardEntry = savedInsertLeaderboardEntry
 	}()
 
@@ -340,6 +342,7 @@ func TestCreateEntry(t *testing.T) {
 		name                   string
 		getUser                func(id int) (repo.UserDto, error)
 		validUser              func(request *http.Request, id int) (int, error)
+		scoreExceedsMax        func(quizID, score int) (bool, error)
 		insertLeaderboardEntry func(entry repo.LeaderboardEntry) (int, error)
 		body                   string
 		status                 int
@@ -348,6 +351,7 @@ func TestCreateEntry(t *testing.T) {
 			name:                   "invalid body",
 			getUser:                repo.GetUser,
 			validUser:              auth.ValidUser,
+			scoreExceedsMax:        repo.ScoreExceedsMax,
 			insertLeaderboardEntry: repo.InsertLeaderboardEntry,
 			body:                   "testing",
 			status:                 http.StatusBadRequest,
@@ -356,6 +360,7 @@ func TestCreateEntry(t *testing.T) {
 			name:                   "valid body, error on GetUser",
 			getUser:                func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
 			validUser:              auth.ValidUser,
+			scoreExceedsMax:        repo.ScoreExceedsMax,
 			insertLeaderboardEntry: repo.InsertLeaderboardEntry,
 			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
 			status:                 http.StatusInternalServerError,
@@ -366,9 +371,32 @@ func TestCreateEntry(t *testing.T) {
 			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
+			scoreExceedsMax:        repo.ScoreExceedsMax,
 			insertLeaderboardEntry: repo.InsertLeaderboardEntry,
 			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
 			status:                 http.StatusUnauthorized,
+		},
+		{
+			name:    "valid body, valid user, error on ScoreExceedsMax",
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
+				return http.StatusOK, nil
+			},
+			scoreExceedsMax:        func(quizID, score int) (bool, error) { return false, errors.New("test") },
+			insertLeaderboardEntry: repo.InsertLeaderboardEntry,
+			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusInternalServerError,
+		},
+		{
+			name:    "valid body, valid user, score exceeds max",
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
+				return http.StatusOK, nil
+			},
+			scoreExceedsMax:        func(quizID, score int) (bool, error) { return true, nil },
+			insertLeaderboardEntry: repo.InsertLeaderboardEntry,
+			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusBadRequest,
 		},
 		{
 			name:    "valid body, valid user, error on InsertLeaderboardEntry",
@@ -376,6 +404,7 @@ func TestCreateEntry(t *testing.T) {
 			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
+			scoreExceedsMax:        func(quizID, score int) (bool, error) { return false, nil },
 			insertLeaderboardEntry: func(entry repo.LeaderboardEntry) (int, error) { return 0, errors.New("test") },
 			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
 			status:                 http.StatusInternalServerError,
@@ -386,6 +415,7 @@ func TestCreateEntry(t *testing.T) {
 			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
+			scoreExceedsMax:        func(quizID, score int) (bool, error) { return false, nil },
 			insertLeaderboardEntry: func(entry repo.LeaderboardEntry) (int, error) { return 1, nil },
 			body:                   `{"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
 			status:                 http.StatusCreated,
@@ -396,6 +426,7 @@ func TestCreateEntry(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			repo.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
+			repo.ScoreExceedsMax = tc.scoreExceedsMax
 			repo.InsertLeaderboardEntry = tc.insertLeaderboardEntry
 
 			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
@@ -431,11 +462,15 @@ func TestCreateEntry(t *testing.T) {
 func TestUpdateEntry(t *testing.T) {
 	savedGetUser := repo.GetUser
 	savedValidUser := auth.ValidUser
+	savedScoreExceedsMax := repo.ScoreExceedsMax
+	savedGetLeaderboardEntry := repo.GetLeaderboardEntry
 	savedUpdateLeaderboardEntry := repo.UpdateLeaderboardEntry
 
 	defer func() {
 		repo.GetUser = savedGetUser
 		auth.ValidUser = savedValidUser
+		repo.ScoreExceedsMax = savedScoreExceedsMax
+		repo.GetLeaderboardEntry = savedGetLeaderboardEntry
 		repo.UpdateLeaderboardEntry = savedUpdateLeaderboardEntry
 	}()
 
@@ -447,6 +482,8 @@ func TestUpdateEntry(t *testing.T) {
 		name                   string
 		getUser                func(id int) (repo.UserDto, error)
 		validUser              func(request *http.Request, id int) (int, error)
+		scoreExceedsMax        func(quizID, score int) (bool, error)
+		getLeaderboardEntry    func(quizID, userID int) (repo.LeaderboardEntryDto, error)
 		updateLeaderboardEntry func(entry repo.LeaderboardEntry) error
 		id                     string
 		body                   string
@@ -456,6 +493,8 @@ func TestUpdateEntry(t *testing.T) {
 			name:                   "invalid id",
 			getUser:                repo.GetUser,
 			validUser:              auth.ValidUser,
+			scoreExceedsMax:        repo.ScoreExceedsMax,
+			getLeaderboardEntry:    repo.GetLeaderboardEntry,
 			updateLeaderboardEntry: repo.UpdateLeaderboardEntry,
 			id:                     "testing",
 			body:                   "",
@@ -465,6 +504,8 @@ func TestUpdateEntry(t *testing.T) {
 			name:                   "valid id, invalid body",
 			getUser:                func(id int) (repo.UserDto, error) { return user, nil },
 			validUser:              auth.ValidUser,
+			scoreExceedsMax:        repo.ScoreExceedsMax,
+			getLeaderboardEntry:    repo.GetLeaderboardEntry,
 			updateLeaderboardEntry: repo.UpdateLeaderboardEntry,
 			id:                     "1",
 			body:                   "testing",
@@ -474,6 +515,8 @@ func TestUpdateEntry(t *testing.T) {
 			name:                   "valid id, valid body, error on GetUser",
 			getUser:                func(id int) (repo.UserDto, error) { return repo.UserDto{}, errors.New("test") },
 			validUser:              auth.ValidUser,
+			scoreExceedsMax:        repo.ScoreExceedsMax,
+			getLeaderboardEntry:    repo.GetLeaderboardEntry,
 			updateLeaderboardEntry: repo.UpdateLeaderboardEntry,
 			id:                     "1",
 			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
@@ -485,16 +528,78 @@ func TestUpdateEntry(t *testing.T) {
 			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusUnauthorized, errors.New("test")
 			},
+			scoreExceedsMax:        repo.ScoreExceedsMax,
+			getLeaderboardEntry:    repo.GetLeaderboardEntry,
 			updateLeaderboardEntry: repo.UpdateLeaderboardEntry,
 			id:                     "1",
 			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
 			status:                 http.StatusUnauthorized,
 		},
 		{
+			name:    "valid id, valid body, valid user, error on ScoreExceedsMax",
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
+				return http.StatusOK, nil
+			},
+			scoreExceedsMax:        func(quizID, score int) (bool, error) { return false, errors.New("test") },
+			getLeaderboardEntry:    repo.GetLeaderboardEntry,
+			updateLeaderboardEntry: repo.UpdateLeaderboardEntry,
+			id:                     "1",
+			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusInternalServerError,
+		},
+		{
+			name:    "valid id, valid body, valid user, score exceeds max",
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
+				return http.StatusOK, nil
+			},
+			scoreExceedsMax:        func(quizID, score int) (bool, error) { return true, nil },
+			getLeaderboardEntry:    repo.GetLeaderboardEntry,
+			updateLeaderboardEntry: repo.UpdateLeaderboardEntry,
+			id:                     "1",
+			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusBadRequest,
+		},
+		{
+			name:    "valid id, valid body, valid user, no rows error on GetLeaderboardEntry",
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
+				return http.StatusOK, nil
+			},
+			scoreExceedsMax: func(quizID, score int) (bool, error) { return false, nil },
+			getLeaderboardEntry: func(quizID, userID int) (repo.LeaderboardEntryDto, error) {
+				return repo.LeaderboardEntryDto{}, sql.ErrNoRows
+			},
+			updateLeaderboardEntry: repo.UpdateLeaderboardEntry,
+			id:                     "1",
+			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusBadRequest,
+		},
+		{
+			name:    "valid id, valid body, valid user, other error on GetLeaderboardEntry",
+			getUser: func(id int) (repo.UserDto, error) { return user, nil },
+			validUser: func(request *http.Request, id int) (int, error) {
+				return http.StatusOK, nil
+			},
+			scoreExceedsMax: func(quizID, score int) (bool, error) { return false, nil },
+			getLeaderboardEntry: func(quizID, userID int) (repo.LeaderboardEntryDto, error) {
+				return repo.LeaderboardEntryDto{}, errors.New("test")
+			},
+			updateLeaderboardEntry: repo.UpdateLeaderboardEntry,
+			id:                     "1",
+			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
+			status:                 http.StatusInternalServerError,
+		},
+		{
 			name:    "valid id, valid body, valid user, error on UpdateLeaderboardEntry",
 			getUser: func(id int) (repo.UserDto, error) { return user, nil },
 			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
+			},
+			scoreExceedsMax: func(quizID, score int) (bool, error) { return false, nil },
+			getLeaderboardEntry: func(quizID, userID int) (repo.LeaderboardEntryDto, error) {
+				return repo.LeaderboardEntryDto{}, nil
 			},
 			updateLeaderboardEntry: func(entry repo.LeaderboardEntry) error { return errors.New("test") },
 			id:                     "1",
@@ -507,6 +612,10 @@ func TestUpdateEntry(t *testing.T) {
 			validUser: func(request *http.Request, id int) (int, error) {
 				return http.StatusOK, nil
 			},
+			scoreExceedsMax: func(quizID, score int) (bool, error) { return false, nil },
+			getLeaderboardEntry: func(quizID, userID int) (repo.LeaderboardEntryDto, error) {
+				return repo.LeaderboardEntryDto{}, nil
+			},
 			updateLeaderboardEntry: func(entry repo.LeaderboardEntry) error { return nil },
 			id:                     "1",
 			body:                   `{"id": 1,"userId": 1, "country": "New Zealand", "capitals": 100, "time": 200}`,
@@ -518,6 +627,8 @@ func TestUpdateEntry(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			repo.GetUser = tc.getUser
 			auth.ValidUser = tc.validUser
+			repo.ScoreExceedsMax = tc.scoreExceedsMax
+			repo.GetLeaderboardEntry = tc.getLeaderboardEntry
 			repo.UpdateLeaderboardEntry = tc.updateLeaderboardEntry
 
 			request, err := http.NewRequest("PUT", "", bytes.NewBuffer([]byte(tc.body)))
