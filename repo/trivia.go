@@ -198,7 +198,7 @@ func whatCountry(triviaId int) error {
 		return err
 	}
 
-	countries := mapping.Mappings["world-countries"]
+	countries := copyMapping(mapping.Mappings["world-countries"])
 	for i, val := range countries {
 		if val.SVGName == country {
 			index = i
@@ -265,7 +265,7 @@ func whatCapital(triviaId int) error {
 		return err
 	}
 
-	capitals := mapping.Mappings["world-capitals"]
+	capitals := copyMapping(mapping.Mappings["world-capitals"])
 	for i, val := range capitals {
 		if val.SVGName == capitalName {
 			index = i
@@ -306,7 +306,7 @@ func getCountryName(code string) string {
 }
 
 func whatUSState(triviaId int) error {
-	states := mapping.Mappings["us-states"]
+	states := copyMapping(mapping.Mappings["us-states"])
 	max := len(states)
 	index := rand.Intn(max)
 	state := states[index]
@@ -359,7 +359,7 @@ func whatUSState(triviaId int) error {
 }
 
 func whatFlag(triviaId int) error {
-	countries := mapping.Mappings["world-countries"]
+	countries := copyMapping(mapping.Mappings["world-countries"])
 	max := len(countries)
 	index := rand.Intn(max)
 	country := countries[index]
@@ -418,7 +418,7 @@ func whatRegionInCountry(triviaId int) error {
 	max := len(quizzes)
 	index := rand.Intn(max)
 	quiz := quizzes[index]
-	mapping := mapping.Mappings[quiz.APIPath]
+	mapping := copyMapping(mapping.Mappings[quiz.APIPath])
 
 	max = len(mapping)
 	index = rand.Intn(max)
@@ -478,7 +478,7 @@ func whatFlagInCountry(triviaId int) error {
 	max := len(quizzes)
 	index := rand.Intn(max)
 	quiz := quizzes[index]
-	mapping := mapping.Mappings[quiz.APIPath]
+	mapping := copyMapping(mapping.Mappings[quiz.APIPath])
 
 	max = len(mapping)
 	index = rand.Intn(max)
@@ -530,7 +530,7 @@ func whatFlagInCountry(triviaId int) error {
 }
 
 func trueFalseCountryInContinent(triviaId int, answer bool) error {
-	countries := mapping.Mappings["world-countries"]
+	countries := copyMapping(mapping.Mappings["world-countries"])
 	max := len(countries)
 	index := rand.Intn(max)
 	country := countries[index]
@@ -594,7 +594,7 @@ func trueFalseCountryInContinent(triviaId int, answer bool) error {
 }
 
 func trueFalseCapitalOfCountry(triviaId int, answer bool) error {
-	countries := mapping.Mappings["world-countries"]
+	countries := copyMapping(mapping.Mappings["world-countries"])
 	max := len(countries)
 	index := rand.Intn(max)
 	country := countries[index]
@@ -603,7 +603,7 @@ func trueFalseCapitalOfCountry(triviaId int, answer bool) error {
 	if answer {
 		capitalName = getCapitalName(country.Code)
 	} else {
-		capitals := mapping.Mappings["world-capitals"]
+		capitals := copyMapping(mapping.Mappings["world-capitals"])
 		var index int
 		for i, val := range capitals {
 			if val.Code == country.Code {
@@ -672,7 +672,7 @@ func trueFalseRegionInCountry(triviaId int, answer bool) error {
 	max := len(quizzes)
 	index := rand.Intn(max)
 	quiz := quizzes[index]
-	mappingOne := mapping.Mappings[quiz.APIPath]
+	mappingOne := copyMapping(mapping.Mappings[quiz.APIPath])
 
 	var region string
 	if answer {
@@ -694,7 +694,7 @@ func trueFalseRegionInCountry(triviaId int, answer bool) error {
 
 		index = rand.Intn(max)
 		quizTwo := quizzes[index]
-		mappingTwo := mapping.Mappings[quizTwo.APIPath]
+		mappingTwo := copyMapping(mapping.Mappings[quizTwo.APIPath])
 
 		max = len(mappingTwo)
 		index = rand.Intn(max)
@@ -744,7 +744,7 @@ func trueFalseFlagForCountry(triviaId int, answer bool) error {
 	max := len(quizzes)
 	index := rand.Intn(max)
 	quiz := quizzes[index]
-	mappingOne := mapping.Mappings[quiz.APIPath]
+	mappingOne := copyMapping(mapping.Mappings[quiz.APIPath])
 
 	var flagCode string
 	if answer {
@@ -766,7 +766,7 @@ func trueFalseFlagForCountry(triviaId int, answer bool) error {
 
 		index = rand.Intn(max)
 		quizTwo := quizzes[index]
-		mappingTwo := mapping.Mappings[quizTwo.APIPath]
+		mappingTwo := copyMapping(mapping.Mappings[quizTwo.APIPath])
 
 		max = len(mappingTwo)
 		index = rand.Intn(max)
@@ -883,4 +883,10 @@ func shuffleAnswers(slice []AnswerDto) {
 		j := rand.Intn(i + 1)
 		slice[i], slice[j] = slice[j], slice[i]
 	}
+}
+
+func copyMapping(orig []mapping.Mapping) []mapping.Mapping {
+	cpy := make([]mapping.Mapping, len(orig))
+	copy(cpy, orig)
+	return cpy
 }

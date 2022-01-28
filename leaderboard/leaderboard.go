@@ -125,6 +125,17 @@ func CreateEntry(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	exceeds, err := repo.ScoreExceedsMax(newEntry.QuizID, newEntry.Score)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	if exceeds {
+		http.Error(writer, "score exceeds maximum allowed for quiz", http.StatusBadRequest)
+		return
+	}
+
 	newEntry.Added = time.Now()
 	id, err := repo.InsertLeaderboardEntry(newEntry)
 	if err != nil {
@@ -161,6 +172,26 @@ func UpdateEntry(writer http.ResponseWriter, request *http.Request) {
 
 	if code, err := auth.ValidUser(request, updatedEntry.UserID); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	exceeds, err := repo.ScoreExceedsMax(updatedEntry.QuizID, updatedEntry.Score)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	if exceeds {
+		http.Error(writer, "score exceeds maximum allowed for quiz", http.StatusBadRequest)
+		return
+	}
+
+	_, err = repo.GetLeaderboardEntry(updatedEntry.QuizID, updatedEntry.UserID)
+	if err == sql.ErrNoRows {
+		http.Error(writer, fmt.Sprintf("leaderboard entry for this quiz and user does not exist"), http.StatusBadRequest)
+		return
+	} else if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
