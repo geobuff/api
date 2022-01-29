@@ -15,7 +15,7 @@ import (
 )
 
 // PageDto is used to display a paged result of user entries.
-type PageDto struct {
+type UserPageDto struct {
 	Users   []repo.UserDto `json:"users"`
 	HasMore bool           `json:"hasMore"`
 }
@@ -42,11 +42,11 @@ func GetUsers(writer http.ResponseWriter, request *http.Request) {
 
 	switch _, err := repo.GetFirstID(1, (page+1)*10); err {
 	case sql.ErrNoRows:
-		entriesDto := PageDto{users, false}
+		entriesDto := UserPageDto{users, false}
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entriesDto)
 	case nil:
-		entriesDto := PageDto{users, true}
+		entriesDto := UserPageDto{users, true}
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entriesDto)
 	default:
