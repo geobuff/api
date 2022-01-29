@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/geobuff/api/admin"
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
@@ -110,6 +109,7 @@ func router() http.Handler {
 	// Quiz Plays endpoints.
 	router.HandleFunc("/api/quiz-plays", quizplays.GetAllQuizPlays).Methods("GET")
 	router.HandleFunc("/api/quiz-plays/{quizId}", quizplays.GetQuizPlays).Methods("GET")
+	router.HandleFunc("/api/quiz-plays-top-five", quizplays.GetTopFiveQuizPlays).Methods("GET")
 	router.HandleFunc("/api/quiz-plays/{quizId}", quizplays.IncrementQuizPlays).Methods("PUT")
 
 	// Trivia endpoints.
@@ -118,6 +118,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/trivia", trivia.GenerateTrivia).Methods("POST")
 
 	// Trivia Plays endpoints.
+	router.HandleFunc("/api/trivia-plays/last-five", triviaplays.GetLastFiveTriviaPlays).Methods("GET")
 	router.HandleFunc("/api/trivia-plays/{id}", triviaplays.IncrementTriviaPlays).Methods("PUT")
 
 	// Mapping endpoints.
@@ -135,6 +136,7 @@ func router() http.Handler {
 	// User endpoints.
 	router.HandleFunc("/api/users", users.GetUsers).Methods("GET")
 	router.HandleFunc("/api/users/{id}", users.GetUser).Methods("GET")
+	router.HandleFunc("/api/users-total", users.GetTotalUserCount).Methods("GET")
 	router.HandleFunc("/api/users/{id}", users.UpdateUser).Methods("PUT")
 	router.HandleFunc("/api/users/xp/{id}", users.UpdateUserXP).Methods("PUT")
 	router.HandleFunc("/api/users/{id}", users.DeleteUser).Methods("DELETE")
@@ -169,13 +171,11 @@ func router() http.Handler {
 	router.HandleFunc("/api/merch", merch.GetMerch).Methods("GET")
 
 	// Discount endpoints.
+	router.HandleFunc("/api/discounts", discounts.GetDiscounts).Methods("GET")
 	router.HandleFunc("/api/discounts/{code}", discounts.GetDiscount).Methods("GET")
 
 	// Support endpoints.
 	router.HandleFunc("/api/support", support.SendSupportRequest).Methods("POST")
-
-	// Admin endpoints.
-	router.HandleFunc("/api/admin", admin.GetDashboardData).Methods("GET")
 
 	return router
 }
