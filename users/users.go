@@ -73,6 +73,24 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+func GetTotalUserCount(writer http.ResponseWriter, request *http.Request) {
+	if code, err := auth.IsAdmin(request); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	switch count, err := repo.GetTotalUserCount(); err {
+	case sql.ErrNoRows:
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(0)
+	case nil:
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(count)
+	default:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+	}
+}
+
 // UpdateUser creates a new user entry.
 func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])

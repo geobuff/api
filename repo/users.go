@@ -219,3 +219,9 @@ var ResetPassword = func(userID int, passwordHash string) error {
 	var id int
 	return Connection.QueryRow(statement, userID, passwordHash).Scan(&id)
 }
+
+func GetTotalUserCount() (int, error) {
+	var count int
+	err := Connection.QueryRow("SELECT COUNT(id) FROM users;").Scan(&count)
+	return count, err
+}
