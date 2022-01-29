@@ -78,6 +78,13 @@ var ScoreExceedsMax = func(quizID, score int) (bool, error) {
 	return score > quiz.MaxScore, nil
 }
 
+func ToggleQuizEnabled(quizID int) (int, error) {
+	statement := "UPDATE quizzes set enabled = NOT enabled WHERE id = $1 RETURNING id;"
+	var id int
+	err := Connection.QueryRow(statement, quizID).Scan(&id)
+	return id, err
+}
+
 func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
 	statement := "SELECT country, singular, name, mapsvg, apipath FROM quizzes WHERE typeid = $1 AND name NOT LIKE '%World%' AND name NOT LIKE '%Countries%' AND name NOT LIKE '%US States%';"
 	rows, err := Connection.Query(statement, QUIZ_TYPE_MAP)
