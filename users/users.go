@@ -15,7 +15,7 @@ import (
 )
 
 // PageDto is used to display a paged result of user entries.
-type PageDto struct {
+type UserPageDto struct {
 	Users   []repo.UserDto `json:"users"`
 	HasMore bool           `json:"hasMore"`
 }
@@ -42,11 +42,11 @@ func GetUsers(writer http.ResponseWriter, request *http.Request) {
 
 	switch _, err := repo.GetFirstID(1, (page+1)*10); err {
 	case sql.ErrNoRows:
-		entriesDto := PageDto{users, false}
+		entriesDto := UserPageDto{users, false}
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entriesDto)
 	case nil:
-		entriesDto := PageDto{users, true}
+		entriesDto := UserPageDto{users, true}
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(entriesDto)
 	default:
@@ -68,6 +68,24 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 	case nil:
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(user)
+	default:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+	}
+}
+
+func GetTotalUserCount(writer http.ResponseWriter, request *http.Request) {
+	if code, err := auth.IsAdmin(request); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	switch count, err := repo.GetTotalUserCount(); err {
+	case sql.ErrNoRows:
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(0)
+	case nil:
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(count)
 	default:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 	}

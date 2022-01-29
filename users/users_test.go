@@ -128,7 +128,7 @@ func TestGetUsers(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed PageDto
+				var parsed UserPageDto
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)

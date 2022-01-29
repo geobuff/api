@@ -173,13 +173,11 @@ func calculateXPIncrease(score, maxScore int) int {
 
 // DeleteUser deletes a users scores, leaderboard entries and then the user entry in the users table.
 var DeleteUser = func(userID int) error {
-	scoresStatement := "DELETE FROM scores WHERE userId = $1;"
-	Connection.QueryRow(scoresStatement, userID)
-	leaderboardStatement := "DELETE FROM countries_leaderboard WHERE userId = $1;"
+	leaderboardStatement := "DELETE FROM leaderboard WHERE userId = $1;"
 	Connection.QueryRow(leaderboardStatement, userID)
 	usersStatement := "DELETE FROM users WHERE id = $1 RETURNING id;"
 	var id int
-	return Connection.QueryRow(usersStatement, id).Scan(&id)
+	return Connection.QueryRow(usersStatement, userID).Scan(&id)
 }
 
 var UsernameExists = func(username string) (bool, error) {
@@ -220,4 +218,10 @@ var ResetPassword = func(userID int, passwordHash string) error {
 	statement := "UPDATE users set passwordhash = $2, passwordResetToken = null, passwordResetExpiry = null WHERE id = $1 RETURNING id;"
 	var id int
 	return Connection.QueryRow(statement, userID, passwordHash).Scan(&id)
+}
+
+func GetTotalUserCount() (int, error) {
+	var count int
+	err := Connection.QueryRow("SELECT COUNT(id) FROM users;").Scan(&count)
+	return count, err
 }

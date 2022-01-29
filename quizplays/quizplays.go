@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
 )
@@ -43,6 +44,22 @@ func GetQuizPlays(writer http.ResponseWriter, request *http.Request) {
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(count)
+}
+
+func GetTopFiveQuizPlays(writer http.ResponseWriter, request *http.Request) {
+	if code, err := auth.IsAdmin(request); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	plays, err := repo.GetTopFiveQuizPlays()
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(plays)
 }
 
 // IncrementPlays increments the play count for a quiz.
