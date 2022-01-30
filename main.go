@@ -20,7 +20,6 @@ import (
 	"github.com/geobuff/api/quizplays"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/api/support"
 	"github.com/geobuff/api/tempscores"
 	"github.com/geobuff/api/trivia"
 	"github.com/geobuff/api/triviaplays"
@@ -161,7 +160,9 @@ func router() http.Handler {
 	router.HandleFunc("/api/checkout/webhook", checkout.HandleWebhook).Methods("POST")
 
 	// Order endpoints.
-	router.HandleFunc("/api/orders/{email}", orders.GetOrders).Methods("GET")
+	router.HandleFunc("/api/orders/{statusId}", orders.GetOrdersByStatusId).Methods("GET")
+	router.HandleFunc("/api/orders/{email}", orders.GetUserOrders).Methods("GET")
+	router.HandleFunc("/api/orders/status/{id}", orders.UpdateOrderStatus).Methods("PUT")
 	router.HandleFunc("/api/orders/{email}", orders.CancelOrder).Methods("DELETE")
 
 	// Avatar endpoints.
@@ -173,9 +174,6 @@ func router() http.Handler {
 	// Discount endpoints.
 	router.HandleFunc("/api/discounts", discounts.GetDiscounts).Methods("GET")
 	router.HandleFunc("/api/discounts/{code}", discounts.GetDiscount).Methods("GET")
-
-	// Support endpoints.
-	router.HandleFunc("/api/support", support.SendSupportRequest).Methods("POST")
 
 	return router
 }
