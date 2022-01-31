@@ -55,6 +55,7 @@ type CreateCheckoutDto struct {
 }
 
 type OrderDto struct {
+	Id        int            `json:"id"`
 	Items     []OrderItemDto `json:"items"`
 	Status    string         `json:"status"`
 	FirstName string         `json:"firstName"`
@@ -77,7 +78,7 @@ type OrderItemDto struct {
 func InsertOrder(order CreateCheckoutDto) (int, error) {
 	statement := "INSERT INTO orders (statusid, email, firstname, lastname, address, suburb, city, postcode, added, discount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, 1, order.Customer.Email, order.Customer.FirstName, order.Customer.LastName, order.Customer.Address, order.Customer.Suburb, order.Customer.City, order.Customer.Postcode, time.Now(), nil).Scan(&id)
+	err := Connection.QueryRow(statement, ORDER_STATUS_PENDING, order.Customer.Email, order.Customer.FirstName, order.Customer.LastName, order.Customer.Address, order.Customer.Suburb, order.Customer.City, order.Customer.Postcode, time.Now(), nil).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -99,7 +100,7 @@ func insertOrderItem(item CheckoutItemDto, orderId int) error {
 }
 
 func GetNonPendingOrders(email string) ([]OrderDto, error) {
-	rows, err := Connection.Query("SELECT * FROM orders WHERE email = $1 AND statusid != $2;", email, 1)
+	rows, err := Connection.Query("SELECT * FROM orders WHERE email = $1 AND statusid != $2;", email, ORDER_STATUS_PENDING)
 	if err != nil {
 		return nil, err
 	}
@@ -123,6 +124,7 @@ func GetNonPendingOrders(email string) ([]OrderDto, error) {
 		}
 
 		temp := OrderDto{
+			Id:        order.ID,
 			Items:     items,
 			Status:    status,
 			FirstName: order.FirstName,
@@ -165,15 +167,15 @@ func getStatus(id int) (string, error) {
 }
 
 func UpdateStatusLatestOrder(email string) error {
-	statement := "UPDATE orders set statusId = 2 where id = (select id from orders where email = $1 order by added desc LIMIT 1) returning id;"
+	statement := "UPDATE orders set statusId = $1 where id = (select id from orders where email = $2 order by added desc LIMIT 1) returning id;"
 	var id int
-	return Connection.QueryRow(statement, email).Scan(&id)
+	return Connection.QueryRow(statement, ORDER_STATUS_PAYMENT_RECEIVED, email).Scan(&id)
 }
 
-func RemoveLatestOrder(email string) error {
+func RemoveLatestPendingOrder(email string) error {
 	statement := "SELECT id from orders where email = $1 AND statusid = $2 order by added desc LIMIT 1;"
 	var orderId int
-	err := Connection.QueryRow(statement, email, 1).Scan(&orderId)
+	err := Connection.QueryRow(statement, email, ORDER_STATUS_PENDING).Scan(&orderId)
 	if err != nil {
 		return err
 	}
@@ -181,4 +183,51 @@ func RemoveLatestOrder(email string) error {
 	Connection.QueryRow("DELETE from orderItems where orderid = $1;", orderId)
 	var id int
 	return Connection.QueryRow("DELETE from orders where id = $1;", orderId).Scan(&id)
+}
+
+func GetOrdersByStatusId(statusId int) ([]OrderDto, error) {
+	rows, err := Connection.Query("SELECT * FROM orders WHERE statusid = $1;", statusId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var orders = []OrderDto{}
+	for rows.Next() {
+		var order Order
+		if err = rows.Scan(&order.ID, &order.StatusID, &order.Email, &order.FirstName, &order.LastName, &order.Address, &order.Suburb, &order.City, &order.Postcode, &order.Added, &order.Discount); err != nil {
+			return nil, err
+		}
+
+		items, err := getItems(order.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		status, err := getStatus(order.StatusID)
+		if err != nil {
+			return nil, err
+		}
+
+		temp := OrderDto{
+			Items:     items,
+			Status:    status,
+			FirstName: order.FirstName,
+			LastName:  order.LastName,
+			Address:   order.Address,
+			Suburb:    order.Suburb,
+			City:      order.City,
+			Postcode:  order.Postcode,
+			Added:     order.Added,
+			Discount:  order.Discount,
+		}
+		orders = append(orders, temp)
+	}
+	return orders, rows.Err()
+}
+
+func UpdateOrderStatus(orderID, statusID int) error {
+	statement := "UPDATE orders set statusId = $1 where id = $2 returning id;"
+	var id int
+	return Connection.QueryRow(statement, statusID, id).Scan(&id)
 }

@@ -2,8 +2,8 @@ package repo
 
 import "database/sql"
 
-func GetLastFiveTriviaPlays() ([]PlaysDto, error) {
-	rows, err := Connection.Query("SELECT q.name, p.plays FROM triviaplays p JOIN trivia q ON q.id = p.triviaid ORDER BY q.date DESC LIMIT 5;")
+func GetLastWeekTriviaPlays() ([]PlaysDto, error) {
+	rows, err := Connection.Query("SELECT q.name, p.plays FROM triviaplays p JOIN trivia q ON q.id = p.triviaid ORDER BY q.date DESC LIMIT 7;")
 	if err != nil {
 		return nil, err
 	}
@@ -17,6 +17,12 @@ func GetLastFiveTriviaPlays() ([]PlaysDto, error) {
 		}
 		plays = append(plays, play)
 	}
+
+	// Reverse slice for correct order to display in line graph.
+	for i, j := 0, len(plays)-1; i < j; i, j = i+1, j-1 {
+		plays[i], plays[j] = plays[j], plays[i]
+	}
+
 	return plays, rows.Err()
 }
 

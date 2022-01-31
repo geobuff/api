@@ -11,13 +11,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func GetLastFiveTriviaPlays(writer http.ResponseWriter, request *http.Request) {
+func GetLastWeekTriviaPlays(writer http.ResponseWriter, request *http.Request) {
 	if code, err := auth.IsAdmin(request); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
 
-	plays, err := repo.GetLastFiveTriviaPlays()
+	plays, err := repo.GetLastWeekTriviaPlays()
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return

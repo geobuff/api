@@ -1,0 +1,7 @@
+package repo
+
+const (
+	ORDER_STATUS_PENDING int = iota + 1
+	ORDER_STATUS_PAYMENT_RECEIVED
+	ORDER_STATUS_SHIPPED
+)
