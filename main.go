@@ -117,7 +117,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/trivia", trivia.GenerateTrivia).Methods("POST")
 
 	// Trivia Plays endpoints.
-	router.HandleFunc("/api/trivia-plays/last-five", triviaplays.GetLastFiveTriviaPlays).Methods("GET")
+	router.HandleFunc("/api/trivia-plays/week", triviaplays.GetLastWeekTriviaPlays).Methods("GET")
 	router.HandleFunc("/api/trivia-plays/{id}", triviaplays.IncrementTriviaPlays).Methods("PUT")
 
 	// Mapping endpoints.

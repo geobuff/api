@@ -2,8 +2,8 @@ package repo
 
 import "database/sql"
 
-func GetLastFiveTriviaPlays() ([]PlaysDto, error) {
-	rows, err := Connection.Query("SELECT q.name, p.plays FROM triviaplays p JOIN trivia q ON q.id = p.triviaid ORDER BY q.date DESC LIMIT 5;")
+func GetLastWeekTriviaPlays() ([]PlaysDto, error) {
+	rows, err := Connection.Query("SELECT q.name, p.plays FROM triviaplays p JOIN trivia q ON q.id = p.triviaid ORDER BY q.date DESC LIMIT 7;")
 	if err != nil {
 		return nil, err
 	}
