@@ -161,7 +161,7 @@ func router() http.Handler {
 
 	// Order endpoints.
 	router.HandleFunc("/api/orders/{statusId}", orders.GetOrdersByStatusId).Methods("GET")
-	router.HandleFunc("/api/orders/{email}", orders.GetUserOrders).Methods("GET")
+	router.HandleFunc("/api/orders/user/{email}", orders.GetUserOrders).Methods("GET")
 	router.HandleFunc("/api/orders/status/{id}", orders.UpdateOrderStatus).Methods("PUT")
 	router.HandleFunc("/api/orders/{email}", orders.CancelOrder).Methods("DELETE")
 
