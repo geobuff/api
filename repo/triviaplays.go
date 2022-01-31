@@ -17,6 +17,12 @@ func GetLastWeekTriviaPlays() ([]PlaysDto, error) {
 		}
 		plays = append(plays, play)
 	}
+
+	// Reverse slice for correct order to display in line graph.
+	for i, j := 0, len(plays)-1; i < j; i, j = i+1, j-1 {
+		plays[i], plays[j] = plays[j], plays[i]
+	}
+
 	return plays, rows.Err()
 }
 
