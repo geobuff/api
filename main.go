@@ -135,7 +135,7 @@ func router() http.Handler {
 	// User endpoints.
 	router.HandleFunc("/api/users", users.GetUsers).Methods("GET")
 	router.HandleFunc("/api/users/{id}", users.GetUser).Methods("GET")
-	router.HandleFunc("/api/users-total", users.GetTotalUserCount).Methods("GET")
+	router.HandleFunc("/api/users/total/week", users.GetLastWeekTotalUsers).Methods("GET")
 	router.HandleFunc("/api/users/{id}", users.UpdateUser).Methods("PUT")
 	router.HandleFunc("/api/users/xp/{id}", users.UpdateUserXP).Methods("PUT")
 	router.HandleFunc("/api/users/{id}", users.DeleteUser).Methods("DELETE")

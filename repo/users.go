@@ -72,6 +72,11 @@ type UpdateUserXPDto struct {
 	MaxScore int `json:"maxScore"`
 }
 
+type TotalUsersDto struct {
+	Day   string `json:"day"`
+	Count int    `json:"count"`
+}
+
 // GetUsers returns a page of users.
 var GetUsers = func(limit int, offset int) ([]UserDto, error) {
 	rows, err := Connection.Query("SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.joined FROM users u JOIN avatars a on a.id = u.avatarid LIMIT $1 OFFSET $2;", limit, offset)
@@ -220,8 +225,27 @@ var ResetPassword = func(userID int, passwordHash string) error {
 	return Connection.QueryRow(statement, userID, passwordHash).Scan(&id)
 }
 
-func GetTotalUserCount() (int, error) {
+func GetLastWeekTotalUsers() ([]TotalUsersDto, error) {
+	var result []TotalUsersDto
+	for i := 6; i >= 0; i-- {
+		date := time.Now().AddDate(0, 0, 0-i)
+		count, err := getTotalUsersToDate(date)
+		if err != nil {
+			return nil, err
+		}
+
+		current := TotalUsersDto{
+			Day:   date.Weekday().String(),
+			Count: count,
+		}
+		result = append(result, current)
+	}
+	return result, nil
+}
+
+func getTotalUsersToDate(date time.Time) (int, error) {
 	var count int
-	err := Connection.QueryRow("SELECT COUNT(id) FROM users;").Scan(&count)
+	statement := "SELECT COUNT(id) FROM users WHERE joined < $1;"
+	err := Connection.QueryRow(statement, date).Scan(&count)
 	return count, err
 }
