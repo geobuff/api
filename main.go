@@ -101,7 +101,7 @@ func router() http.Handler {
 	router := mux.NewRouter()
 
 	// Quiz endpoints.
-	router.HandleFunc("/api/quizzes", quizzes.GetQuizzes).Methods("GET")
+	router.HandleFunc("/api/quizzes", quizzes.GetQuizzes).Methods("POST")
 	router.HandleFunc("/api/quizzes/{id}", quizzes.GetQuiz).Methods("GET")
 	router.HandleFunc("/api/quizzes/enabled/{id}", quizzes.ToggleQuizEnabled).Methods("PUT")
 

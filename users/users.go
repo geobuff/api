@@ -40,7 +40,7 @@ func GetUsers(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	switch _, err := repo.GetFirstID(1, (page+1)*10); err {
+	switch _, err := repo.GetFirstUserID((page + 1) * 10); err {
 	case sql.ErrNoRows:
 		entriesDto := UserPageDto{users, false}
 		writer.Header().Set("Content-Type", "application/json")

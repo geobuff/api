@@ -20,85 +20,85 @@ import (
 func TestGetUsers(t *testing.T) {
 	savedIsAdmin := auth.IsAdmin
 	savedGetUsers := repo.GetUsers
-	savedGetFirstID := repo.GetFirstID
+	savedGetFirstUserID := repo.GetFirstUserID
 
 	defer func() {
 		auth.IsAdmin = savedIsAdmin
 		repo.GetUsers = savedGetUsers
-		repo.GetFirstID = savedGetFirstID
+		repo.GetFirstUserID = savedGetFirstUserID
 	}()
 
 	tt := []struct {
-		name       string
-		isAdmin    func(request *http.Request) (int, error)
-		getUsers   func(limit int, offset int) ([]repo.UserDto, error)
-		getFirstID func(limit int, offset int) (int, error)
-		page       string
-		status     int
-		hasMore    bool
+		name           string
+		isAdmin        func(request *http.Request) (int, error)
+		getUsers       func(limit int, offset int) ([]repo.UserDto, error)
+		getFirstUserID func(offset int) (int, error)
+		page           string
+		status         int
+		hasMore        bool
 	}{
 		{
-			name:       "invalid page parameter",
-			isAdmin:    auth.IsAdmin,
-			getUsers:   repo.GetUsers,
-			getFirstID: repo.GetFirstID,
-			page:       "testing",
-			status:     http.StatusBadRequest,
-			hasMore:    false,
+			name:           "invalid page parameter",
+			isAdmin:        auth.IsAdmin,
+			getUsers:       repo.GetUsers,
+			getFirstUserID: repo.GetFirstUserID,
+			page:           "testing",
+			status:         http.StatusBadRequest,
+			hasMore:        false,
 		},
 		{
-			name:       "valid page parameter, error on HasPermission",
-			isAdmin:    auth.IsAdmin,
-			getUsers:   repo.GetUsers,
-			getFirstID: repo.GetFirstID,
-			page:       "0",
-			status:     http.StatusInternalServerError,
-			hasMore:    false,
+			name:           "valid page parameter, error on HasPermission",
+			isAdmin:        auth.IsAdmin,
+			getUsers:       repo.GetUsers,
+			getFirstUserID: repo.GetFirstUserID,
+			page:           "0",
+			status:         http.StatusInternalServerError,
+			hasMore:        false,
 		},
 		{
-			name:       "valid page parameter, invalid permissions",
-			isAdmin:    func(request *http.Request) (int, error) { return http.StatusUnauthorized, errors.New("test") },
-			getUsers:   repo.GetUsers,
-			getFirstID: repo.GetFirstID,
-			page:       "0",
-			status:     http.StatusUnauthorized,
-			hasMore:    false,
+			name:           "valid page parameter, invalid permissions",
+			isAdmin:        func(request *http.Request) (int, error) { return http.StatusUnauthorized, errors.New("test") },
+			getUsers:       repo.GetUsers,
+			getFirstUserID: repo.GetFirstUserID,
+			page:           "0",
+			status:         http.StatusUnauthorized,
+			hasMore:        false,
 		},
 		{
-			name:       "valid page parameter, valid permissions, error on GetUsers",
-			isAdmin:    func(request *http.Request) (int, error) { return http.StatusOK, nil },
-			getUsers:   func(limit int, offset int) ([]repo.UserDto, error) { return nil, errors.New("test") },
-			getFirstID: repo.GetFirstID,
-			page:       "0",
-			status:     http.StatusInternalServerError,
-			hasMore:    false,
+			name:           "valid page parameter, valid permissions, error on GetUsers",
+			isAdmin:        func(request *http.Request) (int, error) { return http.StatusOK, nil },
+			getUsers:       func(limit int, offset int) ([]repo.UserDto, error) { return nil, errors.New("test") },
+			getFirstUserID: repo.GetFirstUserID,
+			page:           "0",
+			status:         http.StatusInternalServerError,
+			hasMore:        false,
 		},
 		{
-			name:       "valid page parameter, valid permissions, error on GetFirstID",
-			isAdmin:    func(request *http.Request) (int, error) { return http.StatusOK, nil },
-			getUsers:   func(limit int, offset int) ([]repo.UserDto, error) { return []repo.UserDto{}, nil },
-			getFirstID: func(limit int, offset int) (int, error) { return 0, errors.New("test") },
-			page:       "0",
-			status:     http.StatusInternalServerError,
-			hasMore:    false,
+			name:           "valid page parameter, valid permissions, error on GetFirstID",
+			isAdmin:        func(request *http.Request) (int, error) { return http.StatusOK, nil },
+			getUsers:       func(limit int, offset int) ([]repo.UserDto, error) { return []repo.UserDto{}, nil },
+			getFirstUserID: func(offset int) (int, error) { return 0, errors.New("test") },
+			page:           "0",
+			status:         http.StatusInternalServerError,
+			hasMore:        false,
 		},
 		{
-			name:       "happy path, has more is false",
-			isAdmin:    func(request *http.Request) (int, error) { return http.StatusOK, nil },
-			getUsers:   func(limit int, offset int) ([]repo.UserDto, error) { return []repo.UserDto{}, nil },
-			getFirstID: func(limit int, offset int) (int, error) { return 0, sql.ErrNoRows },
-			page:       "0",
-			status:     http.StatusOK,
-			hasMore:    false,
+			name:           "happy path, has more is false",
+			isAdmin:        func(request *http.Request) (int, error) { return http.StatusOK, nil },
+			getUsers:       func(limit int, offset int) ([]repo.UserDto, error) { return []repo.UserDto{}, nil },
+			getFirstUserID: func(offset int) (int, error) { return 0, sql.ErrNoRows },
+			page:           "0",
+			status:         http.StatusOK,
+			hasMore:        false,
 		},
 		{
-			name:       "happy path, has more is true",
-			isAdmin:    func(request *http.Request) (int, error) { return http.StatusOK, nil },
-			getUsers:   func(limit int, offset int) ([]repo.UserDto, error) { return []repo.UserDto{}, nil },
-			getFirstID: func(limit int, offset int) (int, error) { return 1, nil },
-			page:       "0",
-			status:     http.StatusOK,
-			hasMore:    true,
+			name:           "happy path, has more is true",
+			isAdmin:        func(request *http.Request) (int, error) { return http.StatusOK, nil },
+			getUsers:       func(limit int, offset int) ([]repo.UserDto, error) { return []repo.UserDto{}, nil },
+			getFirstUserID: func(offset int) (int, error) { return 1, nil },
+			page:           "0",
+			status:         http.StatusOK,
+			hasMore:        true,
 		},
 	}
 
@@ -106,7 +106,7 @@ func TestGetUsers(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			auth.IsAdmin = tc.isAdmin
 			repo.GetUsers = tc.getUsers
-			repo.GetFirstID = tc.getFirstID
+			repo.GetFirstUserID = tc.getFirstUserID
 
 			request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/users?page=%v", tc.page), nil)
 			if err != nil {
