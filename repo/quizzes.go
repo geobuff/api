@@ -42,7 +42,7 @@ type QuizzesFilterDto struct {
 
 // GetQuizzes returns all quizzes.
 var GetQuizzes = func(filter QuizzesFilterDto) ([]Quiz, error) {
-	statement := "SELECT q.id, q.typeid, q.badgeid, q.continentid, q.country, q.singular, q.name, q.maxscore, q.time, q.mapsvg, q.imageurl, q.verb, q.apipath, q.route, q.hasleaderboard, q.hasgrouping, q.hasflags, q.enabled FROM quizzes q JOIN continents c ON c.id = q.continentId WHERE q.name ILIKE '%' || $1 || '%' OR c.name ILIKE '%' || $1 || '%' ORDER BY q.id LIMIT $2 OFFSET $3;"
+	statement := "SELECT q.id, q.typeid, q.badgeid, q.continentid, q.country, q.singular, q.name, q.maxscore, q.time, q.mapsvg, q.imageurl, q.verb, q.apipath, q.route, q.hasleaderboard, q.hasgrouping, q.hasflags, q.enabled FROM quizzes q JOIN continents c ON c.id = q.continentId JOIN quizType t ON t.id = q.typeId WHERE q.name ILIKE '%' || $1 || '%' OR c.name ILIKE '%' || $1 || '%' OR t.name ILIKE '%' || $1 || '%' ORDER BY q.id LIMIT $2 OFFSET $3;"
 	rows, err := Connection.Query(statement, filter.Filter, filter.Limit, filter.Page*filter.Limit)
 	if err != nil {
 		return nil, err
