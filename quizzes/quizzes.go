@@ -1,8 +1,10 @@
 package quizzes
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -11,21 +13,44 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type ToggleQuizDto struct {
-	quizID int `json:"quizId"`
+type QuizPageDto struct {
+	Quizzes []repo.Quiz `json:"quizzes"`
+	HasMore bool        `json:"hasMore"`
 }
 
 // GetQuizzes returns all quizzes.
 func GetQuizzes(writer http.ResponseWriter, request *http.Request) {
-	filterParam := request.URL.Query().Get("filter")
-	quizzes, err := repo.GetQuizzes(filterParam)
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var filter repo.QuizzesFilterDto
+	err = json.Unmarshal(requestBody, &filter)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	quizzes, err := repo.GetQuizzes(filter)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
-	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(quizzes)
+	switch _, err := repo.GetFirstQuizID((filter.Page + 1) * filter.Limit); err {
+	case sql.ErrNoRows:
+		entriesDto := QuizPageDto{quizzes, false}
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(entriesDto)
+	case nil:
+		entriesDto := QuizPageDto{quizzes, true}
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(entriesDto)
+	default:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+	}
 }
 
 // GetQuiz gets a quiz entry by id.

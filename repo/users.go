@@ -97,10 +97,10 @@ var GetUsers = func(limit int, offset int) ([]UserDto, error) {
 }
 
 // GetFirstID returns the first ID for a given page.
-var GetFirstID = func(limit int, offset int) (int, error) {
-	statement := "SELECT id FROM users LIMIT $1 OFFSET $2;"
+var GetFirstUserID = func(offset int) (int, error) {
+	statement := "SELECT id FROM users LIMIT 1 OFFSET $1;"
 	var id int
-	err := Connection.QueryRow(statement, limit, offset).Scan(&id)
+	err := Connection.QueryRow(statement, offset).Scan(&id)
 	return id, err
 }
 

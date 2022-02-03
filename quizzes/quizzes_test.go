@@ -1,6 +1,7 @@
 package quizzes
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -14,35 +15,58 @@ import (
 
 func TestGetQuizzes(t *testing.T) {
 	savedGetQuizzes := repo.GetQuizzes
+	savedGetFirstQuizID := repo.GetFirstQuizID
 
 	defer func() {
 		repo.GetQuizzes = savedGetQuizzes
+		repo.GetFirstQuizID = savedGetFirstQuizID
 	}()
 
 	tt := []struct {
-		Name       string
-		getQuizzes func(filter string) ([]repo.Quiz, error)
-		status     int
+		Name           string
+		getQuizzes     func(filter repo.QuizzesFilterDto) ([]repo.Quiz, error)
+		getFirstQuizID func(offset int) (int, error)
+		body           string
+		status         int
 	}{
 		{
-			Name:       "error on getQuizzes",
-			getQuizzes: func(filter string) ([]repo.Quiz, error) { return nil, errors.New("test") },
-			status:     http.StatusInternalServerError,
+			Name:           "invalid body",
+			getQuizzes:     repo.GetQuizzes,
+			getFirstQuizID: repo.GetFirstQuizID,
+			body:           "testing",
+			status:         http.StatusBadRequest,
 		},
 		{
-			Name:       "happy path",
-			getQuizzes: func(filter string) ([]repo.Quiz, error) { return []repo.Quiz{}, nil },
-			status:     http.StatusOK,
+			Name:           "error on getQuizzes",
+			getQuizzes:     func(filter repo.QuizzesFilterDto) ([]repo.Quiz, error) { return nil, errors.New("test") },
+			getFirstQuizID: repo.GetFirstQuizID,
+			body:           `{"filter":"","page":0,"limit":10}`,
+			status:         http.StatusInternalServerError,
+		},
+		{
+			Name:           "error on getFirstQuizID",
+			getQuizzes:     func(filter repo.QuizzesFilterDto) ([]repo.Quiz, error) { return []repo.Quiz{}, nil },
+			getFirstQuizID: func(offset int) (int, error) { return 0, errors.New("test") },
+			body:           `{"filter":"","page":0,"limit":10}`,
+			status:         http.StatusInternalServerError,
+		},
+		{
+			Name:           "happy path",
+			getQuizzes:     func(filter repo.QuizzesFilterDto) ([]repo.Quiz, error) { return []repo.Quiz{}, nil },
+			getFirstQuizID: func(offset int) (int, error) { return 1, nil },
+			body:           `{"filter":"","page":0,"limit":10}`,
+			status:         http.StatusOK,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
 			repo.GetQuizzes = tc.getQuizzes
+			repo.GetFirstQuizID = tc.getFirstQuizID
 
-			request, err := http.NewRequest("GET", "", nil)
+			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
-				t.Fatalf("could not create GET request: %v", err)
+				t.Fatalf("could not create POST request: %v", err)
 			}
 
 			writer := httptest.NewRecorder()
@@ -60,7 +84,7 @@ func TestGetQuizzes(t *testing.T) {
 					t.Fatalf("could not read response: %v", err)
 				}
 
-				var parsed []repo.Quiz
+				var parsed QuizPageDto
 				err = json.Unmarshal(body, &parsed)
 				if err != nil {
 					t.Errorf("could not unmarshal response body: %v", err)
