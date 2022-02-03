@@ -34,10 +34,16 @@ type TriviaQuizDto struct {
 	Country  string `json:"country"`
 }
 
+type QuizzesFilterDto struct {
+	Filter string `json:"filter"`
+	Page   int    `json:"page"`
+	Limit  int    `json:"limit"`
+}
+
 // GetQuizzes returns all quizzes.
-var GetQuizzes = func(filter string) ([]Quiz, error) {
-	statement := "SELECT * FROM quizzes WHERE name ILIKE '%' || $1 || '%';"
-	rows, err := Connection.Query(statement, filter)
+var GetQuizzes = func(filter QuizzesFilterDto) ([]Quiz, error) {
+	statement := "SELECT q.id, q.typeid, q.badgeid, q.continentid, q.country, q.singular, q.name, q.maxscore, q.time, q.mapsvg, q.imageurl, q.verb, q.apipath, q.route, q.hasleaderboard, q.hasgrouping, q.hasflags, q.enabled FROM quizzes q JOIN continents c ON c.id = q.continentId WHERE q.name ILIKE '%' || $1 || '%' OR c.name ILIKE '%' || $1 || '%' ORDER BY q.id LIMIT $2 OFFSET $3;"
+	rows, err := Connection.Query(statement, filter.Filter, filter.Limit, filter.Page*filter.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -52,6 +58,13 @@ var GetQuizzes = func(filter string) ([]Quiz, error) {
 		quizzes = append(quizzes, quiz)
 	}
 	return quizzes, rows.Err()
+}
+
+var GetFirstQuizID = func(offset int) (int, error) {
+	statement := "SELECT id FROM quizzes LIMIT 1 OFFSET $1;"
+	var id int
+	err := Connection.QueryRow(statement, offset).Scan(&id)
+	return id, err
 }
 
 // GetQuiz return a quiz with the matching id.
