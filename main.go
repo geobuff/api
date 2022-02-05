@@ -160,10 +160,11 @@ func router() http.Handler {
 	router.HandleFunc("/api/checkout/webhook", checkout.HandleWebhook).Methods("POST")
 
 	// Order endpoints.
-	router.HandleFunc("/api/orders/{statusId}", orders.GetOrdersByStatusId).Methods("GET")
+	router.HandleFunc("/api/orders", orders.GetOrders).Methods("POST")
 	router.HandleFunc("/api/orders/user/{email}", orders.GetUserOrders).Methods("GET")
 	router.HandleFunc("/api/orders/status/{id}", orders.UpdateOrderStatus).Methods("PUT")
-	router.HandleFunc("/api/orders/{email}", orders.CancelOrder).Methods("DELETE")
+	router.HandleFunc("/api/orders/{id}", orders.DeleteOrder).Methods("DELETE")
+	router.HandleFunc("/api/orders/email/{email}", orders.CancelOrder).Methods("DELETE")
 
 	// Avatar endpoints.
 	router.HandleFunc("/api/avatars", avatars.GetAvatars).Methods("GET")
