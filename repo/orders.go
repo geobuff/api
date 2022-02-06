@@ -57,6 +57,7 @@ type CreateCheckoutDto struct {
 type OrderDto struct {
 	Id        int            `json:"id"`
 	Items     []OrderItemDto `json:"items"`
+	StatusId  int            `json:"statusId"`
 	Status    string         `json:"status"`
 	FirstName string         `json:"firstName"`
 	LastName  string         `json:"lastName"`
@@ -73,6 +74,12 @@ type OrderItemDto struct {
 	SizeName string `json:"sizeName"`
 	ImageUrl string `json:"imageUrl"`
 	Quantity int    `json:"quantity"`
+}
+
+type OrdersFilterDto struct {
+	StatusID int `json:"statusId"`
+	Page     int `json:"page"`
+	Limit    int `json:"limit"`
 }
 
 func InsertOrder(order CreateCheckoutDto) (int, error) {
@@ -126,6 +133,7 @@ func GetNonPendingOrders(email string) ([]OrderDto, error) {
 		temp := OrderDto{
 			Id:        order.ID,
 			Items:     items,
+			StatusId:  order.StatusID,
 			Status:    status,
 			FirstName: order.FirstName,
 			LastName:  order.LastName,
@@ -172,6 +180,12 @@ func UpdateStatusLatestOrder(email string) error {
 	return Connection.QueryRow(statement, ORDER_STATUS_PAYMENT_RECEIVED, email).Scan(&id)
 }
 
+func DeleteOrder(orderId int) error {
+	statement := "DELETE FROM orders WHERE id = $1 returning id;"
+	var id int
+	return Connection.QueryRow(statement, orderId).Scan(&id)
+}
+
 func RemoveLatestPendingOrder(email string) error {
 	statement := "SELECT id from orders where email = $1 AND statusid = $2 order by added desc LIMIT 1;"
 	var orderId int
@@ -185,8 +199,9 @@ func RemoveLatestPendingOrder(email string) error {
 	return Connection.QueryRow("DELETE from orders where id = $1;", orderId).Scan(&id)
 }
 
-func GetOrdersByStatusId(statusId int) ([]OrderDto, error) {
-	rows, err := Connection.Query("SELECT * FROM orders WHERE statusid = $1;", statusId)
+func GetOrders(filter OrdersFilterDto) ([]OrderDto, error) {
+	statement := "SELECT * FROM orders WHERE statusid = $1 LIMIT $2 OFFSET $3;"
+	rows, err := Connection.Query(statement, filter.StatusID, filter.Limit, filter.Limit*filter.Page)
 	if err != nil {
 		return nil, err
 	}
@@ -211,6 +226,8 @@ func GetOrdersByStatusId(statusId int) ([]OrderDto, error) {
 
 		temp := OrderDto{
 			Items:     items,
+			Id:        order.ID,
+			StatusId:  order.StatusID,
 			Status:    status,
 			FirstName: order.FirstName,
 			LastName:  order.LastName,
@@ -226,8 +243,15 @@ func GetOrdersByStatusId(statusId int) ([]OrderDto, error) {
 	return orders, rows.Err()
 }
 
+var GetFirstOrderID = func(statusID, offset int) (int, error) {
+	statement := "SELECT id FROM orders WHERE statusid = $1 LIMIT 1 OFFSET $2;"
+	var id int
+	err := Connection.QueryRow(statement, statusID, offset).Scan(&id)
+	return id, err
+}
+
 func UpdateOrderStatus(orderID, statusID int) error {
 	statement := "UPDATE orders set statusId = $1 where id = $2 returning id;"
 	var id int
-	return Connection.QueryRow(statement, statusID, id).Scan(&id)
+	return Connection.QueryRow(statement, statusID, orderID).Scan(&id)
 }
