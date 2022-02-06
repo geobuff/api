@@ -28,6 +28,29 @@ type BadgeDto struct {
 	Total       int    `json:"total"`
 }
 
+type CreateQuizBadgeDto struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+func GetBadges() ([]CreateQuizBadgeDto, error) {
+	rows, err := Connection.Query("SELECT id, name from badges;")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var badges = []CreateQuizBadgeDto{}
+	for rows.Next() {
+		var badge CreateQuizBadgeDto
+		if err = rows.Scan(&badge.ID, &badge.Name); err != nil {
+			return nil, err
+		}
+		badges = append(badges, badge)
+	}
+	return badges, rows.Err()
+}
+
 // GetUserBadges returns all badges for a user.
 var GetUserBadges = func(userId int) ([]BadgeDto, error) {
 	leaderboardEntries, err := GetUserLeaderboardEntries(userId)

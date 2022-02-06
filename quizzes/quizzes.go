@@ -89,3 +89,32 @@ func ToggleQuizEnabled(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 }
+
+func CreateQuiz(writer http.ResponseWriter, request *http.Request) {
+	if code, err := auth.IsAdmin(request); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var newQuiz repo.CreateQuizDto
+	err = json.Unmarshal(requestBody, &newQuiz)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	quiz, err := repo.CreateQuiz(newQuiz)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(quiz)
+}
