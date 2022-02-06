@@ -13,12 +13,14 @@ import (
 	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/checkout"
+	"github.com/geobuff/api/continents"
 	"github.com/geobuff/api/discounts"
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/mappings"
 	"github.com/geobuff/api/merch"
 	"github.com/geobuff/api/orders"
 	"github.com/geobuff/api/quizplays"
+	"github.com/geobuff/api/quiztype"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
 	"github.com/geobuff/api/tempscores"
@@ -102,9 +104,13 @@ func router() http.Handler {
 	router := mux.NewRouter()
 
 	// Quiz endpoints.
-	router.HandleFunc("/api/quizzes", quizzes.GetQuizzes).Methods("POST")
+	router.HandleFunc("/api/quizzes/all", quizzes.GetQuizzes).Methods("POST")
 	router.HandleFunc("/api/quizzes/{id}", quizzes.GetQuiz).Methods("GET")
+	router.HandleFunc("/api/quizzes", quizzes.CreateQuiz).Methods("POST")
 	router.HandleFunc("/api/quizzes/enabled/{id}", quizzes.ToggleQuizEnabled).Methods("PUT")
+
+	// Quiz Type endpoints.
+	router.HandleFunc("/api/quiztype", quiztype.GetTypes).Methods("GET")
 
 	// Quiz Plays endpoints.
 	router.HandleFunc("/api/quiz-plays", quizplays.GetAllQuizPlays).Methods("GET")
@@ -124,6 +130,9 @@ func router() http.Handler {
 	// Mapping endpoints.
 	router.HandleFunc("/api/mappings/{key}", mappings.GetMapping).Methods("GET")
 
+	// Continent endpoints.
+	router.HandleFunc("/api/continents", continents.GetContinents).Methods("GET")
+
 	// Auth endpoints.
 	router.HandleFunc("/api/auth/login", auth.Login).Methods("POST")
 	router.HandleFunc("/api/auth/register", auth.Register).Methods("POST")
@@ -142,6 +151,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/users/{id}", users.DeleteUser).Methods("DELETE")
 
 	// Badge endpoints.
+	router.HandleFunc("/api/badges", badges.GetBadges).Methods("GET")
 	router.HandleFunc("/api/badges/{userId}", badges.GetUserBadges).Methods("GET")
 
 	// Temp Score endpoints.

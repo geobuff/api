@@ -40,6 +40,26 @@ type QuizzesFilterDto struct {
 	Limit  int    `json:"limit"`
 }
 
+type CreateQuizDto struct {
+	TypeID         int           `json:"typeId"`
+	BadgeID        int           `json:"badgeId"`
+	ContinentID    sql.NullInt64 `json:"continentId"`
+	Country        string        `json:"country"`
+	Singular       string        `json:"singular"`
+	Name           string        `json:"name"`
+	MaxScore       int           `json:"maxScore"`
+	Time           int           `json:"time"`
+	MapSVG         string        `json:"mapSVG"`
+	ImageURL       string        `json:"imageUrl"`
+	Verb           string        `json:"verb"`
+	APIPath        string        `json:"apiPath"`
+	Route          string        `json:"route"`
+	HasLeaderboard bool          `json:"hasLeaderboard"`
+	HasGrouping    bool          `json:"hasGrouping"`
+	HasFlags       bool          `json:"hasFlags"`
+	Enabled        bool          `json:"enabled"`
+}
+
 // GetQuizzes returns all quizzes.
 var GetQuizzes = func(filter QuizzesFilterDto) ([]Quiz, error) {
 	statement := "SELECT q.id, q.typeid, q.badgeid, q.continentid, q.country, q.singular, q.name, q.maxscore, q.time, q.mapsvg, q.imageurl, q.verb, q.apipath, q.route, q.hasleaderboard, q.hasgrouping, q.hasflags, q.enabled FROM quizzes q JOIN quizType t ON t.id = q.typeId WHERE q.name ILIKE '%' || $1 || '%' OR t.name ILIKE '%' || $1 || '%' ORDER BY q.id LIMIT $2 OFFSET $3;"
@@ -96,6 +116,13 @@ func ToggleQuizEnabled(quizID int) (int, error) {
 	var id int
 	err := Connection.QueryRow(statement, quizID).Scan(&id)
 	return id, err
+}
+
+func CreateQuiz(newQuiz CreateQuizDto) (Quiz, error) {
+	statement := "INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxScore, time, mapSVG, imageUrl, verb, apiPath, route, hasLeaderboard, hasGrouping, hasFlags, enabled) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) RETURNING *;"
+	var quiz Quiz
+	err := Connection.QueryRow(statement, newQuiz.TypeID, newQuiz.BadgeID, newQuiz.ContinentID, newQuiz.Country, newQuiz.Singular, newQuiz.Name, newQuiz.MaxScore, newQuiz.Time, newQuiz.MapSVG, newQuiz.ImageURL, newQuiz.Verb, newQuiz.APIPath, newQuiz.Route, newQuiz.HasLeaderboard, newQuiz.HasGrouping, newQuiz.HasFlags, newQuiz.Enabled).Scan(&quiz.ID, &quiz.TypeID, &quiz.BadgeID, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
+	return quiz, err
 }
 
 func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
