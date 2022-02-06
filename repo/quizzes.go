@@ -8,7 +8,7 @@ import (
 type Quiz struct {
 	ID             int           `json:"id"`
 	TypeID         int           `json:"typeId"`
-	BadgeID        int           `json:"badgeId"`
+	BadgeID        sql.NullInt64 `json:"badgeId"`
 	ContinentID    sql.NullInt64 `json:"continentId"`
 	Country        string        `json:"country"`
 	Singular       string        `json:"singular"`
@@ -42,7 +42,7 @@ type QuizzesFilterDto struct {
 
 type CreateQuizDto struct {
 	TypeID         int           `json:"typeId"`
-	BadgeID        int           `json:"badgeId"`
+	BadgeID        sql.NullInt64 `json:"badgeId"`
 	ContinentID    sql.NullInt64 `json:"continentId"`
 	Country        string        `json:"country"`
 	Singular       string        `json:"singular"`
