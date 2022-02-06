@@ -20,11 +20,14 @@ require (
 )
 
 require (
+	github.com/didip/tollbooth v4.0.2+incompatible // indirect
 	github.com/gertd/go-pluralize v0.1.7 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	go.uber.org/atomic v1.9.0 // indirect
+	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
 )
