@@ -110,6 +110,7 @@ var topLandmass = []string{
 	"Kenya",
 	"France",
 	"Yemen",
+	"New Zealand",
 }
 
 func CreateTrivia() error {
