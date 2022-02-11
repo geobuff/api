@@ -16,6 +16,7 @@ import (
 	"github.com/geobuff/api/continents"
 	"github.com/geobuff/api/discounts"
 	"github.com/geobuff/api/leaderboard"
+	"github.com/geobuff/api/manualtriviaquestions"
 	"github.com/geobuff/api/mappings"
 	"github.com/geobuff/api/merch"
 	"github.com/geobuff/api/orders"
@@ -126,6 +127,9 @@ func router() http.Handler {
 	// Trivia Plays endpoints.
 	router.HandleFunc("/api/trivia-plays/week", triviaplays.GetLastWeekTriviaPlays).Methods("GET")
 	router.HandleFunc("/api/trivia-plays/{id}", triviaplays.IncrementTriviaPlays).Methods("PUT")
+
+	// Manual Trivia Question endpoints.
+	router.HandleFunc("/api/manual-trivia-questions", manualtriviaquestions.GetManualTriviaQuestions).Methods("GET")
 
 	// Mapping endpoints.
 	router.HandleFunc("/api/mappings/{key}", mappings.GetMapping).Methods("GET")

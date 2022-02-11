@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/geobuff/api/landmass"
 	"github.com/geobuff/mapping"
 )
 
@@ -17,100 +18,10 @@ type Trivia struct {
 	Date time.Time `json:"date"`
 }
 
-type TriviaQuestion struct {
-	ID          int    `json:"id"`
-	TriviaId    int    `json:"triviaId"`
-	TypeID      int    `json:"typeID"`
-	Question    string `json:"question"`
-	Map         string `json:"map"`
-	Highlighted string `json:"hightlighted"`
-	FlagCode    string `json:"flagCode"`
-	ImageURL    string `json:"imageUrl"`
-}
-
-type TriviaAnswer struct {
-	ID               int    `json:"id"`
-	TriviaQuestionID int    `json:"triviaQuestionId"`
-	Text             string `json:"text"`
-	IsCorrect        bool   `json:"isCorrect"`
-	FlagCode         string `json:"flagCode"`
-}
-
 type TriviaDto struct {
 	ID        int           `json:"id"`
 	Name      string        `json:"name"`
 	Questions []QuestionDto `json:"questions"`
-}
-
-type QuestionDto struct {
-	ID          int         `json:"id"`
-	Type        string      `json:"type"`
-	Question    string      `json:"question"`
-	Map         string      `json:"map"`
-	Highlighted string      `json:"highlighted"`
-	FlagCode    string      `json:"flagCode"`
-	ImageURL    string      `json:"imageUrl"`
-	Answers     []AnswerDto `json:"answers"`
-}
-
-type AnswerDto struct {
-	Text      string `json:"text"`
-	IsCorrect bool   `json:"isCorrect"`
-	FlagCode  string `json:"flagCode"`
-}
-
-var topLandmass = []string{
-	"Russia",
-	"Canada",
-	"China",
-	"United States",
-	"Brazil",
-	"Australia",
-	"India",
-	"Argentina",
-	"Kazakhstan",
-	"Algeria",
-	"Democratic Republic of the Congo",
-	"Denmark",
-	"Saudi Arabia",
-	"Mexico",
-	"Indonesia",
-	"Sudan",
-	"Libya",
-	"Iran",
-	"Mongolia",
-	"Peru",
-	"Chad",
-	"Niger",
-	"Angola",
-	"Mali",
-	"South Africa",
-	"Colombia",
-	"Ethiopia",
-	"Bolivia",
-	"Mauritania",
-	"Egypt",
-	"Tanzania",
-	"Nigeria",
-	"Venezuela",
-	"Pakistan",
-	"Namibia",
-	"Mozambique",
-	"Turkey",
-	"Chile",
-	"Zambia",
-	"Myanmar",
-	"Afghanistan",
-	"Somalia",
-	"Central African Republic",
-	"South Sudan",
-	"Ukraine",
-	"Madagascar",
-	"Botswana",
-	"Kenya",
-	"France",
-	"Yemen",
-	"New Zealand",
 }
 
 func CreateTrivia() error {
@@ -188,23 +99,10 @@ func randomBool() bool {
 	return rand.Float32() < 0.5
 }
 
-func createQuestion(question TriviaQuestion) (int, error) {
-	statement := "INSERT INTO triviaQuestions (triviaId, typeId, question, map, highlighted, flagCode, imageUrl) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
-	var id int
-	err := Connection.QueryRow(statement, question.TriviaId, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageURL).Scan(&id)
-	return id, err
-}
-
-func createAnswer(answer TriviaAnswer) error {
-	statement := "INSERT INTO triviaAnswers (triviaQuestionId, text, isCorrect, flagCode) VALUES ($1, $2, $3, $4) RETURNING id;"
-	var id int
-	return Connection.QueryRow(statement, answer.TriviaQuestionID, answer.Text, answer.IsCorrect, answer.FlagCode).Scan(&id)
-}
-
 func whatCountry(triviaId int) error {
-	max := len(topLandmass)
+	max := len(landmass.TopLandmass)
 	index := rand.Intn(max)
-	country := topLandmass[index]
+	country := landmass.TopLandmass[index]
 
 	question := TriviaQuestion{
 		TriviaId:    triviaId,
@@ -214,7 +112,7 @@ func whatCountry(triviaId int) error {
 		Highlighted: country,
 	}
 
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -224,7 +122,7 @@ func whatCountry(triviaId int) error {
 		Text:             country,
 		IsCorrect:        true,
 	}
-	err = createAnswer(answer)
+	err = CreateTriviaAnswer(answer)
 	if err != nil {
 		return err
 	}
@@ -248,7 +146,7 @@ func whatCountry(triviaId int) error {
 			IsCorrect:        false,
 		}
 
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -261,9 +159,9 @@ func whatCountry(triviaId int) error {
 }
 
 func whatCapital(triviaId int) error {
-	max := len(topLandmass)
+	max := len(landmass.TopLandmass)
 	index := rand.Intn(max)
-	country := topLandmass[index]
+	country := landmass.TopLandmass[index]
 	var code string
 	for _, val := range mapping.Mappings["world-countries"] {
 		if val.SVGName == country {
@@ -281,7 +179,7 @@ func whatCapital(triviaId int) error {
 		Highlighted: capitalName,
 	}
 
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -291,7 +189,7 @@ func whatCapital(triviaId int) error {
 		Text:             capitalName,
 		IsCorrect:        true,
 	}
-	err = createAnswer(answer)
+	err = CreateTriviaAnswer(answer)
 	if err != nil {
 		return err
 	}
@@ -315,7 +213,7 @@ func whatCapital(triviaId int) error {
 			IsCorrect:        false,
 		}
 
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -352,7 +250,7 @@ func whatUSState(triviaId int) error {
 		Highlighted: state.SVGName,
 	}
 
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -363,7 +261,7 @@ func whatUSState(triviaId int) error {
 		IsCorrect:        true,
 	}
 
-	err = createAnswer(answer)
+	err = CreateTriviaAnswer(answer)
 	if err != nil {
 		return err
 	}
@@ -377,7 +275,7 @@ func whatUSState(triviaId int) error {
 			IsCorrect:        false,
 		}
 
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -404,7 +302,7 @@ func whatFlag(triviaId int) error {
 		FlagCode: country.Code,
 	}
 
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -414,7 +312,7 @@ func whatFlag(triviaId int) error {
 		Text:             country.SVGName,
 		IsCorrect:        true,
 	}
-	err = createAnswer(answer)
+	err = CreateTriviaAnswer(answer)
 	if err != nil {
 		return err
 	}
@@ -428,7 +326,7 @@ func whatFlag(triviaId int) error {
 			IsCorrect:        false,
 		}
 
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -462,7 +360,7 @@ func whatRegionInCountry(triviaId int) error {
 		Map:         quiz.MapSVG,
 		Highlighted: region.SVGName,
 	}
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -472,7 +370,7 @@ func whatRegionInCountry(triviaId int) error {
 		Text:             region.SVGName,
 		IsCorrect:        true,
 	}
-	err = createAnswer(answer)
+	err = CreateTriviaAnswer(answer)
 	if err != nil {
 		return err
 	}
@@ -488,7 +386,7 @@ func whatRegionInCountry(triviaId int) error {
 			IsCorrect:        false,
 		}
 
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -522,7 +420,7 @@ func whatFlagInCountry(triviaId int) error {
 		Question: fmt.Sprintf("Which of the flags of %s is shown above?", quizNameSplit[len(quizNameSplit)-1]),
 		FlagCode: region.Code,
 	}
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -532,7 +430,7 @@ func whatFlagInCountry(triviaId int) error {
 		Text:             region.SVGName,
 		IsCorrect:        true,
 	}
-	err = createAnswer(answer)
+	err = CreateTriviaAnswer(answer)
 	if err != nil {
 		return err
 	}
@@ -548,7 +446,7 @@ func whatFlagInCountry(triviaId int) error {
 			IsCorrect:        false,
 		}
 
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -596,7 +494,7 @@ func trueFalseCountryInContinent(triviaId int, answer bool) error {
 		Question: fmt.Sprintf("%s is in %s", country.SVGName, continent),
 	}
 
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -615,7 +513,7 @@ func trueFalseCountryInContinent(triviaId int, answer bool) error {
 	}
 
 	for _, answer := range answers {
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -657,7 +555,7 @@ func trueFalseCapitalOfCountry(triviaId int, answer bool) error {
 		Question: fmt.Sprintf("%s is the capital city of %s", capitalName, country.SVGName),
 	}
 
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -676,7 +574,7 @@ func trueFalseCapitalOfCountry(triviaId int, answer bool) error {
 	}
 
 	for _, answer := range answers {
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -738,7 +636,7 @@ func trueFalseRegionInCountry(triviaId int, answer bool) error {
 		Question: fmt.Sprintf("%s is a %s of %s", region, quiz.Singular, quiz.Country),
 	}
 
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -757,7 +655,7 @@ func trueFalseRegionInCountry(triviaId int, answer bool) error {
 	}
 
 	for _, answer := range answers {
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -812,7 +710,7 @@ func trueFalseFlagForCountry(triviaId int, answer bool) error {
 		FlagCode: flagCode,
 	}
 
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -831,7 +729,7 @@ func trueFalseFlagForCountry(triviaId int, answer bool) error {
 	}
 
 	for _, answer := range answers {
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
