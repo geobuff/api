@@ -9,11 +9,12 @@ import (
 
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
+	"github.com/gorilla/mux"
 )
 
 type ManualQuestionsDto struct {
-	Questions []repo.ManualTriviaQuestion `json:"questions"`
-	HasMore   bool                        `json:"hasMore"`
+	Questions []repo.ManualTriviaQuestionDto `json:"questions"`
+	HasMore   bool                           `json:"hasMore"`
 }
 
 func GetManualTriviaQuestions(writer http.ResponseWriter, request *http.Request) {
@@ -46,5 +47,24 @@ func GetManualTriviaQuestions(writer http.ResponseWriter, request *http.Request)
 		json.NewEncoder(writer).Encode(entriesDto)
 	default:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+	}
+}
+
+func DeleteManualTriviaQuestion(writer http.ResponseWriter, request *http.Request) {
+	if code, err := auth.IsAdmin(request); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(request)["id"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	err = repo.DeleteManualTriviaQuestion(id)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
 	}
 }
