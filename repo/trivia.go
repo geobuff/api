@@ -23,6 +23,11 @@ type TriviaDto struct {
 	Questions []QuestionDto `json:"questions"`
 }
 
+type GetTriviaFilter struct {
+	Page  int `json:"page"`
+	Limit int `json:"limit"`
+}
+
 func CreateTrivia() error {
 	date := time.Now().AddDate(0, 0, 1)
 	var id int
@@ -386,8 +391,8 @@ func setRandomManualTriviaQuestions(triviaID, typeID, quantity int) error {
 	return nil
 }
 
-func GetAllTrivia() ([]Trivia, error) {
-	rows, err := Connection.Query("SELECT * FROM trivia ORDER BY date DESC LIMIT 20;")
+func GetAllTrivia(filter GetTriviaFilter) ([]Trivia, error) {
+	rows, err := Connection.Query("SELECT * FROM trivia ORDER BY date DESC LIMIT $1 OFFSET $2;", filter.Limit, filter.Page*filter.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -402,6 +407,13 @@ func GetAllTrivia() ([]Trivia, error) {
 		trivia = append(trivia, quiz)
 	}
 	return trivia, rows.Err()
+}
+
+func GetFirstTriviaID(offset int) (int, error) {
+	statement := "SELECT id FROM trivia LIMIT 1 OFFSET $1;"
+	var id int
+	err := Connection.QueryRow(statement, offset).Scan(&id)
+	return id, err
 }
 
 func GetTrivia(date string) (*TriviaDto, error) {
