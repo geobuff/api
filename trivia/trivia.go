@@ -1,13 +1,20 @@
 package trivia
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
 )
+
+type GetTriviaDto struct {
+	Trivia  []repo.Trivia `json:"trivia"`
+	HasMore bool          `json:"hasMore"`
+}
 
 func GenerateTrivia(writer http.ResponseWriter, request *http.Request) {
 	err := repo.CreateTrivia()
@@ -18,14 +25,37 @@ func GenerateTrivia(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetAllTrivia(writer http.ResponseWriter, request *http.Request) {
-	trivia, err := repo.GetAllTrivia()
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var filter repo.GetTriviaFilter
+	err = json.Unmarshal(requestBody, &filter)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	trivia, err := repo.GetAllTrivia(filter)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
-	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(trivia)
+	switch _, err := repo.GetFirstTriviaID((filter.Page + 1) * filter.Limit); err {
+	case sql.ErrNoRows:
+		entriesDto := GetTriviaDto{trivia, false}
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(entriesDto)
+	case nil:
+		entriesDto := GetTriviaDto{trivia, true}
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(entriesDto)
+	default:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+	}
 }
 
 func GetTriviaByDate(writer http.ResponseWriter, request *http.Request) {
