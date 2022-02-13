@@ -27,6 +27,7 @@ import (
 	"github.com/geobuff/api/tempscores"
 	"github.com/geobuff/api/trivia"
 	"github.com/geobuff/api/triviaplays"
+	"github.com/geobuff/api/triviaquestiontype"
 	"github.com/geobuff/api/users"
 	"github.com/geobuff/api/validation"
 	"github.com/golang-migrate/migrate/v4"
@@ -128,8 +129,12 @@ func router() http.Handler {
 	router.HandleFunc("/api/trivia-plays/week", triviaplays.GetLastWeekTriviaPlays).Methods("GET")
 	router.HandleFunc("/api/trivia-plays/{id}", triviaplays.IncrementTriviaPlays).Methods("PUT")
 
+	// Trivia Question Type endpoints.
+	router.HandleFunc("/api/trivia-question-types", triviaquestiontype.GetTriviaQuestionTypes).Methods("GET")
+
 	// Manual Trivia Question endpoints.
 	router.HandleFunc("/api/manual-trivia-questions", manualtriviaquestions.GetManualTriviaQuestions).Methods("GET")
+	router.HandleFunc("/api/manual-trivia-questions", manualtriviaquestions.CreateManualTriviaQuestion).Methods("POST")
 	router.HandleFunc("/api/manual-trivia-questions/{id}", manualtriviaquestions.DeleteManualTriviaQuestion).Methods("DELETE")
 
 	// Mapping endpoints.
