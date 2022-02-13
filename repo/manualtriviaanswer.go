@@ -20,21 +20,21 @@ func CreateManualTriviaAnswer(questionID int, answer CreateManualTriviaAnswerDto
 	return Connection.QueryRow(statement, questionID, answer.Text, answer.IsCorrect, answer.FlagCode).Scan(&id)
 }
 
-func GetManualTriviaAnswers(questionID int) ([]string, error) {
-	rows, err := Connection.Query("SELECT text FROM manualtriviaanswers WHERE manualtriviaquestionid = $1;", questionID)
+func GetManualTriviaAnswers(questionID int) ([]ManualTriviaAnswer, error) {
+	rows, err := Connection.Query("SELECT * FROM manualtriviaanswers WHERE manualtriviaquestionid = $1;", questionID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var answers = []string{}
+	var answers = []ManualTriviaAnswer{}
 	for rows.Next() {
-		var answer string
-		if err = rows.Scan(&answer); err != nil {
+		var answer ManualTriviaAnswer
+		if err = rows.Scan(&answer.ID, &answer.ManualTriviaQuestionID, &answer.Text, &answer.IsCorrect, &answer.FlagCode); err != nil {
 			return nil, err
 		}
 		answers = append(answers, answer)
 	}
 
-	return answers, nil
+	return answers, rows.Err()
 }

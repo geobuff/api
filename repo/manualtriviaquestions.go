@@ -11,10 +11,10 @@ type ManualTriviaQuestion struct {
 }
 
 type ManualTriviaQuestionDto struct {
-	ID       int      `json:"id"`
-	Type     string   `json:"type"`
-	Question string   `json:"question"`
-	Answers  []string `json:"answers"`
+	ID       int                  `json:"id"`
+	Type     string               `json:"type"`
+	Question string               `json:"question"`
+	Answers  []ManualTriviaAnswer `json:"answers"`
 }
 
 type CreateManualTriviaQuestionDto struct {
@@ -79,4 +79,22 @@ func DeleteManualTriviaQuestion(questionID int) error {
 	Connection.QueryRow("DELETE FROM manualtriviaanswers WHERE manualTriviaQuestionId = $1;", questionID)
 	var id int
 	return Connection.QueryRow("DELETE FROM manualtriviaquestions WHERE id = $1 RETURNING id;", questionID).Scan(&id)
+}
+
+func GetManualTriviaQuestions(typeID int) ([]ManualTriviaQuestion, error) {
+	rows, err := Connection.Query("SELECT * FROM manualtriviaquestions WHERE typeid = $1;", typeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var questions = []ManualTriviaQuestion{}
+	for rows.Next() {
+		var question ManualTriviaQuestion
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL); err != nil {
+			return nil, err
+		}
+		questions = append(questions, question)
+	}
+	return questions, rows.Err()
 }
