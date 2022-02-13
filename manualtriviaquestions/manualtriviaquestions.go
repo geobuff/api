@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -47,6 +48,32 @@ func GetManualTriviaQuestions(writer http.ResponseWriter, request *http.Request)
 		json.NewEncoder(writer).Encode(entriesDto)
 	default:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+	}
+}
+
+func CreateManualTriviaQuestion(writer http.ResponseWriter, request *http.Request) {
+	if code, err := auth.IsAdmin(request); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var question repo.CreateManualTriviaQuestionDto
+	err = json.Unmarshal(requestBody, &question)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	err = repo.CreateManualTriviaQuestion(question)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
 	}
 }
 
