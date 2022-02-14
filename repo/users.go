@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"strings"
 	"time"
+
+	"github.com/geobuff/api/helpers"
 )
 
 // User is the database object for a user entry.
@@ -142,38 +144,11 @@ var UpdateUser = func(userID int, user UpdateUserDto) error {
 }
 
 func UpdateUserXP(userID, score, maxScore int) (int, error) {
-	increase := calculateXPIncrease(score, maxScore)
+	increase := helpers.CalculateXPIncrease(score, maxScore)
 	statement := "UPDATE users set xp = xp + $2 WHERE id = $1 RETURNING id;"
 	var id int
 	err := Connection.QueryRow(statement, userID, increase).Scan(&id)
 	return increase, err
-}
-
-func calculateXPIncrease(score, maxScore int) int {
-	percent := (float64(score) / float64(maxScore)) * 100
-	if maxScore <= 112 {
-		if percent > 66.6 {
-			return 3
-		}
-		if percent > 33.3 {
-			return 2
-		}
-		return 1
-	}
-
-	if percent > 90 {
-		return 5
-	}
-	if percent > 75 {
-		return 4
-	}
-	if percent > 50 {
-		return 3
-	}
-	if percent > 25 {
-		return 2
-	}
-	return 1
 }
 
 // DeleteUser deletes a users scores, leaderboard entries and then the user entry in the users table.

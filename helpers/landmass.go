@@ -1,4 +1,4 @@
-package landmass
+package helpers
 
 var TopLandmass = []string{
 	"Russia",
