@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/geobuff/api/landmass"
+	"github.com/geobuff/api/helpers"
 	"github.com/geobuff/mapping"
 )
 
@@ -94,9 +94,9 @@ func randomBool() bool {
 }
 
 func whatCountry(triviaId int) error {
-	max := len(landmass.TopLandmass)
+	max := len(helpers.TopLandmass)
 	index := rand.Intn(max)
-	country := landmass.TopLandmass[index]
+	country := helpers.TopLandmass[index]
 
 	question := TriviaQuestion{
 		TriviaId:    triviaId,
@@ -153,9 +153,9 @@ func whatCountry(triviaId int) error {
 }
 
 func whatCapital(triviaId int) error {
-	max := len(landmass.TopLandmass)
+	max := len(helpers.TopLandmass)
 	index := rand.Intn(max)
-	country := landmass.TopLandmass[index]
+	country := helpers.TopLandmass[index]
 	var code string
 	for _, val := range mapping.Mappings["world-countries"] {
 		if val.SVGName == country {
