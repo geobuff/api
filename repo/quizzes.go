@@ -35,9 +35,10 @@ type TriviaQuizDto struct {
 }
 
 type QuizzesFilterDto struct {
-	Filter string `json:"filter"`
-	Page   int    `json:"page"`
-	Limit  int    `json:"limit"`
+	Filter            string `json:"filter"`
+	Page              int    `json:"page"`
+	Limit             int    `json:"limit"`
+	OrderByPopularity bool   `json:"orderByPopularity"`
 }
 
 type CreateQuizDto struct {
@@ -62,8 +63,8 @@ type CreateQuizDto struct {
 
 // GetQuizzes returns all quizzes.
 var GetQuizzes = func(filter QuizzesFilterDto) ([]Quiz, error) {
-	statement := "SELECT q.id, q.typeid, q.badgeid, q.continentid, q.country, q.singular, q.name, q.maxscore, q.time, q.mapsvg, q.imageurl, q.verb, q.apipath, q.route, q.hasleaderboard, q.hasgrouping, q.hasflags, q.enabled FROM quizzes q JOIN quizType t ON t.id = q.typeId WHERE q.name ILIKE '%' || $1 || '%' OR t.name ILIKE '%' || $1 || '%' ORDER BY q.id LIMIT $2 OFFSET $3;"
-	rows, err := Connection.Query(statement, filter.Filter, filter.Limit, filter.Page*filter.Limit)
+	statement := "SELECT q.id, q.typeid, q.badgeid, q.continentid, q.country, q.singular, q.name, q.maxscore, q.time, q.mapsvg, q.imageurl, q.verb, q.apipath, q.route, q.hasleaderboard, q.hasgrouping, q.hasflags, q.enabled FROM quizzes q JOIN quizType t ON t.id = q.typeId LEFT JOIN quizPlays p ON q.id = p.quizId WHERE q.name ILIKE '%' || $1 || '%' OR t.name ILIKE '%' || $1 || '%' ORDER BY $2 LIMIT $3 OFFSET $4;"
+	rows, err := Connection.Query(statement, filter.Filter, orderByPopularityKey(filter.OrderByPopularity), filter.Limit, filter.Page*filter.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +79,13 @@ var GetQuizzes = func(filter QuizzesFilterDto) ([]Quiz, error) {
 		quizzes = append(quizzes, quiz)
 	}
 	return quizzes, rows.Err()
+}
+
+func orderByPopularityKey(orderByPopularity bool) string {
+	if orderByPopularity {
+		return "p.plays DESC"
+	}
+	return "q.id ASC"
 }
 
 var GetFirstQuizID = func(offset int) (int, error) {

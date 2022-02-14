@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 
+	"github.com/geobuff/api/helpers"
 	"github.com/geobuff/mapping"
 )
 
@@ -17,69 +17,15 @@ type Trivia struct {
 	Date time.Time `json:"date"`
 }
 
-type TriviaQuestion struct {
-	ID          int    `json:"id"`
-	TriviaId    int    `json:"triviaId"`
-	TypeID      int    `json:"typeID"`
-	Question    string `json:"question"`
-	Map         string `json:"map"`
-	Highlighted string `json:"hightlighted"`
-	FlagCode    string `json:"flagCode"`
-	ImageURL    string `json:"imageUrl"`
-}
-
-type TriviaAnswer struct {
-	ID               int    `json:"id"`
-	TriviaQuestionID int    `json:"triviaQuestionId"`
-	Text             string `json:"text"`
-	IsCorrect        bool   `json:"isCorrect"`
-	FlagCode         string `json:"flagCode"`
-}
-
 type TriviaDto struct {
 	ID        int           `json:"id"`
 	Name      string        `json:"name"`
 	Questions []QuestionDto `json:"questions"`
 }
 
-type QuestionDto struct {
-	ID          int         `json:"id"`
-	Type        string      `json:"type"`
-	Question    string      `json:"question"`
-	Map         string      `json:"map"`
-	Highlighted string      `json:"highlighted"`
-	FlagCode    string      `json:"flagCode"`
-	ImageURL    string      `json:"imageUrl"`
-	Answers     []AnswerDto `json:"answers"`
-}
-
-type AnswerDto struct {
-	Text      string `json:"text"`
-	IsCorrect bool   `json:"isCorrect"`
-	FlagCode  string `json:"flagCode"`
-}
-
-var topLandmass = []string{
-	"Russia",
-	"Canada",
-	"China",
-	"United States",
-	"Brazil",
-	"Australia",
-	"India",
-	"Argentina",
-	"Kazakhstan",
-	"Algeria",
-	"Democratic Republic of the Congo",
-	"Denmark",
-	"Saudi Arabia",
-	"Mexico",
-	"Indonesia",
-	"Sudan",
-	"Libya",
-	"Iran",
-	"Mongolia",
-	"Peru",
+type GetTriviaFilter struct {
+	Page  int `json:"page"`
+	Limit int `json:"limit"`
 }
 
 func CreateTrivia() error {
@@ -120,32 +66,22 @@ func generateQuestions(triviaId int) error {
 		return err
 	}
 
-	err = whatRegionInCountry(triviaId)
+	err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_TEXT, 2)
 	if err != nil {
 		return err
 	}
 
-	err = whatFlagInCountry(triviaId)
+	err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_IMAGE, 2)
 	if err != nil {
 		return err
 	}
 
-	err = trueFalseCountryInContinent(triviaId, randomBool())
+	err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_FLAG, 1)
 	if err != nil {
 		return err
 	}
 
-	err = trueFalseCapitalOfCountry(triviaId, randomBool())
-	if err != nil {
-		return err
-	}
-
-	err = trueFalseRegionInCountry(triviaId, randomBool())
-	if err != nil {
-		return err
-	}
-
-	err = trueFalseFlagForCountry(triviaId, randomBool())
+	err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_MAP, 1)
 	if err != nil {
 		return err
 	}
@@ -157,23 +93,10 @@ func randomBool() bool {
 	return rand.Float32() < 0.5
 }
 
-func createQuestion(question TriviaQuestion) (int, error) {
-	statement := "INSERT INTO triviaQuestions (triviaId, typeId, question, map, highlighted, flagCode, imageUrl) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
-	var id int
-	err := Connection.QueryRow(statement, question.TriviaId, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageURL).Scan(&id)
-	return id, err
-}
-
-func createAnswer(answer TriviaAnswer) error {
-	statement := "INSERT INTO triviaAnswers (triviaQuestionId, text, isCorrect, flagCode) VALUES ($1, $2, $3, $4) RETURNING id;"
-	var id int
-	return Connection.QueryRow(statement, answer.TriviaQuestionID, answer.Text, answer.IsCorrect, answer.FlagCode).Scan(&id)
-}
-
 func whatCountry(triviaId int) error {
-	max := len(topLandmass)
+	max := len(helpers.TopLandmass)
 	index := rand.Intn(max)
-	country := topLandmass[index]
+	country := helpers.TopLandmass[index]
 
 	question := TriviaQuestion{
 		TriviaId:    triviaId,
@@ -183,7 +106,7 @@ func whatCountry(triviaId int) error {
 		Highlighted: country,
 	}
 
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -193,7 +116,7 @@ func whatCountry(triviaId int) error {
 		Text:             country,
 		IsCorrect:        true,
 	}
-	err = createAnswer(answer)
+	err = CreateTriviaAnswer(answer)
 	if err != nil {
 		return err
 	}
@@ -217,7 +140,7 @@ func whatCountry(triviaId int) error {
 			IsCorrect:        false,
 		}
 
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -230,9 +153,9 @@ func whatCountry(triviaId int) error {
 }
 
 func whatCapital(triviaId int) error {
-	max := len(topLandmass)
+	max := len(helpers.TopLandmass)
 	index := rand.Intn(max)
-	country := topLandmass[index]
+	country := helpers.TopLandmass[index]
 	var code string
 	for _, val := range mapping.Mappings["world-countries"] {
 		if val.SVGName == country {
@@ -250,7 +173,7 @@ func whatCapital(triviaId int) error {
 		Highlighted: capitalName,
 	}
 
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -260,7 +183,7 @@ func whatCapital(triviaId int) error {
 		Text:             capitalName,
 		IsCorrect:        true,
 	}
-	err = createAnswer(answer)
+	err = CreateTriviaAnswer(answer)
 	if err != nil {
 		return err
 	}
@@ -284,7 +207,7 @@ func whatCapital(triviaId int) error {
 			IsCorrect:        false,
 		}
 
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -294,6 +217,15 @@ func whatCapital(triviaId int) error {
 	}
 
 	return nil
+}
+
+func getCapitalName(code string) string {
+	for _, value := range mapping.Mappings["world-capitals"] {
+		if value.Code == code {
+			return value.SVGName
+		}
+	}
+	return ""
 }
 
 func getCountryName(code string) string {
@@ -321,7 +253,7 @@ func whatUSState(triviaId int) error {
 		Highlighted: state.SVGName,
 	}
 
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -332,7 +264,7 @@ func whatUSState(triviaId int) error {
 		IsCorrect:        true,
 	}
 
-	err = createAnswer(answer)
+	err = CreateTriviaAnswer(answer)
 	if err != nil {
 		return err
 	}
@@ -346,7 +278,7 @@ func whatUSState(triviaId int) error {
 			IsCorrect:        false,
 		}
 
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -373,7 +305,7 @@ func whatFlag(triviaId int) error {
 		FlagCode: country.Code,
 	}
 
-	questionId, err := createQuestion(question)
+	questionId, err := CreateTriviaQuestion(question)
 	if err != nil {
 		return err
 	}
@@ -383,7 +315,7 @@ func whatFlag(triviaId int) error {
 		Text:             country.SVGName,
 		IsCorrect:        true,
 	}
-	err = createAnswer(answer)
+	err = CreateTriviaAnswer(answer)
 	if err != nil {
 		return err
 	}
@@ -397,7 +329,7 @@ func whatFlag(triviaId int) error {
 			IsCorrect:        false,
 		}
 
-		err = createAnswer(answer)
+		err = CreateTriviaAnswer(answer)
 		if err != nil {
 			return err
 		}
@@ -409,408 +341,58 @@ func whatFlag(triviaId int) error {
 	return nil
 }
 
-func whatRegionInCountry(triviaId int) error {
-	quizzes, err := getCountryRegionQuizzes()
+func setRandomManualTriviaQuestions(triviaID, typeID, quantity int) error {
+	questions, err := GetManualTriviaQuestions(typeID)
 	if err != nil {
 		return err
 	}
 
-	max := len(quizzes)
-	index := rand.Intn(max)
-	quiz := quizzes[index]
-	mapping := copyMapping(mapping.Mappings[quiz.APIPath])
-
-	max = len(mapping)
-	index = rand.Intn(max)
-	region := mapping[index]
-
-	question := TriviaQuestion{
-		TriviaId:    triviaId,
-		TypeID:      QUESTION_TYPE_MAP,
-		Question:    fmt.Sprintf("Which %s of %s is highlighted above?", quiz.Singular, quiz.Country),
-		Map:         quiz.MapSVG,
-		Highlighted: region.SVGName,
-	}
-	questionId, err := createQuestion(question)
-	if err != nil {
-		return err
-	}
-
-	answer := TriviaAnswer{
-		TriviaQuestionID: questionId,
-		Text:             region.SVGName,
-		IsCorrect:        true,
-	}
-	err = createAnswer(answer)
-	if err != nil {
-		return err
-	}
-
-	mapping = append(mapping[:index], mapping[index+1:]...)
-	max = max - 1
-	for i := 0; i < 3; i++ {
+	for i := 0; i < quantity; i++ {
+		max := len(questions)
 		index := rand.Intn(max)
-		region = mapping[index]
-		answer := TriviaAnswer{
-			TriviaQuestionID: questionId,
-			Text:             region.SVGName,
-			IsCorrect:        false,
+		manualQuestion := questions[index]
+
+		question := TriviaQuestion{
+			TriviaId:    triviaID,
+			TypeID:      manualQuestion.TypeID,
+			Question:    manualQuestion.Question,
+			Map:         manualQuestion.Map,
+			Highlighted: manualQuestion.Highlighted,
+			FlagCode:    manualQuestion.FlagCode,
+			ImageURL:    manualQuestion.ImageURL,
 		}
 
-		err = createAnswer(answer)
+		questionID, err := CreateTriviaQuestion(question)
 		if err != nil {
 			return err
 		}
 
-		mapping = append(mapping[:index], mapping[index+1:]...)
-		max = max - 1
-	}
-
-	return nil
-}
-
-func whatFlagInCountry(triviaId int) error {
-	quizzes, err := getFlagRegionQuizzes()
-	if err != nil {
-		return err
-	}
-
-	max := len(quizzes)
-	index := rand.Intn(max)
-	quiz := quizzes[index]
-	mapping := copyMapping(mapping.Mappings[quiz.APIPath])
-
-	max = len(mapping)
-	index = rand.Intn(max)
-	region := mapping[index]
-
-	quizNameSplit := strings.Split(quiz.Name, " ")
-	question := TriviaQuestion{
-		TriviaId: triviaId,
-		TypeID:   QUESTION_TYPE_FLAG,
-		Question: fmt.Sprintf("Which of the flags of %s is shown above?", quizNameSplit[len(quizNameSplit)-1]),
-		FlagCode: region.Code,
-	}
-	questionId, err := createQuestion(question)
-	if err != nil {
-		return err
-	}
-
-	answer := TriviaAnswer{
-		TriviaQuestionID: questionId,
-		Text:             region.SVGName,
-		IsCorrect:        true,
-	}
-	err = createAnswer(answer)
-	if err != nil {
-		return err
-	}
-
-	mapping = append(mapping[:index], mapping[index+1:]...)
-	max = max - 1
-	for i := 0; i < 3; i++ {
-		index := rand.Intn(max)
-		region = mapping[index]
-		answer := TriviaAnswer{
-			TriviaQuestionID: questionId,
-			Text:             region.SVGName,
-			IsCorrect:        false,
-		}
-
-		err = createAnswer(answer)
+		answers, err := GetManualTriviaAnswers(manualQuestion.ID)
 		if err != nil {
 			return err
 		}
 
-		mapping = append(mapping[:index], mapping[index+1:]...)
-		max = max - 1
-	}
+		for _, answer := range answers {
+			newAnswer := TriviaAnswer{
+				TriviaQuestionID: questionID,
+				Text:             answer.Text,
+				IsCorrect:        answer.IsCorrect,
+				FlagCode:         answer.FlagCode,
+			}
 
-	return nil
-}
-
-func trueFalseCountryInContinent(triviaId int, answer bool) error {
-	countries := copyMapping(mapping.Mappings["world-countries"])
-	max := len(countries)
-	index := rand.Intn(max)
-	country := countries[index]
-
-	var continent string
-	if answer {
-		continent = strings.Title(country.Group)
-	} else {
-		group := strings.Title(country.Group)
-
-		continents, err := GetContinents()
-		if err != nil {
-			return err
-		}
-
-		var index int
-		for i, val := range continents {
-			if strings.ToLower(val.Name) == group {
-				index = i
-				break
+			if err := CreateTriviaAnswer(newAnswer); err != nil {
+				return err
 			}
 		}
 
-		continents[index] = continents[len(continents)-1]
-		continents = continents[:len(continents)-1]
-		continent = continents[rand.Intn(len(continents))].Name
-	}
-
-	question := TriviaQuestion{
-		TriviaId: triviaId,
-		TypeID:   QUESTION_TYPE_TEXT,
-		Question: fmt.Sprintf("%s is in %s", country.SVGName, continent),
-	}
-
-	questionId, err := createQuestion(question)
-	if err != nil {
-		return err
-	}
-
-	answers := []TriviaAnswer{
-		{
-			TriviaQuestionID: questionId,
-			Text:             "True",
-			IsCorrect:        answer,
-		},
-		{
-			TriviaQuestionID: questionId,
-			Text:             "False",
-			IsCorrect:        !answer,
-		},
-	}
-
-	for _, answer := range answers {
-		err = createAnswer(answer)
-		if err != nil {
-			return err
-		}
+		questions = append(questions[:index], questions[index+1:]...)
 	}
 
 	return nil
 }
 
-func trueFalseCapitalOfCountry(triviaId int, answer bool) error {
-	countries := copyMapping(mapping.Mappings["world-countries"])
-	max := len(countries)
-	index := rand.Intn(max)
-	country := countries[index]
-
-	var capitalName string
-	if answer {
-		capitalName = getCapitalName(country.Code)
-	} else {
-		capitals := copyMapping(mapping.Mappings["world-capitals"])
-		var index int
-		for i, val := range capitals {
-			if val.Code == country.Code {
-				index = i
-				break
-			}
-		}
-
-		capitals[index] = capitals[len(capitals)-1]
-		capitals = capitals[:len(capitals)-1]
-		max := len(capitals)
-		index = rand.Intn(max)
-		capital := capitals[index]
-		capitalName = capital.SVGName
-	}
-
-	question := TriviaQuestion{
-		TriviaId: triviaId,
-		TypeID:   QUESTION_TYPE_TEXT,
-		Question: fmt.Sprintf("%s is the capital city of %s", capitalName, country.SVGName),
-	}
-
-	questionId, err := createQuestion(question)
-	if err != nil {
-		return err
-	}
-
-	answers := []TriviaAnswer{
-		{
-			TriviaQuestionID: questionId,
-			Text:             "True",
-			IsCorrect:        answer,
-		},
-		{
-			TriviaQuestionID: questionId,
-			Text:             "False",
-			IsCorrect:        !answer,
-		},
-	}
-
-	for _, answer := range answers {
-		err = createAnswer(answer)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func getCapitalName(code string) string {
-	for _, value := range mapping.Mappings["world-capitals"] {
-		if value.Code == code {
-			return value.SVGName
-		}
-	}
-	return ""
-}
-
-func trueFalseRegionInCountry(triviaId int, answer bool) error {
-	quizzes, err := getCountryRegionQuizzes()
-	if err != nil {
-		return err
-	}
-
-	max := len(quizzes)
-	index := rand.Intn(max)
-	quiz := quizzes[index]
-	mappingOne := copyMapping(mapping.Mappings[quiz.APIPath])
-
-	var region string
-	if answer {
-		max = len(mappingOne)
-		index = rand.Intn(max)
-		region = mappingOne[index].SVGName
-	} else {
-		var index int
-		for i, val := range quizzes {
-			if val.Name == quiz.Name {
-				index = i
-				break
-			}
-		}
-
-		quizzes[index] = quizzes[len(quizzes)-1]
-		quizzes = quizzes[:len(quizzes)-1]
-		max = max - 1
-
-		index = rand.Intn(max)
-		quizTwo := quizzes[index]
-		mappingTwo := copyMapping(mapping.Mappings[quizTwo.APIPath])
-
-		max = len(mappingTwo)
-		index = rand.Intn(max)
-		region = mappingTwo[index].SVGName
-	}
-
-	question := TriviaQuestion{
-		TriviaId: triviaId,
-		TypeID:   QUESTION_TYPE_TEXT,
-		Question: fmt.Sprintf("%s is a %s of %s", region, quiz.Singular, quiz.Country),
-	}
-
-	questionId, err := createQuestion(question)
-	if err != nil {
-		return err
-	}
-
-	answers := []TriviaAnswer{
-		{
-			TriviaQuestionID: questionId,
-			Text:             "True",
-			IsCorrect:        answer,
-		},
-		{
-			TriviaQuestionID: questionId,
-			Text:             "False",
-			IsCorrect:        !answer,
-		},
-	}
-
-	for _, answer := range answers {
-		err = createAnswer(answer)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func trueFalseFlagForCountry(triviaId int, answer bool) error {
-	quizzes, err := getFlagRegionQuizzes()
-	if err != nil {
-		return err
-	}
-
-	max := len(quizzes)
-	index := rand.Intn(max)
-	quiz := quizzes[index]
-	mappingOne := copyMapping(mapping.Mappings[quiz.APIPath])
-
-	var flagCode string
-	if answer {
-		max = len(mappingOne)
-		index = rand.Intn(max)
-		flagCode = mappingOne[index].Code
-	} else {
-		var index int
-		for i, val := range quizzes {
-			if val.Name == quiz.Name {
-				index = i
-				break
-			}
-		}
-
-		quizzes[index] = quizzes[len(quizzes)-1]
-		quizzes = quizzes[:len(quizzes)-1]
-		max = max - 1
-
-		index = rand.Intn(max)
-		quizTwo := quizzes[index]
-		mappingTwo := copyMapping(mapping.Mappings[quizTwo.APIPath])
-
-		max = len(mappingTwo)
-		index = rand.Intn(max)
-		flagCode = mappingTwo[index].Code
-	}
-
-	quizNameSplit := strings.Split(quiz.Name, " ")
-	question := TriviaQuestion{
-		TriviaId: triviaId,
-		TypeID:   QUESTION_TYPE_FLAG,
-		Question: fmt.Sprintf("This is a flag of %s", quizNameSplit[len(quizNameSplit)-1]),
-		FlagCode: flagCode,
-	}
-
-	questionId, err := createQuestion(question)
-	if err != nil {
-		return err
-	}
-
-	answers := []TriviaAnswer{
-		{
-			TriviaQuestionID: questionId,
-			Text:             "True",
-			IsCorrect:        answer,
-		},
-		{
-			TriviaQuestionID: questionId,
-			Text:             "False",
-			IsCorrect:        !answer,
-		},
-	}
-
-	for _, answer := range answers {
-		err = createAnswer(answer)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func GetAllTrivia() ([]Trivia, error) {
-	rows, err := Connection.Query("SELECT * FROM trivia ORDER BY date DESC LIMIT 20;")
+func GetAllTrivia(filter GetTriviaFilter) ([]Trivia, error) {
+	rows, err := Connection.Query("SELECT * FROM trivia ORDER BY date DESC LIMIT $1 OFFSET $2;", filter.Limit, filter.Page*filter.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -825,6 +407,13 @@ func GetAllTrivia() ([]Trivia, error) {
 		trivia = append(trivia, quiz)
 	}
 	return trivia, rows.Err()
+}
+
+func GetFirstTriviaID(offset int) (int, error) {
+	statement := "SELECT id FROM trivia LIMIT 1 OFFSET $1;"
+	var id int
+	err := Connection.QueryRow(statement, offset).Scan(&id)
+	return id, err
 }
 
 func GetTrivia(date string) (*TriviaDto, error) {

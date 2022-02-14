@@ -12,9 +12,6 @@ type Order struct {
 	FirstName string         `json:"firstName"`
 	LastName  string         `json:"lastName"`
 	Address   string         `json:"address"`
-	Suburb    string         `json:"suburb"`
-	City      string         `json:"city"`
-	Postcode  string         `json:"postcode"`
 	Added     time.Time      `json:"added"`
 	Discount  sql.NullString `json:"discount"`
 }
@@ -44,9 +41,6 @@ type Customer struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
 	Address   string `json:"address"`
-	Suburb    string `json:"suburb"`
-	City      string `json:"city"`
-	Postcode  string `json:"postcode"`
 }
 
 type CreateCheckoutDto struct {
@@ -62,9 +56,6 @@ type OrderDto struct {
 	FirstName string         `json:"firstName"`
 	LastName  string         `json:"lastName"`
 	Address   string         `json:"address"`
-	Suburb    string         `json:"suburb"`
-	City      string         `json:"city"`
-	Postcode  string         `json:"postcode"`
 	Added     time.Time      `json:"added"`
 	Discount  sql.NullString `json:"discount"`
 }
@@ -83,9 +74,9 @@ type OrdersFilterDto struct {
 }
 
 func InsertOrder(order CreateCheckoutDto) (int, error) {
-	statement := "INSERT INTO orders (statusid, email, firstname, lastname, address, suburb, city, postcode, added, discount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;"
+	statement := "INSERT INTO orders (statusid, email, firstname, lastname, address, added, discount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, ORDER_STATUS_PENDING, order.Customer.Email, order.Customer.FirstName, order.Customer.LastName, order.Customer.Address, order.Customer.Suburb, order.Customer.City, order.Customer.Postcode, time.Now(), nil).Scan(&id)
+	err := Connection.QueryRow(statement, ORDER_STATUS_PENDING, order.Customer.Email, order.Customer.FirstName, order.Customer.LastName, order.Customer.Address, time.Now(), nil).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -116,7 +107,7 @@ func GetNonPendingOrders(email string) ([]OrderDto, error) {
 	var orders = []OrderDto{}
 	for rows.Next() {
 		var order Order
-		if err = rows.Scan(&order.ID, &order.StatusID, &order.Email, &order.FirstName, &order.LastName, &order.Address, &order.Suburb, &order.City, &order.Postcode, &order.Added, &order.Discount); err != nil {
+		if err = rows.Scan(&order.ID, &order.StatusID, &order.Email, &order.FirstName, &order.LastName, &order.Address, &order.Added, &order.Discount); err != nil {
 			return nil, err
 		}
 
@@ -138,9 +129,6 @@ func GetNonPendingOrders(email string) ([]OrderDto, error) {
 			FirstName: order.FirstName,
 			LastName:  order.LastName,
 			Address:   order.Address,
-			Suburb:    order.Suburb,
-			City:      order.City,
-			Postcode:  order.Postcode,
 			Added:     order.Added,
 			Discount:  order.Discount,
 		}
@@ -210,7 +198,7 @@ func GetOrders(filter OrdersFilterDto) ([]OrderDto, error) {
 	var orders = []OrderDto{}
 	for rows.Next() {
 		var order Order
-		if err = rows.Scan(&order.ID, &order.StatusID, &order.Email, &order.FirstName, &order.LastName, &order.Address, &order.Suburb, &order.City, &order.Postcode, &order.Added, &order.Discount); err != nil {
+		if err = rows.Scan(&order.ID, &order.StatusID, &order.Email, &order.FirstName, &order.LastName, &order.Address, &order.Added, &order.Discount); err != nil {
 			return nil, err
 		}
 
@@ -232,9 +220,6 @@ func GetOrders(filter OrdersFilterDto) ([]OrderDto, error) {
 			FirstName: order.FirstName,
 			LastName:  order.LastName,
 			Address:   order.Address,
-			Suburb:    order.Suburb,
-			City:      order.City,
-			Postcode:  order.Postcode,
 			Added:     order.Added,
 			Discount:  order.Discount,
 		}
