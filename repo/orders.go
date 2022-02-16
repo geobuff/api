@@ -74,7 +74,7 @@ type OrdersFilterDto struct {
 }
 
 func InsertOrder(order CreateCheckoutDto) (int, error) {
-	statement := "INSERT INTO orders (statusid, email, firstname, lastname, address, added, discount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;"
+	statement := "INSERT INTO orders (statusid, email, firstname, lastname, address, added, discount) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
 	var id int
 	err := Connection.QueryRow(statement, ORDER_STATUS_PENDING, order.Customer.Email, order.Customer.FirstName, order.Customer.LastName, order.Customer.Address, time.Now(), nil).Scan(&id)
 	if err != nil {
