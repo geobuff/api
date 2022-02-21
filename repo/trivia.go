@@ -66,22 +66,12 @@ func generateQuestions(triviaId int) error {
 		return err
 	}
 
+	err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_IMAGE, 4)
+	if err != nil {
+		return err
+	}
+
 	err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_TEXT, 2)
-	if err != nil {
-		return err
-	}
-
-	err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_IMAGE, 2)
-	if err != nil {
-		return err
-	}
-
-	err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_FLAG, 1)
-	if err != nil {
-		return err
-	}
-
-	err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_MAP, 1)
 	if err != nil {
 		return err
 	}
