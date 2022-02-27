@@ -66,14 +66,29 @@ func generateQuestions(triviaId int) error {
 		return err
 	}
 
-	err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_IMAGE, 4)
+	questions, err := GetTodaysManualTriviaQuestions()
+	if err != nil {
+		return err
+	}
+	todaysQuestionCount := len(questions)
+
+	err = createQuestionsAndAnswers(questions, triviaId, 6)
 	if err != nil {
 		return err
 	}
 
-	err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_TEXT, 2)
-	if err != nil {
-		return err
+	if todaysQuestionCount < 6 {
+		textQuestionCount := (6 - todaysQuestionCount) / 2
+		err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_TEXT, textQuestionCount)
+		if err != nil {
+			return err
+		}
+
+		imageQuestionCount := 6 - todaysQuestionCount - textQuestionCount
+		err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_IMAGE, imageQuestionCount)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -332,12 +347,21 @@ func whatFlag(triviaId int) error {
 }
 
 func setRandomManualTriviaQuestions(triviaID, typeID, quantity int) error {
-	questions, err := GetManualTriviaQuestions(typeID)
+	lastUsedMax := time.Now().AddDate(0, 0, -7)
+	questions, err := GetManualTriviaQuestions(typeID, lastUsedMax.Format("2006-01-02"))
 	if err != nil {
 		return err
 	}
 
+	return createQuestionsAndAnswers(questions, triviaID, quantity)
+}
+
+func createQuestionsAndAnswers(questions []ManualTriviaQuestion, triviaID, quantity int) error {
 	for i := 0; i < quantity; i++ {
+		if len(questions) == 0 {
+			break
+		}
+
 		max := len(questions)
 		index := rand.Intn(max)
 		manualQuestion := questions[index]
@@ -376,8 +400,10 @@ func setRandomManualTriviaQuestions(triviaID, typeID, quantity int) error {
 		}
 
 		questions = append(questions[:index], questions[index+1:]...)
+		if err := UpdateManualTriviaQuestionLastUsed(manualQuestion.ID); err != nil {
+			return err
+		}
 	}
-
 	return nil
 }
 
