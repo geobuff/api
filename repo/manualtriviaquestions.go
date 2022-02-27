@@ -90,9 +90,8 @@ func DeleteManualTriviaQuestion(questionID int) error {
 }
 
 func GetManualTriviaQuestions(typeID int, lastUsedMax string) ([]ManualTriviaQuestion, error) {
-	today := time.Now().Format("2006-01-02")
-	statement := "SELECT * FROM manualtriviaquestions WHERE typeid = $1 AND (quizdate IS null OR quizdate != $2) AND (lastUsed IS null OR lastUsed < $3);"
-	rows, err := Connection.Query(statement, typeID, today, lastUsedMax)
+	statement := "SELECT * FROM manualtriviaquestions WHERE typeid = $1 AND quizdate IS null AND (lastUsed IS null OR lastUsed < $2);"
+	rows, err := Connection.Query(statement, typeID, lastUsedMax)
 	if err != nil {
 		return nil, err
 	}
