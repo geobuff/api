@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/geobuff/mapping v0.0.0-20210905231441-8bf7f2f5eac9
+	github.com/geobuff/mapping v0.0.0-20220227061948-c5d76e53f744
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/google/uuid v1.3.0
