@@ -194,6 +194,7 @@ func router() http.Handler {
 
 	// Merch endpoints.
 	router.HandleFunc("/api/merch", merch.GetMerch).Methods("GET")
+	router.HandleFunc("/api/merch/exists", merch.MerchExists).Methods("POST")
 
 	// Discount endpoints.
 	router.HandleFunc("/api/discounts", discounts.GetDiscounts).Methods("GET")

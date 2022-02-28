@@ -41,6 +41,17 @@ type MerchDto struct {
 	SoldOut           bool            `json:"soldOut"`
 }
 
+type CartItemDto struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Price       int    `json:"price"`
+	SizeID      int    `json:"sizeId"`
+	SizeName    string `json:"sizeName"`
+	ImageURL    string `json:"imageUrl"`
+	Quantity    int    `json:"quantity"`
+}
+
 var GetMerch = func() ([]MerchDto, error) {
 	rows, err := Connection.Query("SELECT * FROM merch;")
 	if err != nil {
@@ -102,4 +113,15 @@ func isSoldOut(sizes []MerchSize) bool {
 		}
 	}
 	return true
+}
+
+func MerchExists(items []CartItemDto) (bool, error) {
+	for _, item := range items {
+		var quantity int
+		err := Connection.QueryRow("SELECT quantity FROM merchsizes WHERE id = $1;", item.SizeID).Scan(&quantity)
+		if err != nil || quantity < item.Quantity {
+			return false, err
+		}
+	}
+	return true, nil
 }
