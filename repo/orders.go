@@ -21,14 +21,6 @@ type OrderStatus struct {
 	Status string `json:"status"`
 }
 
-type OrderItem struct {
-	ID       int `json:"id"`
-	OrderID  int `json:"orderId"`
-	MerchID  int `json:"merchId"`
-	SizeID   int `json:"sizeId"`
-	Quantity int `json:"quantity"`
-}
-
 type CheckoutItemDto struct {
 	ID       int    `json:"id"`
 	SizeID   int    `json:"sizeId"`
@@ -60,13 +52,6 @@ type OrderDto struct {
 	Discount  sql.NullString `json:"discount"`
 }
 
-type OrderItemDto struct {
-	ItemName string `json:"itemName"`
-	SizeName string `json:"sizeName"`
-	ImageUrl string `json:"imageUrl"`
-	Quantity int    `json:"quantity"`
-}
-
 type OrdersFilterDto struct {
 	StatusID int `json:"statusId"`
 	Page     int `json:"page"`
@@ -91,12 +76,6 @@ func InsertOrder(order CreateCheckoutDto) (int, error) {
 	return id, err
 }
 
-func insertOrderItem(item CheckoutItemDto, orderId int) error {
-	statement := "INSERT INTO orderItems (orderid, merchid, sizeid, quantity) VALUES ($1, $2, $3, $4) RETURNING id;"
-	var id int
-	return Connection.QueryRow(statement, orderId, item.ID, item.SizeID, item.Quantity).Scan(&id)
-}
-
 func GetNonPendingOrders(email string) ([]OrderDto, error) {
 	rows, err := Connection.Query("SELECT * FROM orders WHERE email = $1 AND statusid != $2;", email, ORDER_STATUS_PENDING)
 	if err != nil {
@@ -111,7 +90,7 @@ func GetNonPendingOrders(email string) ([]OrderDto, error) {
 			return nil, err
 		}
 
-		items, err := getItems(order.ID)
+		items, err := GetOrderItems(order.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -137,24 +116,6 @@ func GetNonPendingOrders(email string) ([]OrderDto, error) {
 	return orders, rows.Err()
 }
 
-func getItems(id int) ([]OrderItemDto, error) {
-	rows, err := Connection.Query("select m.name, s.size, mi.imageurl, i.quantity from orderItems i join merchsizes s on s.id = i.sizeid join merch m on m.id = i.merchid join merchimages mi on mi.id = i.merchid AND mi.isprimary WHERE i.orderId = $1;", id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var items = []OrderItemDto{}
-	for rows.Next() {
-		var item OrderItemDto
-		if err = rows.Scan(&item.ItemName, &item.SizeName, &item.ImageUrl, &item.Quantity); err != nil {
-			return nil, err
-		}
-		items = append(items, item)
-	}
-	return items, rows.Err()
-}
-
 func getStatus(id int) (string, error) {
 	statement := "SELECT status from orderStatus WHERE id = $1;"
 	var result string
@@ -162,10 +123,11 @@ func getStatus(id int) (string, error) {
 	return result, err
 }
 
-func UpdateStatusLatestOrder(email string) error {
+func UpdateStatusLatestOrder(email string) (int, error) {
 	statement := "UPDATE orders set statusId = $1 where id = (select id from orders where email = $2 order by added desc LIMIT 1) returning id;"
 	var id int
-	return Connection.QueryRow(statement, ORDER_STATUS_PAYMENT_RECEIVED, email).Scan(&id)
+	err := Connection.QueryRow(statement, ORDER_STATUS_PAYMENT_RECEIVED, email).Scan(&id)
+	return id, err
 }
 
 func DeleteOrder(orderId int) error {
@@ -202,7 +164,7 @@ func GetOrders(filter OrdersFilterDto) ([]OrderDto, error) {
 			return nil, err
 		}
 
-		items, err := getItems(order.ID)
+		items, err := GetOrderItems(order.ID)
 		if err != nil {
 			return nil, err
 		}

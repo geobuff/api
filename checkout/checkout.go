@@ -163,10 +163,24 @@ func HandleWebhook(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 
-		err = repo.UpdateStatusLatestOrder(c.Email)
+		id, err := repo.UpdateStatusLatestOrder(c.Email)
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 			return
+		}
+
+		items, err := repo.GetOrderItems(id)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+			return
+		}
+
+		for _, val := range items {
+			err = repo.ReduceMerchItemQuantity(val.SizeID, val.Quantity)
+			if err != nil {
+				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+				return
+			}
 		}
 	}
 }
