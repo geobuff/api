@@ -15,20 +15,6 @@ type Merch struct {
 	Images            []MerchImage    `json:"images"`
 }
 
-type MerchSize struct {
-	ID       int    `json:"id"`
-	MerchID  int    `json:"merchId"`
-	Size     string `json:"size"`
-	Quantity int    `json:"quantity"`
-}
-
-type MerchImage struct {
-	ID        int    `json:"id"`
-	MerchID   int    `json:"merchId"`
-	ImageUrl  string `json:"imageUrl"`
-	IsPrimary bool   `json:"isPrimary"`
-}
-
 type MerchDto struct {
 	ID                int             `json:"id"`
 	Name              string          `json:"name"`
@@ -39,6 +25,17 @@ type MerchDto struct {
 	Sizes             []MerchSize     `json:"sizes"`
 	Images            []MerchImage    `json:"images"`
 	SoldOut           bool            `json:"soldOut"`
+}
+
+type CartItemDto struct {
+	ID          int     `json:"id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	SizeID      int     `json:"sizeId"`
+	SizeName    string  `json:"sizeName"`
+	ImageURL    string  `json:"imageUrl"`
+	Quantity    int     `json:"quantity"`
 }
 
 var GetMerch = func() ([]MerchDto, error) {
@@ -55,41 +52,19 @@ var GetMerch = func() ([]MerchDto, error) {
 			return nil, err
 		}
 
-		sizeQuery := "SELECT * FROM merchsizes WHERE merchid = $1;"
-		rows, err := Connection.Query(sizeQuery, entry.ID)
+		sizes, err := getMerchSizes(entry.ID)
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
 
-		var sizes = []MerchSize{}
-		for rows.Next() {
-			var size MerchSize
-			if err = rows.Scan(&size.ID, &size.MerchID, &size.Size, &size.Quantity); err != nil {
-				return nil, err
-			}
-			sizes = append(sizes, size)
+		images, err := getMerchImages(entry.ID)
+		if err != nil {
+			return nil, err
 		}
+
+		entry.Images = images
 		entry.Sizes = sizes
 		entry.SoldOut = isSoldOut(sizes)
-
-		imageQuery := "SELECT * FROM merchImages WHERE merchid = $1;"
-		rows, err = Connection.Query(imageQuery, entry.ID)
-		if err != nil {
-			return nil, err
-		}
-		defer rows.Close()
-
-		var images = []MerchImage{}
-		for rows.Next() {
-			var image MerchImage
-			if err = rows.Scan(&image.ID, &image.MerchID, &image.ImageUrl, &image.IsPrimary); err != nil {
-				return nil, err
-			}
-			images = append(images, image)
-		}
-		entry.Images = images
-
 		merch = append(merch, entry)
 	}
 	return merch, rows.Err()
