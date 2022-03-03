@@ -12,14 +12,16 @@ import (
 )
 
 type Trivia struct {
-	ID   int       `json:"id"`
-	Name string    `json:"name"`
-	Date time.Time `json:"date"`
+	ID       int       `json:"id"`
+	Name     string    `json:"name"`
+	Date     time.Time `json:"date"`
+	MaxScore int       `json:"maxScore"`
 }
 
 type TriviaDto struct {
 	ID        int           `json:"id"`
 	Name      string        `json:"name"`
+	MaxScore  int           `json:"maxScore"`
 	Questions []QuestionDto `json:"questions"`
 }
 
@@ -37,61 +39,68 @@ func CreateTrivia() error {
 
 	_, month, day := date.Date()
 	weekday := date.Weekday().String()
-	statement := "INSERT INTO trivia (name, date) VALUES ($1, $2) RETURNING id;"
-	err := Connection.QueryRow(statement, fmt.Sprintf("%s, %s %d", weekday, month, day), date).Scan(&id)
+	statement := "INSERT INTO trivia (name, date, maxscore) VALUES ($1, $2, $3) RETURNING id;"
+	if err := Connection.QueryRow(statement, fmt.Sprintf("%s, %s %d", weekday, month, day), date, 0).Scan(&id); err != nil {
+		return err
+	}
+
+	count, err := generateQuestions(id, 10)
 	if err != nil {
 		return err
 	}
-	return generateQuestions(id)
+
+	return setTriviaMaxScore(id, count)
 }
 
-func generateQuestions(triviaId int) error {
+func generateQuestions(triviaId, max int) (int, error) {
+	count := 0
 	err := whatCountry(triviaId)
 	if err != nil {
-		return err
+		return count, err
 	}
 
 	err = whatCapital(triviaId)
 	if err != nil {
-		return err
+		return count, err
 	}
 
 	err = whatUSState(triviaId)
 	if err != nil {
-		return err
+		return count, err
 	}
 
 	err = whatFlag(triviaId)
 	if err != nil {
-		return err
+		return count, err
 	}
+	count = count + 4
 
 	questions, err := GetTodaysManualTriviaQuestions()
+	if err != nil && err != sql.ErrNoRows {
+		return count, err
+	}
+
+	todaysQuestionCount, err := createQuestionsAndAnswers(questions, triviaId, max-count)
 	if err != nil {
-		return err
-	}
-	todaysQuestionCount := len(questions)
-
-	err = createQuestionsAndAnswers(questions, triviaId, 6)
-	if err != nil {
-		return err
+		return count, err
 	}
 
-	if todaysQuestionCount < 6 {
-		textQuestionCount := (6 - todaysQuestionCount) / 2
-		err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_TEXT, textQuestionCount)
-		if err != nil {
-			return err
+	count = count + todaysQuestionCount
+	if count < max {
+		textQuestionCount, err := setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_TEXT, (max-count)/2)
+		if err != nil && err != sql.ErrNoRows {
+			return count, err
 		}
+		count = count + textQuestionCount
 
-		imageQuestionCount := 6 - todaysQuestionCount - textQuestionCount
-		err = setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_IMAGE, imageQuestionCount)
-		if err != nil {
-			return err
+		imageQuestionCount, err := setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_IMAGE, max-count)
+		if err != nil && err != sql.ErrNoRows {
+			return count, err
 		}
+		count = count + imageQuestionCount
 	}
 
-	return nil
+	return count, nil
 }
 
 func randomBool() bool {
@@ -346,17 +355,18 @@ func whatFlag(triviaId int) error {
 	return nil
 }
 
-func setRandomManualTriviaQuestions(triviaID, typeID, quantity int) error {
+func setRandomManualTriviaQuestions(triviaID, typeID, quantity int) (int, error) {
 	lastUsedMax := time.Now().AddDate(0, 0, -7)
 	questions, err := GetManualTriviaQuestions(typeID, lastUsedMax.Format("2006-01-02"))
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	return createQuestionsAndAnswers(questions, triviaID, quantity)
 }
 
-func createQuestionsAndAnswers(questions []ManualTriviaQuestion, triviaID, quantity int) error {
+func createQuestionsAndAnswers(questions []ManualTriviaQuestion, triviaID, quantity int) (int, error) {
+	count := 0
 	for i := 0; i < quantity; i++ {
 		if len(questions) == 0 {
 			break
@@ -378,12 +388,12 @@ func createQuestionsAndAnswers(questions []ManualTriviaQuestion, triviaID, quant
 
 		questionID, err := CreateTriviaQuestion(question)
 		if err != nil {
-			return err
+			return count, err
 		}
 
 		answers, err := GetManualTriviaAnswers(manualQuestion.ID)
 		if err != nil {
-			return err
+			return count, err
 		}
 
 		for _, answer := range answers {
@@ -395,16 +405,18 @@ func createQuestionsAndAnswers(questions []ManualTriviaQuestion, triviaID, quant
 			}
 
 			if err := CreateTriviaAnswer(newAnswer); err != nil {
-				return err
+				return count, err
 			}
 		}
 
 		questions = append(questions[:index], questions[index+1:]...)
 		if err := UpdateManualTriviaQuestionLastUsed(manualQuestion.ID); err != nil {
-			return err
+			return count, err
 		}
+		count = count + 1
 	}
-	return nil
+
+	return count, nil
 }
 
 func GetAllTrivia(filter GetTriviaFilter) ([]Trivia, error) {
@@ -417,7 +429,7 @@ func GetAllTrivia(filter GetTriviaFilter) ([]Trivia, error) {
 	var trivia = []Trivia{}
 	for rows.Next() {
 		var quiz Trivia
-		if err = rows.Scan(&quiz.ID, &quiz.Name, &quiz.Date); err != nil {
+		if err = rows.Scan(&quiz.ID, &quiz.Name, &quiz.Date, &quiz.MaxScore); err != nil {
 			return nil, err
 		}
 		trivia = append(trivia, quiz)
@@ -434,7 +446,7 @@ func GetFirstTriviaID(offset int) (int, error) {
 
 func GetTrivia(date string) (*TriviaDto, error) {
 	var result TriviaDto
-	err := Connection.QueryRow("SELECT id, name from trivia WHERE date = $1;", date).Scan(&result.ID, &result.Name)
+	err := Connection.QueryRow("SELECT id, name, maxscore from trivia WHERE date = $1;", date).Scan(&result.ID, &result.Name, &result.MaxScore)
 	if err != nil {
 		return nil, err
 	}
@@ -494,4 +506,10 @@ func copyMapping(orig []mapping.Mapping) []mapping.Mapping {
 	cpy := make([]mapping.Mapping, len(orig))
 	copy(cpy, orig)
 	return cpy
+}
+
+func setTriviaMaxScore(triviaID, maxScore int) error {
+	statement := "UPDATE trivia SET maxScore = $1 WHERE id = $2 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, maxScore, triviaID).Scan(&id)
 }
