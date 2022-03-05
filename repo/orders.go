@@ -134,7 +134,7 @@ func GetNonPendingOrders(email string) ([]OrderDto, error) {
 }
 
 func InsertOrder(order CreateCheckoutDto) (int, error) {
-	statement := "INSERT INTO orders (statusid, shippingid, discountid, email, firstname, lastname, address, added) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
+	statement := "INSERT INTO orders (statusid, shippingid, discountid, email, firstname, lastname, address, added) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;"
 	var id int
 	err := Connection.QueryRow(statement, ORDER_STATUS_PENDING, order.ShippingId, order.DiscountId, order.Customer.Email, order.Customer.FirstName, order.Customer.LastName, order.Customer.Address, time.Now()).Scan(&id)
 	if err != nil {
