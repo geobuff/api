@@ -25,6 +25,7 @@ import (
 	"github.com/geobuff/api/quiztype"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/shippingoptions"
 	"github.com/geobuff/api/tempscores"
 	"github.com/geobuff/api/trivia"
 	"github.com/geobuff/api/triviaplays"
@@ -177,6 +178,9 @@ func router() http.Handler {
 	router.HandleFunc("/api/leaderboard", leaderboard.CreateEntry).Methods("POST")
 	router.HandleFunc("/api/leaderboard/{id}", leaderboard.UpdateEntry).Methods("PUT")
 	router.HandleFunc("/api/leaderboard/{id}", leaderboard.DeleteEntry).Methods("DELETE")
+
+	// Shipping option endpoints.
+	router.HandleFunc("/api/shipping-options", shippingoptions.GetShippingOptions).Methods("GET")
 
 	// Checkout endpoints.
 	router.HandleFunc("/api/checkout/create-checkout-session", checkout.HandleCreateCheckoutSession).Methods("POST")
