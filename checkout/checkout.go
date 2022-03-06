@@ -52,27 +52,54 @@ func HandleCreateCheckoutSession(writer http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	merch, err := repo.GetMerch()
+	var lineItems []*stripe.CheckoutSessionLineItemParams
+	for _, checkoutItem := range createCheckoutDto.Items {
+		merchItem, err := repo.GetMerchItem(checkoutItem.ID)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+			return
+		}
+
+		amount := int64(merchItem.Price.Float64 * 100)
+		image := os.Getenv("SITE_URL") + merchItem.Images[0].ImageUrl
+		newItem := stripe.CheckoutSessionLineItemParams{
+			Amount:   &amount,
+			Name:     stripe.String(fmt.Sprintf("%s - %s", merchItem.Name, checkoutItem.SizeName)),
+			Images:   []*string{stripe.String(image)},
+			Currency: stripe.String("NZD"),
+			Quantity: stripe.Int64(int64(checkoutItem.Quantity)),
+		}
+
+		lineItems = append(lineItems, &newItem)
+	}
+
+	shippingOption, err := repo.GetShippingOption(createCheckoutDto.ShippingId)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
-	var lineItems []*stripe.CheckoutSessionLineItemParams
-	for _, checkoutItem := range createCheckoutDto.Items {
-		for _, merchItem := range merch {
-			if checkoutItem.ID == merchItem.ID {
-				amount := int64(merchItem.Price.Float64 * 100)
-				image := os.Getenv("SITE_URL") + merchItem.Images[0].ImageUrl
-				newItem := stripe.CheckoutSessionLineItemParams{
-					Amount:   &amount,
-					Name:     stripe.String(fmt.Sprintf("%s - %s", merchItem.Name, checkoutItem.SizeName)),
-					Images:   []*string{stripe.String(image)},
-					Currency: stripe.String("NZD"),
-					Quantity: stripe.Int64(int64(checkoutItem.Quantity)),
-				}
-				lineItems = append(lineItems, &newItem)
-			}
+	amount := int64(shippingOption.Price * 100)
+	shippingItem := stripe.CheckoutSessionLineItemParams{
+		Amount:   &amount,
+		Name:     stripe.String(shippingOption.Name),
+		Currency: stripe.String("NZD"),
+		Quantity: stripe.Int64(1),
+	}
+	lineItems = append(lineItems, &shippingItem)
+
+	var discounts []*stripe.CheckoutSessionDiscountParams
+	if createCheckoutDto.DiscountId.Valid {
+		discount, err := repo.GetDiscount(int(createCheckoutDto.DiscountId.Int64))
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+			return
+		}
+
+		discounts = []*stripe.CheckoutSessionDiscountParams{
+			{
+				Coupon: stripe.String(discount.Code),
+			},
 		}
 	}
 
@@ -86,6 +113,7 @@ func HandleCreateCheckoutSession(writer http.ResponseWriter, request *http.Reque
 		Mode:          stripe.String(string(stripe.CheckoutSessionModePayment)),
 		LineItems:     lineItems,
 		CustomerEmail: &createCheckoutDto.Customer.Email,
+		Discounts:     discounts,
 	}
 
 	s, err := session.New(params)

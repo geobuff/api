@@ -29,7 +29,7 @@ func GetDiscounts(writer http.ResponseWriter, request *http.Request) {
 
 // GetDiscount gets a discount for a given code.
 func GetDiscount(writer http.ResponseWriter, request *http.Request) {
-	switch discount, err := repo.GetDiscount(mux.Vars(request)["code"]); err {
+	switch discount, err := repo.GetDiscountByCode(mux.Vars(request)["code"]); err {
 	case sql.ErrNoRows:
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
 	case nil:

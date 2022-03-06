@@ -28,8 +28,14 @@ var GetDiscounts = func() ([]Discount, error) {
 	return discounts, rows.Err()
 }
 
-// GetDiscount returns a discount by code.
-var GetDiscount = func(code string) (Discount, error) {
+var GetDiscount = func(id int) (Discount, error) {
+	statement := "SELECT * from discounts WHERE id = $1;"
+	var discount Discount
+	err := Connection.QueryRow(statement, id).Scan(&discount.ID, &discount.MerchID, &discount.Code, &discount.Amount)
+	return discount, err
+}
+
+var GetDiscountByCode = func(code string) (Discount, error) {
 	statement := "SELECT * from discounts WHERE code = $1;"
 	var discount Discount
 	err := Connection.QueryRow(statement, code).Scan(&discount.ID, &discount.MerchID, &discount.Code, &discount.Amount)

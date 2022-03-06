@@ -117,3 +117,6 @@ INSERT INTO orderStatus (status) values
 ('Pending'),
 ('Payment Received'),
 ('Shipped');
+
+INSERT INTO shippingOptions (name, description, price) values
+('NZ-Wide Standard Shipping', 'Expect delivery in 5-7 days', 4.99);

@@ -11,8 +11,6 @@ type Merch struct {
 	SizeGuideImageUrl sql.NullString  `json:"sizeGuideImageUrl"`
 	Price             sql.NullFloat64 `json:"price"`
 	ExternalLink      sql.NullString  `json:"externalLink"`
-	Sizes             []MerchSize     `json:"sizes"`
-	Images            []MerchImage    `json:"images"`
 }
 
 type MerchDto struct {
@@ -68,6 +66,30 @@ var GetMerch = func() ([]MerchDto, error) {
 		merch = append(merch, entry)
 	}
 	return merch, rows.Err()
+}
+
+func GetMerchItem(id int) (*MerchDto, error) {
+	statement := "SELECT * from merch WHERE id = $1;"
+	var entry MerchDto
+	if err := Connection.QueryRow(statement, id).Scan(&entry.ID, &entry.Name, &entry.Description, &entry.SizeGuideImageUrl, &entry.Price, &entry.ExternalLink); err != nil {
+		return nil, err
+	}
+
+	sizes, err := getMerchSizes(entry.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	images, err := getMerchImages(entry.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	entry.Images = images
+	entry.Sizes = sizes
+	entry.SoldOut = isSoldOut(sizes)
+
+	return &entry, nil
 }
 
 func isSoldOut(sizes []MerchSize) bool {
