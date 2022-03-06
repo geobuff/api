@@ -48,7 +48,7 @@ type OrderDto struct {
 	StatusID       int            `json:"statusId"`
 	Status         string         `json:"status"`
 	ShippingOption string         `json:"shippingOption"`
-	Discount       string         `json:"discount"`
+	Discount       sql.NullString `json:"discount"`
 	FirstName      string         `json:"firstName"`
 	LastName       string         `json:"lastName"`
 	Address        string         `json:"address"`
@@ -63,7 +63,7 @@ type OrdersFilterDto struct {
 }
 
 func GetOrders(filter OrdersFilterDto) ([]OrderDto, error) {
-	statement := "SELECT o.id, s.name, d.name, o.firstname, o.lastname, o.address, o.added FROM orders o JOIN shippingoptions s ON s.id = o.shippingid LEFT JOIN discounts d ON d.id = o.discountid WHERE o.statusid = $1 LIMIT $2 OFFSET $3;"
+	statement := "SELECT o.id, o.statusid, s.name, d.code, o.firstname, o.lastname, o.address, o.added FROM orders o JOIN shippingoptions s ON s.id = o.shippingid LEFT JOIN discounts d ON d.id = o.discountid WHERE o.statusid = $1 LIMIT $2 OFFSET $3;"
 	rows, err := Connection.Query(statement, filter.StatusID, filter.Limit, filter.Limit*filter.Page)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ var GetFirstOrderID = func(statusID, offset int) (int, error) {
 }
 
 func GetNonPendingOrders(email string) ([]OrderDto, error) {
-	statement := "SELECT o.id, s.name, d.name, o.firstname, o.lastname, o.address, o.added FROM orders o JOIN shippingoptions s ON s.id = o.shippingid LEFT JOIN discounts d ON d.id = o.discountid WHERE o.email = $1 AND o.statusid != $2;"
+	statement := "SELECT o.id, o.statusid, s.name, d.code, o.firstname, o.lastname, o.address, o.added FROM orders o JOIN shippingoptions s ON s.id = o.shippingid LEFT JOIN discounts d ON d.id = o.discountid WHERE o.email = $1 AND o.statusid != $2;"
 	rows, err := Connection.Query(statement, email, ORDER_STATUS_PENDING)
 	if err != nil {
 		return nil, err
