@@ -138,6 +138,7 @@ func router() http.Handler {
 	// Manual Trivia Question endpoints.
 	router.HandleFunc("/api/manual-trivia-questions", manualtriviaquestions.GetManualTriviaQuestions).Methods("GET")
 	router.HandleFunc("/api/manual-trivia-questions", manualtriviaquestions.CreateManualTriviaQuestion).Methods("POST")
+	router.HandleFunc("/api/manual-trivia-questions/{id}", manualtriviaquestions.UpdateManualTriviaQuestion).Methods("PUT")
 	router.HandleFunc("/api/manual-trivia-questions/{id}", manualtriviaquestions.DeleteManualTriviaQuestion).Methods("DELETE")
 
 	// Mapping endpoints.

@@ -35,6 +35,17 @@ type CreateManualTriviaQuestionDto struct {
 	Answers     []CreateManualTriviaAnswerDto `json:"answers"`
 }
 
+type UpdateManualTriviaQuestionDto struct {
+	TypeID      int                           `json:"typeId"`
+	Question    string                        `json:"question"`
+	Map         string                        `json:"map"`
+	Highlighted string                        `json:"highlighted"`
+	FlagCode    string                        `json:"flagCode"`
+	ImageURL    string                        `json:"imageUrl"`
+	QuizDate    time.Time                     `json:"quizDate"`
+	Answers     []UpdateManualTriviaAnswerDto `json:"answers"`
+}
+
 func GetAllManualTriviaQuestions(limit, offset int) ([]ManualTriviaQuestionDto, error) {
 	rows, err := Connection.Query("SELECT q.id, t.name, q.question FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid LIMIT $1 OFFSET $2;", limit, offset)
 	if err != nil {
@@ -77,6 +88,22 @@ func CreateManualTriviaQuestion(question CreateManualTriviaQuestionDto) error {
 
 	for _, val := range question.Answers {
 		if err = CreateManualTriviaAnswer(id, val); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func UpdateManualTriviaQuestion(questionID int, question UpdateManualTriviaQuestionDto) error {
+	statement := "UPDATE manualtriviaquestions SET typeid = $2, question = $3, map = $4, highlighted = $5, flagcode = $6, imageurl = $7, quizDate = $8 WHERE id = $1 RETURNING id;"
+	var id int
+	err := Connection.QueryRow(statement, questionID, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.QuizDate).Scan(&id)
+	if err != nil {
+		return err
+	}
+
+	for _, val := range question.Answers {
+		if err = UpdateManualTriviaAnswer(val); err != nil {
 			return err
 		}
 	}
