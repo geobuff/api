@@ -14,10 +14,23 @@ type CreateManualTriviaAnswerDto struct {
 	FlagCode  string `json:"flagCode"`
 }
 
+type UpdateManualTriviaAnswerDto struct {
+	ID        int    `json:"id"`
+	Text      string `json:"text"`
+	IsCorrect bool   `json:"isCorrect"`
+	FlagCode  string `json:"flagCode"`
+}
+
 func CreateManualTriviaAnswer(questionID int, answer CreateManualTriviaAnswerDto) error {
 	statement := "INSERT INTO manualtriviaanswers (manualtriviaquestionid, text, iscorrect, flagcode) VALUES ($1, $2, $3, $4) RETURNING id;"
 	var id int
 	return Connection.QueryRow(statement, questionID, answer.Text, answer.IsCorrect, answer.FlagCode).Scan(&id)
+}
+
+func UpdateManualTriviaAnswer(answer UpdateManualTriviaAnswerDto) error {
+	statement := "UPDATE manualtriviaanswers SET text = $2, iscorrect = $3, flagcode = $4 WHERE id = $1 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, answer.ID, answer.Text, answer.IsCorrect, answer.FlagCode).Scan(&id)
 }
 
 func GetManualTriviaAnswers(questionID int) ([]ManualTriviaAnswer, error) {
