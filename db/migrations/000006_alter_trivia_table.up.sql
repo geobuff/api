@@ -1,1 +1,1 @@
-ALTER TABLE trivia ADD column maxScore INT NOT NULL DEFAULT 10;
+ALTER TABLE trivia ADD column maxScore INT NOT NULL DEFAULT 0;
