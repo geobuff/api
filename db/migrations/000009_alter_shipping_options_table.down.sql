@@ -1,0 +1,1 @@
+ALTER TABLE shippingOptions DROP column imageUrl;

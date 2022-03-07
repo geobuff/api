@@ -1,0 +1,1 @@
+ALTER TABLE shippingOptions ADD column imageUrl TEXT NOT NULL DEFAULT '';

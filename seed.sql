@@ -119,4 +119,4 @@ INSERT INTO orderStatus (status) values
 ('Shipped');
 
 INSERT INTO shippingOptions (name, description, price) values
-('NZ-Wide Standard Shipping', 'Expect delivery in 5-7 days', 4.99);
+('NZ-Wide Standard Shipping', 'Expect delivery in 5-7 days', 4.99, 'https://upload.wikimedia.org/wikipedia/commons/1/1f/NZ_Post_logo.png');
