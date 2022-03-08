@@ -112,3 +112,31 @@ func UpdateCommunityQuiz(quizID int, quiz UpdateCommunityQuizDto) error {
 
 	return nil
 }
+
+func GetCommunityQuiz(quizID int) (CommunityQuiz, error) {
+	statement := "SELECT * FROM communityquizzes WHERE id = $1;"
+	var quiz CommunityQuiz
+	err := Connection.QueryRow(statement, quizID).Scan(&quiz.ID, &quiz.UserID, &quiz.Name, &quiz.Description, &quiz.MaxScore, &quiz.Added)
+	return quiz, err
+}
+
+func DeleteCommunityQuiz(quizID int) error {
+	questionIds, err := GetCommunityQuestionIds(quizID)
+	if err != nil {
+		return err
+	}
+
+	for _, questionId := range questionIds {
+		if err = DeleteCommunityQuizAnswers(questionId); err != nil {
+			return err
+		}
+
+		if err = DeleteCommunityQuizQuestion(questionId); err != nil {
+			return err
+		}
+	}
+
+	statement := "DELETE FROM communityquizzes WHERE id = $1 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, quizID).Scan(&id)
+}

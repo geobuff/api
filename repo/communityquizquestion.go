@@ -44,3 +44,28 @@ func UpdateCommunityQuizQuestion(question UpdateCommunityQuizQuestionDto) error 
 	var id int
 	return Connection.QueryRow(statement, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageUrl, question.ID).Scan(&id)
 }
+
+func GetCommunityQuestionIds(quizID int) ([]int, error) {
+	statement := "SELECT id FROM communityquizquestions WHERE communityquizid = $1;"
+	rows, err := Connection.Query(statement, quizID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids = []int{}
+	for rows.Next() {
+		var id int
+		if err = rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
+func DeleteCommunityQuizQuestion(questionID int) error {
+	statement := "DELETE FROM communityquizquestions WHERE id = $1 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, questionID).Scan(&id)
+}

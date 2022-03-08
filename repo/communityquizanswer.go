@@ -32,3 +32,9 @@ func UpdateCommunityQuizAnswer(answer UpdateCommunityQuizAnswerDto) error {
 	var id int
 	return Connection.QueryRow(statement, answer.Text, answer.IsCorrect, answer.FlagCode, answer.ID).Scan(&id)
 }
+
+func DeleteCommunityQuizAnswers(questionID int) error {
+	statement := "DELETE FROM communityquizanswers WHERE communityquizquestionid = $1 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, questionID).Scan(&id)
+}

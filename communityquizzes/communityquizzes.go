@@ -107,3 +107,28 @@ func UpdateCommunityQuiz(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 }
+
+func DeleteCommunityQuiz(writer http.ResponseWriter, request *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(request)["id"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	quiz, err := repo.GetCommunityQuiz(id)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	if code, err := auth.ValidUser(request, quiz.UserID); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	err = repo.DeleteCommunityQuiz(id)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+}
