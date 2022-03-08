@@ -217,6 +217,8 @@ func router() http.Handler {
 	// Community Quiz endpoints.
 	router.HandleFunc("/api/community-quizzes/all", communityquizzes.GetCommunityQuizzes).Methods("POST")
 	router.HandleFunc("/api/community-quizzes", communityquizzes.CreateCommunityQuiz).Methods("POST")
+	router.HandleFunc("/api/community-quizzes/{id}", communityquizzes.UpdateCommunityQuiz).Methods("PUT")
+	router.HandleFunc("/api/community-quizzes/{id}", communityquizzes.DeleteCommunityQuiz).Methods("DELETE")
 
 	return router
 }
