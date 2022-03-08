@@ -13,6 +13,7 @@ import (
 	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/checkout"
+	"github.com/geobuff/api/communityquizzes"
 	"github.com/geobuff/api/continents"
 	"github.com/geobuff/api/discounts"
 	"github.com/geobuff/api/leaderboard"
@@ -212,6 +213,10 @@ func router() http.Handler {
 	// Newletter Subscriber endpoints.
 	router.HandleFunc("/api/newsletter-subscribers", newslettersubscribers.CreateNewsletterSubscriber).Methods("POST")
 	router.HandleFunc("/api/newsletter-subscribers/{id}", newslettersubscribers.Unsubscribe).Methods("DELETE")
+
+	// Community Quiz endpoints.
+	router.HandleFunc("/api/community-quizzes/all", communityquizzes.GetCommunityQuizzes).Methods("POST")
+	router.HandleFunc("/api/community-quizzes", communityquizzes.CreateCommunityQuiz).Methods("POST")
 
 	return router
 }
