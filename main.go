@@ -113,6 +113,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/quizzes/all", quizzes.GetQuizzes).Methods("POST")
 	router.HandleFunc("/api/quizzes/{id}", quizzes.GetQuiz).Methods("GET")
 	router.HandleFunc("/api/quizzes", quizzes.CreateQuiz).Methods("POST")
+	router.HandleFunc("/api/quizzes/{id}", quizzes.UpdateQuiz).Methods("PUT")
 	router.HandleFunc("/api/quizzes/enabled/{id}", quizzes.ToggleQuizEnabled).Methods("PUT")
 
 	// Quiz Type endpoints.
