@@ -27,6 +27,7 @@ type ManualTriviaQuestionDto struct {
 	FlagCode    string               `json:"flagCode"`
 	ImageURL    string               `json:"imageUrl"`
 	LastUsed    sql.NullTime         `json:"lastUsed"`
+	QuizDate    sql.NullTime         `json:"quizDate"`
 	Answers     []ManualTriviaAnswer `json:"answers"`
 }
 
@@ -53,7 +54,7 @@ type UpdateManualTriviaQuestionDto struct {
 }
 
 func GetAllManualTriviaQuestions(limit, offset int) ([]ManualTriviaQuestionDto, error) {
-	rows, err := Connection.Query("SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.lastused FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid LIMIT $1 OFFSET $2;", limit, offset)
+	rows, err := Connection.Query("SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.lastused, q.quizDate FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid LIMIT $1 OFFSET $2;", limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +63,7 @@ func GetAllManualTriviaQuestions(limit, offset int) ([]ManualTriviaQuestionDto, 
 	var questions = []ManualTriviaQuestionDto{}
 	for rows.Next() {
 		var question ManualTriviaQuestionDto
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate); err != nil {
 			return nil, err
 		}
 
