@@ -113,6 +113,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/quizzes/all", quizzes.GetQuizzes).Methods("POST")
 	router.HandleFunc("/api/quizzes/{id}", quizzes.GetQuiz).Methods("GET")
 	router.HandleFunc("/api/quizzes", quizzes.CreateQuiz).Methods("POST")
+	router.HandleFunc("/api/quizzes/{id}", quizzes.UpdateQuiz).Methods("PUT")
 	router.HandleFunc("/api/quizzes/enabled/{id}", quizzes.ToggleQuizEnabled).Methods("PUT")
 
 	// Quiz Type endpoints.
@@ -216,6 +217,7 @@ func router() http.Handler {
 
 	// Community Quiz endpoints.
 	router.HandleFunc("/api/community-quizzes/all", communityquizzes.GetCommunityQuizzes).Methods("POST")
+	router.HandleFunc("/api/community-quizzes/user/{userId}", communityquizzes.GetUserCommunityQuizzes).Methods("GET")
 	router.HandleFunc("/api/community-quizzes", communityquizzes.CreateCommunityQuiz).Methods("POST")
 	router.HandleFunc("/api/community-quizzes/{id}", communityquizzes.UpdateCommunityQuiz).Methods("PUT")
 	router.HandleFunc("/api/community-quizzes/{id}", communityquizzes.DeleteCommunityQuiz).Methods("DELETE")
