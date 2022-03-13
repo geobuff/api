@@ -52,6 +52,28 @@ func GetCommunityQuizzes(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+func GetUserCommunityQuizzes(writer http.ResponseWriter, request *http.Request) {
+	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	if code, err := auth.ValidUser(request, userID); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	quizzes, err := repo.GetUserCommunityQuizzes(userID)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(quizzes)
+}
+
 func CreateCommunityQuiz(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {

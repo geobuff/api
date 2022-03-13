@@ -61,6 +61,26 @@ type CreateQuizDto struct {
 	Enabled        bool          `json:"enabled"`
 }
 
+type UpdateQuizDto struct {
+	TypeID         int           `json:"typeId"`
+	BadgeID        sql.NullInt64 `json:"badgeId"`
+	ContinentID    sql.NullInt64 `json:"continentId"`
+	Country        string        `json:"country"`
+	Singular       string        `json:"singular"`
+	Name           string        `json:"name"`
+	MaxScore       int           `json:"maxScore"`
+	Time           int           `json:"time"`
+	MapSVG         string        `json:"mapSVG"`
+	ImageURL       string        `json:"imageUrl"`
+	Verb           string        `json:"verb"`
+	APIPath        string        `json:"apiPath"`
+	Route          string        `json:"route"`
+	HasLeaderboard bool          `json:"hasLeaderboard"`
+	HasGrouping    bool          `json:"hasGrouping"`
+	HasFlags       bool          `json:"hasFlags"`
+	Enabled        bool          `json:"enabled"`
+}
+
 // GetQuizzes returns all quizzes.
 var GetQuizzes = func(filter QuizzesFilterDto) ([]Quiz, error) {
 	statement := "SELECT q.id, q.typeid, q.badgeid, q.continentid, q.country, q.singular, q.name, q.maxscore, q.time, q.mapsvg, q.imageurl, q.verb, q.apipath, q.route, q.hasleaderboard, q.hasgrouping, q.hasflags, q.enabled FROM quizzes q JOIN quizType t ON t.id = q.typeId LEFT JOIN quizPlays p ON q.id = p.quizId WHERE q.name ILIKE '%' || $1 || '%' OR t.name ILIKE '%' || $1 || '%' "
@@ -131,6 +151,12 @@ func CreateQuiz(newQuiz CreateQuizDto) (Quiz, error) {
 	var quiz Quiz
 	err := Connection.QueryRow(statement, newQuiz.TypeID, newQuiz.BadgeID, newQuiz.ContinentID, newQuiz.Country, newQuiz.Singular, newQuiz.Name, newQuiz.MaxScore, newQuiz.Time, newQuiz.MapSVG, newQuiz.ImageURL, newQuiz.Verb, newQuiz.APIPath, newQuiz.Route, newQuiz.HasLeaderboard, newQuiz.HasGrouping, newQuiz.HasFlags, newQuiz.Enabled).Scan(&quiz.ID, &quiz.TypeID, &quiz.BadgeID, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
 	return quiz, err
+}
+
+func UpdateQuiz(quizID int, quiz UpdateQuizDto) error {
+	statement := "UPDATE quizzes SET typeId = $1, badgeId = $2, continentId = $3, country = $4, singular = $5, name = $6, maxScore = $7, time = $8, mapSVG = $9, imageUrl = $10, verb = $11, apiPath = $12, route = $13, hasLeaderboard = $14, hasGrouping = $15, hasFlags = $16, enabled = $17 WHERE id = $18 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, quiz.TypeID, quiz.BadgeID, quiz.ContinentID, quiz.Country, quiz.Singular, quiz.Name, quiz.MaxScore, quiz.Time, quiz.MapSVG, quiz.ImageURL, quiz.Verb, quiz.APIPath, quiz.Route, quiz.HasLeaderboard, quiz.HasGrouping, quiz.HasFlags, quiz.Enabled, quizID).Scan(&id)
 }
 
 func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
