@@ -174,7 +174,7 @@ func RemoveLatestPendingOrder(email string) error {
 
 	Connection.QueryRow("DELETE from orderItems where orderid = $1;", orderId)
 	var id int
-	return Connection.QueryRow("DELETE from orders where id = $1;", orderId).Scan(&id)
+	return Connection.QueryRow("DELETE from orders where id = $1 RETURNING id;", orderId).Scan(&id)
 }
 
 func UpdateOrderStatus(orderID, statusID int) error {

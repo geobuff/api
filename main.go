@@ -13,6 +13,7 @@ import (
 	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/checkout"
+	"github.com/geobuff/api/communityquizzes"
 	"github.com/geobuff/api/continents"
 	"github.com/geobuff/api/discounts"
 	"github.com/geobuff/api/leaderboard"
@@ -112,6 +113,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/quizzes/all", quizzes.GetQuizzes).Methods("POST")
 	router.HandleFunc("/api/quizzes/{id}", quizzes.GetQuiz).Methods("GET")
 	router.HandleFunc("/api/quizzes", quizzes.CreateQuiz).Methods("POST")
+	router.HandleFunc("/api/quizzes/{id}", quizzes.UpdateQuiz).Methods("PUT")
 	router.HandleFunc("/api/quizzes/enabled/{id}", quizzes.ToggleQuizEnabled).Methods("PUT")
 
 	// Quiz Type endpoints.
@@ -138,6 +140,7 @@ func router() http.Handler {
 	// Manual Trivia Question endpoints.
 	router.HandleFunc("/api/manual-trivia-questions", manualtriviaquestions.GetManualTriviaQuestions).Methods("GET")
 	router.HandleFunc("/api/manual-trivia-questions", manualtriviaquestions.CreateManualTriviaQuestion).Methods("POST")
+	router.HandleFunc("/api/manual-trivia-questions/{id}", manualtriviaquestions.UpdateManualTriviaQuestion).Methods("PUT")
 	router.HandleFunc("/api/manual-trivia-questions/{id}", manualtriviaquestions.DeleteManualTriviaQuestion).Methods("DELETE")
 
 	// Mapping endpoints.
@@ -211,6 +214,13 @@ func router() http.Handler {
 	// Newletter Subscriber endpoints.
 	router.HandleFunc("/api/newsletter-subscribers", newslettersubscribers.CreateNewsletterSubscriber).Methods("POST")
 	router.HandleFunc("/api/newsletter-subscribers/{id}", newslettersubscribers.Unsubscribe).Methods("DELETE")
+
+	// Community Quiz endpoints.
+	router.HandleFunc("/api/community-quizzes/all", communityquizzes.GetCommunityQuizzes).Methods("POST")
+	router.HandleFunc("/api/community-quizzes/user/{userId}", communityquizzes.GetUserCommunityQuizzes).Methods("GET")
+	router.HandleFunc("/api/community-quizzes", communityquizzes.CreateCommunityQuiz).Methods("POST")
+	router.HandleFunc("/api/community-quizzes/{id}", communityquizzes.UpdateCommunityQuiz).Methods("PUT")
+	router.HandleFunc("/api/community-quizzes/{id}", communityquizzes.DeleteCommunityQuiz).Methods("DELETE")
 
 	return router
 }

@@ -83,6 +83,7 @@ func HandleCreateCheckoutSession(writer http.ResponseWriter, request *http.Reque
 	shippingItem := stripe.CheckoutSessionLineItemParams{
 		Amount:   &amount,
 		Name:     stripe.String(shippingOption.Name),
+		Images:   []*string{stripe.String(shippingOption.ImageURL)},
 		Currency: stripe.String("NZD"),
 		Quantity: stripe.Int64(1),
 	}
