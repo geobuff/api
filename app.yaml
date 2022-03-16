@@ -1,1 +1,4 @@
 runtime: go116
+
+vpc_access_connector:
+  name: projects/geobuff-prod-317101/locations/australia-southeast1/connectors/prod-connector
