@@ -33,7 +33,7 @@ jobs:
           password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
-       - run:
+      - run:
           name: Apply GCP config to app.yaml if necessary
           command: sh gcp.sh
       - run:
