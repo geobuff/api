@@ -34,6 +34,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Apply GCP config to app.yaml if necessary
+          command: sh gcp.sh
+      - run:
           name: Create .env file
           command: sh env.sh
       - run:
