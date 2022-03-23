@@ -17,7 +17,7 @@ type Quiz struct {
 	Time           int           `json:"time"`
 	MapSVG         string        `json:"mapSVG"`
 	ImageURL       string        `json:"imageUrl"`
-	Verb           string        `json:"verb"`
+	Plural         string        `json:"plural"`
 	APIPath        string        `json:"apiPath"`
 	Route          string        `json:"route"`
 	HasLeaderboard bool          `json:"hasLeaderboard"`
@@ -52,7 +52,7 @@ type CreateQuizDto struct {
 	Time           int           `json:"time"`
 	MapSVG         string        `json:"mapSVG"`
 	ImageURL       string        `json:"imageUrl"`
-	Verb           string        `json:"verb"`
+	Plural         string        `json:"plural"`
 	APIPath        string        `json:"apiPath"`
 	Route          string        `json:"route"`
 	HasLeaderboard bool          `json:"hasLeaderboard"`
@@ -72,7 +72,7 @@ type UpdateQuizDto struct {
 	Time           int           `json:"time"`
 	MapSVG         string        `json:"mapSVG"`
 	ImageURL       string        `json:"imageUrl"`
-	Verb           string        `json:"verb"`
+	Plural         string        `json:"plural"`
 	APIPath        string        `json:"apiPath"`
 	Route          string        `json:"route"`
 	HasLeaderboard bool          `json:"hasLeaderboard"`
@@ -83,7 +83,7 @@ type UpdateQuizDto struct {
 
 // GetQuizzes returns all quizzes.
 var GetQuizzes = func(filter QuizzesFilterDto) ([]Quiz, error) {
-	statement := "SELECT q.id, q.typeid, q.badgeid, q.continentid, q.country, q.singular, q.name, q.maxscore, q.time, q.mapsvg, q.imageurl, q.verb, q.apipath, q.route, q.hasleaderboard, q.hasgrouping, q.hasflags, q.enabled FROM quizzes q JOIN quizType t ON t.id = q.typeId LEFT JOIN quizPlays p ON q.id = p.quizId WHERE q.name ILIKE '%' || $1 || '%' OR t.name ILIKE '%' || $1 || '%' "
+	statement := "SELECT q.id, q.typeid, q.badgeid, q.continentid, q.country, q.singular, q.name, q.maxscore, q.time, q.mapsvg, q.imageurl, q.plural, q.apipath, q.route, q.hasleaderboard, q.hasgrouping, q.hasflags, q.enabled FROM quizzes q JOIN quizType t ON t.id = q.typeId LEFT JOIN quizPlays p ON q.id = p.quizId WHERE q.name ILIKE '%' || $1 || '%' OR t.name ILIKE '%' || $1 || '%' "
 
 	if filter.OrderByPopularity {
 		statement = statement + "ORDER BY p.plays, q.country NULLS FIRST LIMIT $2 OFFSET $3;"
@@ -100,7 +100,7 @@ var GetQuizzes = func(filter QuizzesFilterDto) ([]Quiz, error) {
 	var quizzes = []Quiz{}
 	for rows.Next() {
 		var quiz Quiz
-		if err = rows.Scan(&quiz.ID, &quiz.TypeID, &quiz.BadgeID, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled); err != nil {
+		if err = rows.Scan(&quiz.ID, &quiz.TypeID, &quiz.BadgeID, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Plural, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled); err != nil {
 			return nil, err
 		}
 		quizzes = append(quizzes, quiz)
@@ -119,7 +119,7 @@ var GetFirstQuizID = func(offset int) (int, error) {
 var GetQuiz = func(id int) (Quiz, error) {
 	statement := "SELECT * FROM quizzes WHERE id = $1;"
 	var quiz Quiz
-	err := Connection.QueryRow(statement, id).Scan(&quiz.ID, &quiz.TypeID, &quiz.BadgeID, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
+	err := Connection.QueryRow(statement, id).Scan(&quiz.ID, &quiz.TypeID, &quiz.BadgeID, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Plural, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
 	return quiz, err
 }
 
@@ -139,24 +139,17 @@ var ScoreExceedsMax = func(quizID, score int) (bool, error) {
 	return score > quiz.MaxScore, nil
 }
 
-func ToggleQuizEnabled(quizID int) (int, error) {
-	statement := "UPDATE quizzes set enabled = NOT enabled WHERE id = $1 RETURNING id;"
-	var id int
-	err := Connection.QueryRow(statement, quizID).Scan(&id)
-	return id, err
-}
-
 func CreateQuiz(newQuiz CreateQuizDto) (Quiz, error) {
-	statement := "INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxScore, time, mapSVG, imageUrl, verb, apiPath, route, hasLeaderboard, hasGrouping, hasFlags, enabled) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *;"
+	statement := "INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxScore, time, mapSVG, imageUrl, plural, apiPath, route, hasLeaderboard, hasGrouping, hasFlags, enabled) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *;"
 	var quiz Quiz
-	err := Connection.QueryRow(statement, newQuiz.TypeID, newQuiz.BadgeID, newQuiz.ContinentID, newQuiz.Country, newQuiz.Singular, newQuiz.Name, newQuiz.MaxScore, newQuiz.Time, newQuiz.MapSVG, newQuiz.ImageURL, newQuiz.Verb, newQuiz.APIPath, newQuiz.Route, newQuiz.HasLeaderboard, newQuiz.HasGrouping, newQuiz.HasFlags, newQuiz.Enabled).Scan(&quiz.ID, &quiz.TypeID, &quiz.BadgeID, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Verb, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
+	err := Connection.QueryRow(statement, newQuiz.TypeID, newQuiz.BadgeID, newQuiz.ContinentID, newQuiz.Country, newQuiz.Singular, newQuiz.Name, newQuiz.MaxScore, newQuiz.Time, newQuiz.MapSVG, newQuiz.ImageURL, newQuiz.Plural, newQuiz.APIPath, newQuiz.Route, newQuiz.HasLeaderboard, newQuiz.HasGrouping, newQuiz.HasFlags, newQuiz.Enabled).Scan(&quiz.ID, &quiz.TypeID, &quiz.BadgeID, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Plural, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
 	return quiz, err
 }
 
 func UpdateQuiz(quizID int, quiz UpdateQuizDto) error {
-	statement := "UPDATE quizzes SET typeId = $1, badgeId = $2, continentId = $3, country = $4, singular = $5, name = $6, maxScore = $7, time = $8, mapSVG = $9, imageUrl = $10, verb = $11, apiPath = $12, route = $13, hasLeaderboard = $14, hasGrouping = $15, hasFlags = $16, enabled = $17 WHERE id = $18 RETURNING id;"
+	statement := "UPDATE quizzes SET typeId = $1, badgeId = $2, continentId = $3, country = $4, singular = $5, name = $6, maxScore = $7, time = $8, mapSVG = $9, imageUrl = $10, plural = $11, apiPath = $12, route = $13, hasLeaderboard = $14, hasGrouping = $15, hasFlags = $16, enabled = $17 WHERE id = $18 RETURNING id;"
 	var id int
-	return Connection.QueryRow(statement, quiz.TypeID, quiz.BadgeID, quiz.ContinentID, quiz.Country, quiz.Singular, quiz.Name, quiz.MaxScore, quiz.Time, quiz.MapSVG, quiz.ImageURL, quiz.Verb, quiz.APIPath, quiz.Route, quiz.HasLeaderboard, quiz.HasGrouping, quiz.HasFlags, quiz.Enabled, quizID).Scan(&id)
+	return Connection.QueryRow(statement, quiz.TypeID, quiz.BadgeID, quiz.ContinentID, quiz.Country, quiz.Singular, quiz.Name, quiz.MaxScore, quiz.Time, quiz.MapSVG, quiz.ImageURL, quiz.Plural, quiz.APIPath, quiz.Route, quiz.HasLeaderboard, quiz.HasGrouping, quiz.HasFlags, quiz.Enabled, quizID).Scan(&id)
 }
 
 func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
