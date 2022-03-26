@@ -49,7 +49,7 @@ type UpdateManualTriviaQuestionDto struct {
 	Highlighted string                        `json:"highlighted"`
 	FlagCode    string                        `json:"flagCode"`
 	ImageURL    string                        `json:"imageUrl"`
-	QuizDate    time.Time                     `json:"quizDate"`
+	QuizDate    sql.NullTime                  `json:"quizDate"`
 	Answers     []UpdateManualTriviaAnswerDto `json:"answers"`
 }
 
