@@ -1,0 +1,1 @@
+ALTER TABLE quizzes RENAME COLUMN plural TO verb;

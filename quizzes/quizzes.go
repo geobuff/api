@@ -71,25 +71,6 @@ func GetQuiz(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(quiz)
 }
 
-func ToggleQuizEnabled(writer http.ResponseWriter, request *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(request)["id"])
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
-	if code, err := auth.IsAdmin(request); err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), code)
-		return
-	}
-
-	_, err = repo.ToggleQuizEnabled(id)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-}
-
 func CreateQuiz(writer http.ResponseWriter, request *http.Request) {
 	if code, err := auth.IsAdmin(request); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
