@@ -21,13 +21,18 @@ INSERT INTO badges (typeid, continentId, name, description, imageUrl, background
 (3, 5, 'AmazonBuff', 'Complete all South America quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f483.svg', '#FFBFC7', '#A0041E'),
 (3, 6, 'PacificBuff', 'Complete all Oceania quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3dd.svg', '#D3ECFF', '#F4900C');
 
-INSERT INTO avatars (name, description, primaryImageUrl, secondaryImageUrl) values
-('Sarg', 'After a 20 year stint in the NZSAS, Sarg spent some time smuggling precious stones into all those places that are on the tip of your tongue and rather difficult to spell. Cool, calm, collected and very handy with a zipwire; I keep my distance once this man''s on a Countries of the World roll. I advise you do the same...', '/commando-one-primary.svg', '/commando-one-secondary.svg'),
-('Cypher', 'Bonafide hacker and rare NFT collector Cypher cut her teeth toying with Wall St. bankers before becoming the head of operations at GCSB. Word on the street is she lost her eye at 16 when a pirated mint of the original CryptoPunks went horribly wrong. Get a little bit too close to her score on the leaderboard and watch it get ''adjusted'' to zero in no time.', '/commando-two-primary.svg', '/commando-two-secondary.svg'),
-('RoboGazza', 'Is he a man or is he a robot? No-one living knows. With a particular aptitude for shooting things with a bow and bombing hills on his bike, Gazza isn''t a man you want on your tail. Well travelled and well-seasoned; keep this in mind before going head-to-head with him on Flags of the World.', '/traveller-one-primary.svg', '/traveller-one-secondary.svg'),
-('Kathy2.0', 'A Yorkshire clone resulting from an experiment run by GeoBuff Research Institute at an undisclosed location off the British coastline. The intent was to genitically increase VO2 max and number of steps per day, and increase it we did. Kathy has walked the Pennines start to finish 7 times this year. Speaking of, has anyone seen the original Kathy?', '/traveller-two-primary.svg', '/traveller-two-secondary.svg'),
-('Professor Lungu', 'Top of his class in MIT and hell-bent on being the only academic to publish a paper for the esteemed school AND score max points on countries of the world in under 5 minutes. Sharp as a tack and quick as a whippet; don''t underestimate the power of a nerd on a mission.', '/researcher-one-primary.svg', '/researcher-one-secondary.svg'),
-('Sanchez', 'Ex-champion Jarabe dancer in her home Mexico City, Sanchez was taken under Prof. Lungo''s wing as a field researcher after he discovered she has a photographic memory and is the only person alive that can spell Kyrgyzstan correct on the first try. Dance with Miss Sanchez, and well, it may just be your last...', '/researcher-two-primary.svg', '/researcher-two-secondary.svg');
+INSERT INTO avatarTypes (name) values
+('Commando'),
+('Traveller'),
+('Researcher');
+
+INSERT INTO avatars (typeId, flagCode, name, description, primaryImageUrl, secondaryImageUrl) values
+(1, 'nz', 'Sarg', 'After a 20 year stint in the NZSAS, Sarg spent some time smuggling precious stones into all those places that are on the tip of your tongue and rather difficult to spell. Cool, calm, collected and very handy with a zipwire; I keep my distance once this man''s on a Countries of the World roll. I advise you do the same...', '/commando-one-primary.svg', '/commando-one-secondary.svg'),
+(1, 'us', 'Cypher', 'Bona fide hacker and rare NFT collector Cypher cut her teeth toying with Wall St. bankers before becoming the head of operations at the FBI. Word on the street is she lost her eye at 16 when a pirated mint of the original CryptoPunks went horribly wrong. Get a little bit too close to her score on the leaderboard and watch it get ''adjusted'' to zero in no time.', '/commando-two-primary.svg', '/commando-two-secondary.svg'),
+(2, 'au', 'RoboGazza', 'Is he a man or is he a robot? No-one living knows. With a particular aptitude for shooting things with a bow and bombing hills on his bike, Gazza isn''t a man you want on your tail. Well travelled and well-seasoned; keep this in mind before going head-to-head with him on Flags of the World.', '/traveller-one-primary.svg', '/traveller-one-secondary.svg'),
+(2, 'gb', 'Kathy2.0', 'A Yorkshire clone resulting from an experiment run by GeoBuff Research Institute at an undisclosed location off the British coastline. The intent was to genetically increase VO2 max and number of steps per day, and increase it we did. Kathy has walked the Pennines start to finish 7 times this year. Speaking of, has anyone seen the original Kathy?', '/traveller-two-primary.svg', '/traveller-two-secondary.svg'),
+(3, 'zm', 'Professor Lungu', 'Top of his class at MIT and hell-bent on being the only academic to publish a paper for the esteemed school AND score max points on Countries of the World in under 5 minutes. Sharp as a tack and quick as a whippet; don''t underestimate the power of a nerd on a mission.', '/researcher-one-primary.svg', '/researcher-one-secondary.svg'),
+(3, 'mx', 'Sanchez', 'Ex-champion Jarabe dancer in her home Mexico City, Sanchez was taken under Prof. Lungu''s wing as a field researcher after he discovered she has a photographic memory and is the only person alive that can spell Kyrgyzstan correctly on the first try. Dance with Miss Sanchez, and well, it may just be your last...', '/researcher-two-primary.svg', '/researcher-two-secondary.svg');
 
 INSERT INTO quiztype (name) values
 ('Map'),
@@ -61,8 +66,9 @@ INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxS
 (1, 4, 2, 'South Korea', 'province', 'Provinces of South Korea', 17, 300, 'SouthKoreaProvinces', 'https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg', 'provinces', 'south-korea-provinces', 'provinces-of-south-korea', TRUE, FALSE, TRUE, TRUE),
 (1, 5, 3, 'Spain', 'province', 'Provinces of Spain', 52, 300, 'SpainProvinces', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ea-1f1f8.svg', 'provinces', 'spain-provinces', 'provinces-of-spain', TRUE, FALSE, TRUE, TRUE),
 (1, 4, 2, 'Turkey', 'province', 'Provinces of Turkey', 81, 600, 'TurkeyProvinces', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1f9-1f1f7.svg', 'provinces', 'turkey-provinces', 'provinces-of-turkey', TRUE, FALSE, FALSE, TRUE),
-(1, 6, 4, 'United States', 'state', 'US States', 50, 300, 'UsStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1f8.svg', 'states', 'us-states', 'us-states', TRUE, FALSE, TRUE, TRUE),
 (1, 3, 1, 'Uganda', 'district', 'Districts of Uganda', 112, 600, 'UgandaDistricts', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1ec.svg', 'districts', 'uganda-districts', 'districts-of-uganda', TRUE, FALSE, FALSE, TRUE),
+(1, 5, 3, 'Ukraine', 'oblast', 'Oblasts of Ukraine', 24, 300, 'UkraineOblasts', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1e6.svg', 'oblasts', 'ukraine-oblasts', 'oblasts-of-ukraine', TRUE, FALSE, FALSE, TRUE),
+(1, 6, 4, 'United States', 'state', 'US States', 50, 300, 'UsStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1f8.svg', 'states', 'us-states', 'us-states', TRUE, FALSE, TRUE, TRUE),
 (1, 3, 1, 'Zambia', 'province', 'Provinces of Zambia', 10, 300, 'ZambiaProvinces', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ff-1f1f2.svg', 'provinces', 'zambia-provinces', 'provinces-of-zambia', TRUE, FALSE, FALSE, TRUE),
 (2, 2, null, '', 'flag', 'Flags of the World', 197, 900, '', '/world-map-header.svg', 'flags', 'world-countries', 'flags-of-the-world', TRUE, TRUE, TRUE, TRUE),
 (2, 8, 6, 'Australia', 'flag', 'Flags of Australia', 8, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e6-1f1fa.svg', 'flags', 'australia-states-and-territories-flags', 'flags-of-australia', TRUE, FALSE, TRUE, TRUE),
@@ -77,6 +83,7 @@ INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxS
 (2, 4, 2, 'Russia', 'flag', 'Flags of Russia', 83, 600, '', 'https://upload.wikimedia.org/wikipedia/en/f/f3/Flag_of_Russia.svg', 'flags', 'russia-federal-subjects', 'flags-of-russia', TRUE, FALSE, TRUE, TRUE),
 (2, 4, 2, 'South Korea', 'flag', 'Flags of South Korea', 17, 300, '', 'https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg', 'flags', 'south-korea-provinces', 'flags-of-south-korea', TRUE, FALSE, TRUE, TRUE),
 (2, 5, 3, 'Spain', 'flag', 'Flags of Spain', 52, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ea-1f1f8.svg', 'flags', 'spain-provinces', 'flags-of-spain', TRUE, FALSE, TRUE, TRUE),
+(2, 5, 3, 'Ukraine', 'flag', 'Flags of Ukraine', 24, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1e6.svg', 'flags', 'ukraine-oblasts', 'flags-of-ukraine', TRUE, FALSE, TRUE, TRUE),
 (2, 6, 4, 'United States', 'flag', 'Flags of the US', 50, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1f8.svg', 'flags', 'us-states', 'flags-of-the-us', TRUE, FALSE, TRUE, TRUE);
 
 INSERT INTO triviaQuestionType (name) values
@@ -88,18 +95,18 @@ INSERT INTO triviaQuestionType (name) values
 INSERT INTO merch (name, description, sizeGuideImageUrl, price, externalLink) values
 ('Tee', 'With summer just around the corner, we teamed up with the only carbon neutral clothing company in New Zealand (Koa Goods) to bring you guys the freshest eco-friendly tee to let the squad know you''re ready to drop those countries of the world at a moments notice. By copping one of these OG pieces you''re directly contributing to hosting costs and helping us keep this thing afloat. Kia Kaha!', '/tee-size-guide.png', 39.99, null),
 ('Socks', 'With summer just around the corner, we teamed up with the only carbon neutral clothing company in New Zealand (Koa Goods) to bring you guys the freshest eco-friendly hoof covers to let the squad know you don''t mess around when it comes to capital cities. By copping one of these OG pieces you''re directly contributing to hosting costs and helping us keep this thing afloat. Kia Kaha!', null, 11.99, null),
-('Poster Combo', 'Just moved flats and the bedroom walls are looking bare, boring and barren? The boys at GeoBuff HQ have got you covered. We''ve teamed up with the goodfella''s at The Big Picture to spruce up that decor and let the homies know that when the flags come out, you mean business. By copping one of these OG pieces you''re directly contributing to hosting costs and helping us keep this thing afloat. Kia Kaha!', null, 24.99, null),
-('Sticker Pack', 'Rear window on the wagon covered in dust and Raglan Roast have run out of stickers? The boys at GeoBuff HQ have got you covered. We''ve teamed up with the goodfella''s at The Big Picture to spice up that rear window and let the geezers in the slow lane know that you get your geoflex on. By copping one of these OG pieces you''re directly contributing to hosting costs and helping us keep this thing afloat. Kia Kaha!', null, 24.99, null);
+('Poster Combo', 'Just moved flats and the bedroom walls are looking bare, boring and barren? The folks at GeoBuff HQ have got you covered. We''ve teamed up with the goodfella''s at The Big Picture to spruce up that decor and let the homies know that when the flags come out, you mean business. By copping one of these OG pieces you''re directly contributing to hosting costs and helping us keep this thing afloat. Kia Kaha!', null, 24.99, null),
+('Sticker Pack', 'Rear window on the wagon covered in dust and Raglan Roast have run out of stickers? The folks at GeoBuff HQ have got you covered. We''ve teamed up with the goodfella''s at The Big Picture to spice up that rear window and let the geezers in the slow lane know that you get your geoflex on. By copping one of these OG pieces you''re directly contributing to hosting costs and helping us keep this thing afloat. Kia Kaha!', null, 24.99, null);
 
 INSERT INTO merchSizes (merchId, size, quantity) values
-(1, 'S', 8),
-(1, 'M', 25),
-(1, 'L', 25),
-(1, 'XL', 15),
-(1, 'XXL', 7),
-(2, 'One Size Fits All', 100),
-(3, 'A2', 30),
-(4, 'A4', 50);
+(1, 'S', 0),
+(1, 'M', 0),
+(1, 'L', 0),
+(1, 'XL', 0),
+(1, 'XXL', 0),
+(2, 'One Size Fits All', 0),
+(3, 'A2', 0),
+(4, 'A4', 0);
 
 INSERT INTO merchImages (merchId, imageUrl, isPrimary) values
 (1, '/tee.jpg', TRUE),
