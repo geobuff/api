@@ -59,11 +59,6 @@ func GetUserCommunityQuizzes(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	if code, err := auth.ValidUser(request, userID); err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), code)
-		return
-	}
-
 	quizzes, err := repo.GetUserCommunityQuizzes(userID)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
