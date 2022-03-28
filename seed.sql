@@ -26,7 +26,7 @@ INSERT INTO avatarTypes (name) values
 ('Traveller'),
 ('Researcher');
 
-INSERT INTO avatars (typeId, flagCode, name, description, primaryImageUrl, secondaryImageUrl) values
+INSERT INTO avatars (typeId, countryCode, name, description, primaryImageUrl, secondaryImageUrl) values
 (1, 'nz', 'Sarg', 'After a 20 year stint in the NZSAS, Sarg spent some time smuggling precious stones into all those places that are on the tip of your tongue and rather difficult to spell. Cool, calm, collected and very handy with a zipwire; I keep my distance once this man''s on a Countries of the World roll. I advise you do the same...', '/commando-one-primary.svg', '/commando-one-secondary.svg'),
 (1, 'us', 'Cypher', 'Bona fide hacker and rare NFT collector Cypher cut her teeth toying with Wall St. bankers before becoming the head of operations at the FBI. Word on the street is she lost her eye at 16 when a pirated mint of the original CryptoPunks went horribly wrong. Get a little bit too close to her score on the leaderboard and watch it get ''adjusted'' to zero in no time.', '/commando-two-primary.svg', '/commando-two-secondary.svg'),
 (2, 'au', 'RoboGazza', 'Is he a man or is he a robot? No-one living knows. With a particular aptitude for shooting things with a bow and bombing hills on his bike, Gazza isn''t a man you want on your tail. Well travelled and well-seasoned; keep this in mind before going head-to-head with him on Flags of the World.', '/traveller-one-primary.svg', '/traveller-one-secondary.svg'),
@@ -38,7 +38,7 @@ INSERT INTO quiztype (name) values
 ('Map'),
 ('Flag');
 
-INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxScore, time, mapSVG, imageUrl, verb, apiPath, route, hasLeaderboard, hasGrouping, hasFlags, enabled) values
+INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxScore, time, mapSVG, imageUrl, plural, apiPath, route, hasLeaderboard, hasGrouping, hasFlags, enabled) values
 (1, 2, null, '', 'country', 'Countries of the World', 197, 900, 'WorldCountries', '/world-map-header.svg', 'countries', 'world-countries', 'countries-of-the-world', TRUE, TRUE, TRUE, TRUE),
 (1, 2, null, '', 'capital', 'Capitals of the World', 197, 900, 'WorldCapitals', '/world-map-header.svg', 'capitals', 'world-capitals', 'capitals-of-the-world', TRUE, TRUE, TRUE, TRUE),
 (1, 3, 1, '', 'country', 'Countries of Africa', 54, 300, 'AfricaCountries', '/africa-countries-header.svg', 'countries', 'africa-countries', 'countries-of-africa', TRUE, FALSE, TRUE, TRUE),
@@ -125,5 +125,5 @@ INSERT INTO orderStatus (status) values
 ('Payment Received'),
 ('Shipped');
 
-INSERT INTO shippingOptions (name, description, price) values
+INSERT INTO shippingOptions (name, description, price, imageUrl) values
 ('NZ-Wide Standard Shipping', 'Expect delivery in 5-7 days', 4.99, 'https://upload.wikimedia.org/wikipedia/commons/1/1f/NZ_Post_logo.png');
