@@ -20,17 +20,17 @@ func TestGetAvatars(t *testing.T) {
 
 	tt := []struct {
 		name       string
-		getAvatars func() ([]repo.Avatar, error)
+		getAvatars func() ([]repo.AvatarDto, error)
 		status     int
 	}{
 		{
 			name:       "error on GetAvatars",
-			getAvatars: func() ([]repo.Avatar, error) { return nil, errors.New("test") },
+			getAvatars: func() ([]repo.AvatarDto, error) { return nil, errors.New("test") },
 			status:     http.StatusInternalServerError,
 		},
 		{
 			name:       "happy path",
-			getAvatars: func() ([]repo.Avatar, error) { return []repo.Avatar{}, nil },
+			getAvatars: func() ([]repo.AvatarDto, error) { return []repo.AvatarDto{}, nil },
 			status:     http.StatusOK,
 		},
 	}

@@ -3,6 +3,18 @@ package repo
 // Avatar is the database object for a avatar entry.
 type Avatar struct {
 	ID                int    `json:"id"`
+	TypeID            int    `json:"typeId"`
+	CountryCode       string `json:"countryCode"`
+	Name              string `json:"name"`
+	Description       string `json:"description"`
+	PrimaryImageUrl   string `json:"primaryImageUrl"`
+	SecondaryImageUrl string `json:"secondaryImageUrl"`
+}
+
+type AvatarDto struct {
+	ID                int    `json:"id"`
+	Type              string `json:"type"`
+	CountryCode       string `json:"countryCode"`
 	Name              string `json:"name"`
 	Description       string `json:"description"`
 	PrimaryImageUrl   string `json:"primaryImageUrl"`
@@ -10,17 +22,17 @@ type Avatar struct {
 }
 
 // GetAvatars returns all avatars.
-var GetAvatars = func() ([]Avatar, error) {
-	rows, err := Connection.Query("SELECT * FROM avatars;")
+var GetAvatars = func() ([]AvatarDto, error) {
+	rows, err := Connection.Query("SELECT a.id, t.name, a.countrycode, a.name, a.description, a.primaryImageUrl, a.secondaryImageUrl FROM avatars a JOIN avatarTypes t ON t.id = a.typeid;")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var avatars = []Avatar{}
+	var avatars = []AvatarDto{}
 	for rows.Next() {
-		var avatar Avatar
-		if err = rows.Scan(&avatar.ID, &avatar.Name, &avatar.Description, &avatar.PrimaryImageUrl, &avatar.SecondaryImageUrl); err != nil {
+		var avatar AvatarDto
+		if err = rows.Scan(&avatar.ID, &avatar.Type, &avatar.CountryCode, &avatar.Name, &avatar.Description, &avatar.PrimaryImageUrl, &avatar.SecondaryImageUrl); err != nil {
 			return nil, err
 		}
 		avatars = append(avatars, avatar)
@@ -29,9 +41,9 @@ var GetAvatars = func() ([]Avatar, error) {
 }
 
 // GetAvatar returns an avatar with the matching id.
-var GetAvatar = func(id int) (Avatar, error) {
-	statement := "SELECT * from avatars WHERE id = $1;"
-	var avatar Avatar
-	err := Connection.QueryRow(statement, id).Scan(&avatar.ID, &avatar.Name, &avatar.Description, &avatar.PrimaryImageUrl, &avatar.SecondaryImageUrl)
+var GetAvatar = func(id int) (AvatarDto, error) {
+	statement := "SELECT a.id, t.name, a.countrycode, a.name, a.description, a.primaryImageUrl, a.secondaryImageUrl FROM avatars a JOIN avatarTypes t ON t.id = a.typeid WHERE id = $1;"
+	var avatar AvatarDto
+	err := Connection.QueryRow(statement, id).Scan(&avatar.ID, &avatar.Type, &avatar.CountryCode, &avatar.Name, &avatar.Description, &avatar.PrimaryImageUrl, &avatar.SecondaryImageUrl)
 	return avatar, err
 }

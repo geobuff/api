@@ -238,7 +238,7 @@ func TestUpdateUser(t *testing.T) {
 		anotherUserWithUsername func(id int, username string) (bool, error)
 		anotherUserWithEmail    func(id int, email string) (bool, error)
 		updateUser              func(userID int, user repo.UpdateUserDto) error
-		getAvatar               func(id int) (repo.Avatar, error)
+		getAvatar               func(id int) (repo.AvatarDto, error)
 		id                      string
 		body                    string
 		status                  int
@@ -337,7 +337,7 @@ func TestUpdateUser(t *testing.T) {
 			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, nil },
 			anotherUserWithEmail:    func(id int, email string) (bool, error) { return false, nil },
 			updateUser:              func(userID int, user repo.UpdateUserDto) error { return nil },
-			getAvatar:               func(id int) (repo.Avatar, error) { return repo.Avatar{}, errors.New("test") },
+			getAvatar:               func(id int) (repo.AvatarDto, error) { return repo.AvatarDto{}, errors.New("test") },
 			id:                      "1",
 			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
 			status:                  http.StatusInternalServerError,
@@ -348,7 +348,7 @@ func TestUpdateUser(t *testing.T) {
 			anotherUserWithUsername: func(id int, username string) (bool, error) { return false, nil },
 			anotherUserWithEmail:    func(id int, email string) (bool, error) { return false, nil },
 			updateUser:              func(userID int, user repo.UpdateUserDto) error { return nil },
-			getAvatar:               func(id int) (repo.Avatar, error) { return repo.Avatar{}, nil },
+			getAvatar:               func(id int) (repo.AvatarDto, error) { return repo.AvatarDto{}, nil },
 			id:                      "1",
 			body:                    `{"avatarId": 1, "username":"mrscrub", "email": "scrub@gmail.com", "countryCode": "nz", "xp": 0}`,
 			status:                  http.StatusOK,
