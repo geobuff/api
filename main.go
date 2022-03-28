@@ -13,6 +13,7 @@ import (
 	"github.com/geobuff/api/avatars"
 	"github.com/geobuff/api/badges"
 	"github.com/geobuff/api/checkout"
+	"github.com/geobuff/api/communityquizplays"
 	"github.com/geobuff/api/communityquizzes"
 	"github.com/geobuff/api/continents"
 	"github.com/geobuff/api/discounts"
@@ -114,6 +115,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/quizzes/{id}", quizzes.GetQuiz).Methods("GET")
 	router.HandleFunc("/api/quizzes", quizzes.CreateQuiz).Methods("POST")
 	router.HandleFunc("/api/quizzes/{id}", quizzes.UpdateQuiz).Methods("PUT")
+	router.HandleFunc("/api/quizzes/{id}", quizzes.DeleteQuiz).Methods("DELETE")
 
 	// Quiz Type endpoints.
 	router.HandleFunc("/api/quiztype", quiztype.GetTypes).Methods("GET")
@@ -220,6 +222,9 @@ func router() http.Handler {
 	router.HandleFunc("/api/community-quizzes", communityquizzes.CreateCommunityQuiz).Methods("POST")
 	router.HandleFunc("/api/community-quizzes/{id}", communityquizzes.UpdateCommunityQuiz).Methods("PUT")
 	router.HandleFunc("/api/community-quizzes/{id}", communityquizzes.DeleteCommunityQuiz).Methods("DELETE")
+
+	// Community Quiz Play endpoints.
+	router.HandleFunc("/api/community-quiz-plays/{id}", communityquizplays.IncrementCommunityQuizPlays).Methods("PUT")
 
 	return router
 }

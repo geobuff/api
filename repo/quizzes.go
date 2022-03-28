@@ -152,6 +152,21 @@ func UpdateQuiz(quizID int, quiz UpdateQuizDto) error {
 	return Connection.QueryRow(statement, quiz.TypeID, quiz.BadgeID, quiz.ContinentID, quiz.Country, quiz.Singular, quiz.Name, quiz.MaxScore, quiz.Time, quiz.MapSVG, quiz.ImageURL, quiz.Plural, quiz.APIPath, quiz.Route, quiz.HasLeaderboard, quiz.HasGrouping, quiz.HasFlags, quiz.Enabled, quizID).Scan(&id)
 }
 
+func DeleteQuiz(quizID int) error {
+	var id int
+	err := Connection.QueryRow("DELETE FROM quizplays where quizid = $1 RETURNING id;", quizID).Scan(&id)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	err = Connection.QueryRow("DELETE FROM leaderboard where quizid = $1 RETURNING id;", quizID).Scan(&id)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	return Connection.QueryRow("DELETE FROM quizzes where id = $1 RETURNING id;", quizID).Scan(&id)
+}
+
 func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
 	statement := "SELECT country, singular, name, mapsvg, apipath FROM quizzes WHERE typeid = $1 AND name NOT LIKE '%World%' AND name NOT LIKE '%Countries%' AND name NOT LIKE '%US States%';"
 	rows, err := Connection.Query(statement, QUIZ_TYPE_MAP)
