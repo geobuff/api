@@ -94,7 +94,7 @@ var runMigrations = func() error {
 }
 
 var serve = func() error {
-	return http.ListenAndServe(":8080", tollbooth.LimitHandler(tollbooth.NewLimiter(10, nil), (handler(router()))))
+	return http.ListenAndServe(":8080", tollbooth.LimitHandler(tollbooth.NewLimiter(1000, nil), (handler(router()))))
 }
 
 func handler(router http.Handler) http.Handler {
