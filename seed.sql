@@ -51,7 +51,7 @@ INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxS
 (1, 8, 6, 'Australia', 'state or territory', 'States and Territories of Australia', 9, 300, 'AustraliaStatesAndTerritories', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e6-1f1fa.svg', 'states and territories', 'australia-states-and-territories', 'states-and-territories-of-australia', TRUE, FALSE, TRUE, TRUE),
 (1, 7, 5, 'Brazil', 'state', 'States of Brazil', 27, 300, 'BrazilStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e7-1f1f7.svg', 'states', 'brazil-states', 'states-of-brazil', TRUE, FALSE, TRUE, TRUE),
 (1, 6, 4, 'Canada', 'province or territory', 'Provinces and Territories of Canada', 13, 300, 'CanadaProvincesAndTerritories', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e8-1f1e6.svg', 'provinces and territories', 'canada-provinces-and-territories', 'provinces-and-territories-of-canada', TRUE, FALSE, TRUE, TRUE),
-(1, 4, 2, 'China', 'administrative division', 'Administrative Divisions of China', 34, 300, 'ChinaAdministrativeDivisions', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e8-1f1f3.svg', 'administrative divisions', 'china-administrative-divisions', 'administrative-divisions-of-china', TRUE, FALSE, FALSE, TRUE),
+(1, 4, 2, 'China', 'administrative division', 'Administrative Divisions of China', 33, 300, 'ChinaAdministrativeDivisions', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e8-1f1f3.svg', 'administrative divisions', 'china-administrative-divisions', 'administrative-divisions-of-china', TRUE, FALSE, FALSE, TRUE),
 (1, 7, 5, 'Colombia', 'department', 'Departments of Colombia', 33, 300, 'ColombiaDepartments', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e8-1f1f4.svg', 'departments', 'colombia-departments', 'departments-of-colombia', TRUE, FALSE, TRUE, TRUE),
 (1, 5, 3, 'France', 'region', 'Regions of France', 13, 300, 'FranceRegions', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1eb-1f1f7.svg', 'regions', 'france-regions', 'regions-of-france', TRUE, FALSE, TRUE, TRUE),
 (1, 5, 3, 'Germany', 'state', 'States of Germany', 16, 300, 'GermanyStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e9-1f1ea.svg', 'states', 'germany-states', 'states-of-germany', TRUE, FALSE, TRUE, TRUE),
@@ -67,7 +67,7 @@ INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxS
 (1, 5, 3, 'Spain', 'province', 'Provinces of Spain', 52, 300, 'SpainProvinces', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ea-1f1f8.svg', 'provinces', 'spain-provinces', 'provinces-of-spain', TRUE, FALSE, TRUE, TRUE),
 (1, 4, 2, 'Turkey', 'province', 'Provinces of Turkey', 81, 600, 'TurkeyProvinces', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1f9-1f1f7.svg', 'provinces', 'turkey-provinces', 'provinces-of-turkey', TRUE, FALSE, FALSE, TRUE),
 (1, 3, 1, 'Uganda', 'district', 'Districts of Uganda', 112, 600, 'UgandaDistricts', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1ec.svg', 'districts', 'uganda-districts', 'districts-of-uganda', TRUE, FALSE, FALSE, TRUE),
-(1, 5, 3, 'Ukraine', 'oblast', 'Oblasts of Ukraine', 24, 300, 'UkraineOblasts', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1e6.svg', 'oblasts', 'ukraine-oblasts', 'oblasts-of-ukraine', TRUE, FALSE, FALSE, TRUE),
+(1, 5, 3, 'Ukraine', 'oblast', 'Oblasts of Ukraine', 25, 300, 'UkraineOblasts', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1e6.svg', 'oblasts', 'ukraine-oblasts', 'oblasts-of-ukraine', TRUE, FALSE, FALSE, TRUE),
 (1, 6, 4, 'United States', 'state', 'US States', 50, 300, 'UsStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1f8.svg', 'states', 'us-states', 'us-states', TRUE, FALSE, TRUE, TRUE),
 (1, 3, 1, 'Zambia', 'province', 'Provinces of Zambia', 10, 300, 'ZambiaProvinces', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ff-1f1f2.svg', 'provinces', 'zambia-provinces', 'provinces-of-zambia', TRUE, FALSE, FALSE, TRUE),
 (2, 2, null, '', 'flag', 'Flags of the World', 197, 900, '', '/world-map-header.svg', 'flags', 'world-countries', 'flags-of-the-world', TRUE, TRUE, TRUE, TRUE),
@@ -83,7 +83,7 @@ INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxS
 (2, 4, 2, 'Russia', 'flag', 'Flags of Russia', 83, 600, '', 'https://upload.wikimedia.org/wikipedia/en/f/f3/Flag_of_Russia.svg', 'flags', 'russia-federal-subjects', 'flags-of-russia', TRUE, FALSE, TRUE, TRUE),
 (2, 4, 2, 'South Korea', 'flag', 'Flags of South Korea', 17, 300, '', 'https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg', 'flags', 'south-korea-provinces', 'flags-of-south-korea', TRUE, FALSE, TRUE, TRUE),
 (2, 5, 3, 'Spain', 'flag', 'Flags of Spain', 52, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ea-1f1f8.svg', 'flags', 'spain-provinces', 'flags-of-spain', TRUE, FALSE, TRUE, TRUE),
-(2, 5, 3, 'Ukraine', 'flag', 'Flags of Ukraine', 24, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1e6.svg', 'flags', 'ukraine-oblasts', 'flags-of-ukraine', TRUE, FALSE, TRUE, TRUE),
+(2, 5, 3, 'Ukraine', 'flag', 'Flags of Ukraine', 25, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1e6.svg', 'flags', 'ukraine-oblasts', 'flags-of-ukraine', TRUE, FALSE, TRUE, TRUE),
 (2, 6, 4, 'United States', 'flag', 'Flags of the US', 50, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1f8.svg', 'flags', 'us-states', 'flags-of-the-us', TRUE, FALSE, TRUE, TRUE);
 
 INSERT INTO triviaQuestionType (name) values
