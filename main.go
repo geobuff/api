@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -94,7 +95,8 @@ var runMigrations = func() error {
 }
 
 var serve = func() error {
-	return http.ListenAndServe(":8080", tollbooth.LimitHandler(tollbooth.NewLimiter(1000, nil), (handler(router()))))
+	max, _ := strconv.ParseFloat(os.Getenv("RATE_LIMITER_MAX"), 64)
+	return http.ListenAndServe(":8080", tollbooth.LimitHandler(tollbooth.NewLimiter(max, nil), (handler(router()))))
 }
 
 func handler(router http.Handler) http.Handler {
