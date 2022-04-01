@@ -21,6 +21,26 @@ type UpdateCommunityQuizAnswerDto struct {
 	FlagCode  string `json:"flagCode"`
 }
 
+func GetCommunityQuizAnswers(questionID int) ([]UpdateCommunityQuizAnswerDto, error) {
+	statement := "SELECT id, text, iscorrect, flagcode FROM communityquizanswers WHERE communityquizquestionid = $1;"
+	rows, err := Connection.Query(statement, questionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var answers = []UpdateCommunityQuizAnswerDto{}
+	for rows.Next() {
+		var answer UpdateCommunityQuizAnswerDto
+		if err = rows.Scan(&answer.ID, &answer.Text, &answer.IsCorrect, &answer.FlagCode); err != nil {
+			return nil, err
+		}
+		answers = append(answers, answer)
+	}
+
+	return answers, rows.Err()
+}
+
 func InsertCommunityQuizAnswer(questionID int, answer CreateCommunityQuizAnswerDto) error {
 	statement := "INSERT INTO communityquizanswers (communityquizquestionid, text, iscorrect, flagcode) VALUES ($1, $2, $3, $4) RETURNING id;"
 	var id int

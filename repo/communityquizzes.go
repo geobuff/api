@@ -136,15 +136,24 @@ func UpdateCommunityQuiz(quizID int, quiz UpdateCommunityQuizDto) error {
 	return nil
 }
 
-func GetCommunityQuiz(quizID int) (CommunityQuiz, error) {
-	statement := "SELECT * FROM communityquizzes WHERE id = $1;"
-	var quiz CommunityQuiz
-	err := Connection.QueryRow(statement, quizID).Scan(&quiz.ID, &quiz.UserID, &quiz.Name, &quiz.Description, &quiz.MaxScore, &quiz.Added)
+func GetCommunityQuiz(quizID int) (UpdateCommunityQuizDto, error) {
+	statement := "SELECT userid, name, description, maxscore FROM communityquizzes WHERE id = $1;"
+	var quiz UpdateCommunityQuizDto
+	if err := Connection.QueryRow(statement, quizID).Scan(&quiz.UserID, &quiz.Name, &quiz.Description, &quiz.MaxScore); err != nil {
+		return quiz, err
+	}
+
+	questions, err := GetCommunityQuizQuestions(quizID)
+	if err != nil {
+		return quiz, err
+	}
+	quiz.Questions = questions
+
 	return quiz, err
 }
 
 func DeleteCommunityQuiz(quizID int) error {
-	questionIds, err := GetCommunityQuestionIds(quizID)
+	questionIds, err := GetCommunityQuizQuestionIds(quizID)
 	if err != nil {
 		return err
 	}
