@@ -45,7 +45,7 @@ func UpdateCommunityQuizQuestion(question UpdateCommunityQuizQuestionDto) error 
 	return Connection.QueryRow(statement, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageUrl, question.ID).Scan(&id)
 }
 
-func GetCommunityQuestionIds(quizID int) ([]int, error) {
+func GetCommunityQuizQuestionIds(quizID int) ([]int, error) {
 	statement := "SELECT id FROM communityquizquestions WHERE communityquizid = $1;"
 	rows, err := Connection.Query(statement, quizID)
 	if err != nil {
@@ -62,6 +62,32 @@ func GetCommunityQuestionIds(quizID int) ([]int, error) {
 		ids = append(ids, id)
 	}
 	return ids, rows.Err()
+}
+
+func GetCommunityQuizQuestions(quizID int) ([]UpdateCommunityQuizQuestionDto, error) {
+	statement := "SELECT id, typeid, question, map, highlighted, flagcode, imageurl FROM communityquizquestions WHERE communityquizid = $1;"
+	rows, err := Connection.Query(statement, quizID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var questions = []UpdateCommunityQuizQuestionDto{}
+	for rows.Next() {
+		var question UpdateCommunityQuizQuestionDto
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageUrl); err != nil {
+			return nil, err
+		}
+
+		answers, err := GetCommunityQuizAnswers(question.ID)
+		if err != nil {
+			return nil, err
+		}
+		question.Answers = answers
+
+		questions = append(questions, question)
+	}
+	return questions, rows.Err()
 }
 
 func DeleteCommunityQuizQuestion(questionID int) error {
