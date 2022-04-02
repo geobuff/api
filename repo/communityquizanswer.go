@@ -1,11 +1,20 @@
 package repo
 
+import "database/sql"
+
 type CommunityQuizAnswer struct {
 	ID                      int    `json:"id"`
 	CommunityQuizQuestionID int    `json:"communityQuizQuestionId"`
 	Text                    string `json:"text"`
 	IsCorrect               bool   `json:"isCorrect"`
 	FlagCode                string `json:"flagCode"`
+}
+
+type GetCommunityQuizAnswerDto struct {
+	ID        int    `json:"id"`
+	Text      string `json:"text"`
+	IsCorrect bool   `json:"isCorrect"`
+	FlagCode  string `json:"flagCode"`
 }
 
 type CreateCommunityQuizAnswerDto struct {
@@ -15,13 +24,13 @@ type CreateCommunityQuizAnswerDto struct {
 }
 
 type UpdateCommunityQuizAnswerDto struct {
-	ID        int    `json:"id"`
-	Text      string `json:"text"`
-	IsCorrect bool   `json:"isCorrect"`
-	FlagCode  string `json:"flagCode"`
+	ID        sql.NullInt64 `json:"id"`
+	Text      string        `json:"text"`
+	IsCorrect bool          `json:"isCorrect"`
+	FlagCode  string        `json:"flagCode"`
 }
 
-func GetCommunityQuizAnswers(questionID int) ([]UpdateCommunityQuizAnswerDto, error) {
+func GetCommunityQuizAnswers(questionID int) ([]GetCommunityQuizAnswerDto, error) {
 	statement := "SELECT id, text, iscorrect, flagcode FROM communityquizanswers WHERE communityquizquestionid = $1;"
 	rows, err := Connection.Query(statement, questionID)
 	if err != nil {
@@ -29,9 +38,9 @@ func GetCommunityQuizAnswers(questionID int) ([]UpdateCommunityQuizAnswerDto, er
 	}
 	defer rows.Close()
 
-	var answers = []UpdateCommunityQuizAnswerDto{}
+	var answers = []GetCommunityQuizAnswerDto{}
 	for rows.Next() {
-		var answer UpdateCommunityQuizAnswerDto
+		var answer GetCommunityQuizAnswerDto
 		if err = rows.Scan(&answer.ID, &answer.Text, &answer.IsCorrect, &answer.FlagCode); err != nil {
 			return nil, err
 		}
@@ -47,10 +56,10 @@ func InsertCommunityQuizAnswer(questionID int, answer CreateCommunityQuizAnswerD
 	return Connection.QueryRow(statement, questionID, answer.Text, answer.IsCorrect, answer.FlagCode).Scan(&id)
 }
 
-func UpdateCommunityQuizAnswer(answer UpdateCommunityQuizAnswerDto) error {
+func UpdateCommunityQuizAnswer(answerID int, answer UpdateCommunityQuizAnswerDto) error {
 	statement := "UPDATE communityquizanswers SET text = $1, iscorrect = $2, flagcode = $3 WHERE id = $4 RETURNING id;"
 	var id int
-	return Connection.QueryRow(statement, answer.Text, answer.IsCorrect, answer.FlagCode, answer.ID).Scan(&id)
+	return Connection.QueryRow(statement, answer.Text, answer.IsCorrect, answer.FlagCode, answerID).Scan(&id)
 }
 
 func DeleteCommunityQuizAnswers(questionID int) error {
