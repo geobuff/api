@@ -42,7 +42,7 @@ type UpdateCommunityQuizQuestionDto struct {
 	Highlighted string                         `json:"highlighted"`
 	FlagCode    string                         `json:"flagCode"`
 	ImageUrl    string                         `json:"imageUrl"`
-	Answers     []UpdateCommunityQuizAnswerDto `json:"answers"`
+	Answers     []CreateCommunityQuizAnswerDto `json:"answers"`
 }
 
 func InsertCommunityQuizQuestion(quizID int, question CreateCommunityQuizQuestionDto) (int, error) {
