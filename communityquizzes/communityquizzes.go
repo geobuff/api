@@ -69,6 +69,23 @@ func GetUserCommunityQuizzes(writer http.ResponseWriter, request *http.Request) 
 	json.NewEncoder(writer).Encode(quizzes)
 }
 
+func GetCommunityQuiz(writer http.ResponseWriter, request *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(request)["id"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	quiz, err := repo.GetCommunityQuiz(id)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(quiz)
+}
+
 func CreateCommunityQuiz(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {

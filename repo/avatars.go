@@ -42,7 +42,7 @@ var GetAvatars = func() ([]AvatarDto, error) {
 
 // GetAvatar returns an avatar with the matching id.
 var GetAvatar = func(id int) (AvatarDto, error) {
-	statement := "SELECT a.id, t.name, a.countrycode, a.name, a.description, a.primaryImageUrl, a.secondaryImageUrl FROM avatars a JOIN avatarTypes t ON t.id = a.typeid WHERE id = $1;"
+	statement := "SELECT a.id, t.name, a.countrycode, a.name, a.description, a.primaryImageUrl, a.secondaryImageUrl FROM avatars a JOIN avatarTypes t ON t.id = a.typeid WHERE a.id = $1;"
 	var avatar AvatarDto
 	err := Connection.QueryRow(statement, id).Scan(&avatar.ID, &avatar.Type, &avatar.CountryCode, &avatar.Name, &avatar.Description, &avatar.PrimaryImageUrl, &avatar.SecondaryImageUrl)
 	return avatar, err
