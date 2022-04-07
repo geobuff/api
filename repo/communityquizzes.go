@@ -26,6 +26,7 @@ type CommunityQuizDto struct {
 }
 
 type GetCommunityQuizDto struct {
+	ID          int                           `json:"id"`
 	UserID      int                           `json:"userId"`
 	Name        string                        `json:"name"`
 	Description string                        `json:"description"`
@@ -164,9 +165,9 @@ func UpdateCommunityQuiz(quizID int, quiz UpdateCommunityQuizDto) error {
 }
 
 func GetCommunityQuiz(quizID int) (GetCommunityQuizDto, error) {
-	statement := "SELECT userid, name, description, maxscore FROM communityquizzes WHERE id = $1;"
+	statement := "SELECT id, userid, name, description, maxscore FROM communityquizzes WHERE id = $1;"
 	var quiz GetCommunityQuizDto
-	if err := Connection.QueryRow(statement, quizID).Scan(&quiz.UserID, &quiz.Name, &quiz.Description, &quiz.MaxScore); err != nil {
+	if err := Connection.QueryRow(statement, quizID).Scan(&quiz.ID, &quiz.UserID, &quiz.Name, &quiz.Description, &quiz.MaxScore); err != nil {
 		return quiz, err
 	}
 
