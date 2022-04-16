@@ -2,6 +2,9 @@ package repo
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -88,7 +91,7 @@ var GetFirstManualTriviaQuestionID = func(offset int) (int, error) {
 func CreateManualTriviaQuestion(question CreateManualTriviaQuestionDto) error {
 	statement := "INSERT INTO manualtriviaquestions (typeid, question, map, highlighted, flagcode, imageurl, quizDate) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.QuizDate).Scan(&id)
+	err := Connection.QueryRow(statement, question.TypeID, strings.TrimSpace(question.Question), question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.QuizDate).Scan(&id)
 	if err != nil {
 		return err
 	}
@@ -101,10 +104,32 @@ func CreateManualTriviaQuestion(question CreateManualTriviaQuestionDto) error {
 	return nil
 }
 
+func ValidateCreateQuestion(question CreateManualTriviaQuestionDto) error {
+	var id int
+	err := Connection.QueryRow("SELECT id FROM manualtriviaquestions WHERE question ILIKE '%' || $1 || '%';", question.Question).Scan(&id)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	if err == nil {
+		return errors.New(fmt.Sprintf("Error! Question with text %s already exists.", question.Question))
+	}
+
+	visited := make(map[string]bool)
+	for _, answer := range question.Answers {
+		lower := strings.ToLower(answer.Text)
+		if visited[lower] {
+			return errors.New(fmt.Sprintf("Error! Duplicate answers with text %s.", answer.Text))
+		}
+		visited[lower] = true
+	}
+	return nil
+}
+
 func UpdateManualTriviaQuestion(questionID int, question UpdateManualTriviaQuestionDto) error {
 	statement := "UPDATE manualtriviaquestions SET typeid = $2, question = $3, map = $4, highlighted = $5, flagcode = $6, imageurl = $7, quizDate = $8 WHERE id = $1 RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, questionID, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.QuizDate).Scan(&id)
+	err := Connection.QueryRow(statement, questionID, question.TypeID, strings.TrimSpace(question.Question), question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.QuizDate).Scan(&id)
 	if err != nil {
 		return err
 	}
@@ -113,6 +138,18 @@ func UpdateManualTriviaQuestion(questionID int, question UpdateManualTriviaQuest
 		if err = UpdateManualTriviaAnswer(val); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func ValidateUpdateQuestion(question UpdateManualTriviaQuestionDto) error {
+	visited := make(map[string]bool)
+	for _, answer := range question.Answers {
+		lower := strings.ToLower(answer.Text)
+		if visited[lower] {
+			return errors.New(fmt.Sprintf("Error! Duplicate answers with text %s.", answer.Text))
+		}
+		visited[lower] = true
 	}
 	return nil
 }
