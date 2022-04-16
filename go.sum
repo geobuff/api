@@ -346,6 +346,8 @@ github.com/geobuff/mapping v0.0.0-20220227061948-c5d76e53f744 h1:izmH19CJU/1vjmk
 github.com/geobuff/mapping v0.0.0-20220227061948-c5d76e53f744/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
 github.com/geobuff/mapping v0.0.0-20220329050721-bce01bff538b h1:SATSAQC3mSXXfyBor0Qhj0jvmeTlgLTj6GYS0ex5ZQI=
 github.com/geobuff/mapping v0.0.0-20220329050721-bce01bff538b/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
+github.com/geobuff/mapping v0.0.0-20220416021807-31880e123221 h1:bduj0iI7isvZoXbhIX08lBwqR7AtR7Mt2HnLQXBEG2E=
+github.com/geobuff/mapping v0.0.0-20220416021807-31880e123221/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
 github.com/gertd/go-pluralize v0.1.7 h1:RgvJTJ5W7olOoAks97BOwOlekBFsLEyh00W48Z6ZEZY=
 github.com/gertd/go-pluralize v0.1.7/go.mod h1:O4eNeeIf91MHh1GJ2I47DNtaesm66NYvjYgAahcqSDQ=
 github.com/ghodss/yaml v0.0.0-20150909031657-73d445a93680/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=

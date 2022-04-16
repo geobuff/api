@@ -88,7 +88,7 @@ var GetQuizzes = func(filter QuizzesFilterDto) ([]Quiz, error) {
 	if filter.OrderByPopularity {
 		statement = statement + "ORDER BY p.plays, q.country NULLS FIRST LIMIT $2 OFFSET $3;"
 	} else {
-		statement = statement + "ORDER BY q.country NULLS FIRST LIMIT $2 OFFSET $3;"
+		statement = statement + "ORDER BY q.country NULLS FIRST, q.maxscore DESC LIMIT $2 OFFSET $3;"
 	}
 
 	rows, err := Connection.Query(statement, filter.Filter, filter.Limit, filter.Page*filter.Limit)
