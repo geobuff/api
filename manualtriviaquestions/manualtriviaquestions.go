@@ -70,6 +70,11 @@ func CreateManualTriviaQuestion(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
+	if err := repo.ValidateCreateQuestion(question); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
 	err = repo.CreateManualTriviaQuestion(question)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
@@ -98,6 +103,11 @@ func UpdateManualTriviaQuestion(writer http.ResponseWriter, request *http.Reques
 	var question repo.UpdateManualTriviaQuestionDto
 	err = json.Unmarshal(requestBody, &question)
 	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	if err := repo.ValidateUpdateQuestion(question); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}

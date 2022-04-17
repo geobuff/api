@@ -26,6 +26,7 @@ type CommunityQuizDto struct {
 }
 
 type GetCommunityQuizDto struct {
+	ID          int                           `json:"id"`
 	UserID      int                           `json:"userId"`
 	Name        string                        `json:"name"`
 	Description string                        `json:"description"`
@@ -130,44 +131,32 @@ func UpdateCommunityQuiz(quizID int, quiz UpdateCommunityQuizDto) error {
 	}
 
 	for _, question := range quiz.Questions {
-		var questionID int
 		if question.ID.Valid {
-			if err := UpdateCommunityQuizQuestion(int(question.ID.Int64), question); err != nil {
+			if err := DeleteCommunityQuizAnswers(int(question.ID.Int64)); err != nil {
 				return err
-			}
-			questionID = int(question.ID.Int64)
-		} else {
-			create := CreateCommunityQuizQuestionDto{
-				TypeID:      question.TypeID,
-				Question:    question.Question,
-				Map:         question.Map,
-				Highlighted: question.Highlighted,
-				FlagCode:    question.FlagCode,
-				ImageUrl:    question.ImageUrl,
 			}
 
-			createQuestionID, err := InsertCommunityQuizQuestion(id, create)
-			if err != nil {
+			if err := DeleteCommunityQuizQuestion(int(question.ID.Int64)); err != nil {
 				return err
 			}
-			questionID = createQuestionID
+		}
+
+		questionID, err := InsertCommunityQuizQuestion(id, CreateCommunityQuizQuestionDto{
+			TypeID:      question.TypeID,
+			Question:    question.Question,
+			Map:         question.Map,
+			Highlighted: question.Highlighted,
+			FlagCode:    question.FlagCode,
+			ImageUrl:    question.ImageUrl,
+		})
+
+		if err != nil {
+			return err
 		}
 
 		for _, answer := range question.Answers {
-			if answer.ID.Valid {
-				if err := UpdateCommunityQuizAnswer(int(question.ID.Int64), answer); err != nil {
-					return err
-				}
-			} else {
-				create := CreateCommunityQuizAnswerDto{
-					Text:      answer.Text,
-					IsCorrect: answer.IsCorrect,
-					FlagCode:  answer.FlagCode,
-				}
-
-				if err := InsertCommunityQuizAnswer(questionID, create); err != nil {
-					return err
-				}
+			if err := InsertCommunityQuizAnswer(questionID, answer); err != nil {
+				return err
 			}
 		}
 	}
@@ -176,9 +165,9 @@ func UpdateCommunityQuiz(quizID int, quiz UpdateCommunityQuizDto) error {
 }
 
 func GetCommunityQuiz(quizID int) (GetCommunityQuizDto, error) {
-	statement := "SELECT userid, name, description, maxscore FROM communityquizzes WHERE id = $1;"
+	statement := "SELECT id, userid, name, description, maxscore FROM communityquizzes WHERE id = $1;"
 	var quiz GetCommunityQuizDto
-	if err := Connection.QueryRow(statement, quizID).Scan(&quiz.UserID, &quiz.Name, &quiz.Description, &quiz.MaxScore); err != nil {
+	if err := Connection.QueryRow(statement, quizID).Scan(&quiz.ID, &quiz.UserID, &quiz.Name, &quiz.Description, &quiz.MaxScore); err != nil {
 		return quiz, err
 	}
 
