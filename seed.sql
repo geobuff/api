@@ -70,7 +70,7 @@ INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxS
 (1, 5, 3, 'Ukraine', 'oblast', 'Oblasts of Ukraine', 25, 300, 'UkraineOblasts', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1e6.svg', 'oblasts', 'ukraine-oblasts', 'oblasts-of-ukraine', TRUE, FALSE, FALSE, TRUE),
 (1, 6, 4, 'United States', 'state', 'US States', 50, 300, 'UsStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1fa-1f1f8.svg', 'states', 'us-states', 'us-states', TRUE, FALSE, TRUE, TRUE),
 (1, 3, 1, 'Zambia', 'province', 'Provinces of Zambia', 10, 300, 'ZambiaProvinces', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ff-1f1f2.svg', 'provinces', 'zambia-provinces', 'provinces-of-zambia', TRUE, FALSE, FALSE, TRUE),
-(2, 2, null, '', 'flag', 'Flags of the World', 197, 900, '', '/world-map-header.svg', 'flags', 'world-countries', 'flags-of-the-world', TRUE, TRUE, TRUE, TRUE),
+(2, 2, null, '', 'flag', 'Flags of the World', 197, 900, '', '/headers/world-map-header.svg', 'flags', 'world-countries', 'flags-of-the-world', TRUE, TRUE, TRUE, TRUE),
 (2, 8, 6, 'Australia', 'flag', 'Flags of Australia', 8, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e6-1f1fa.svg', 'flags', 'australia-states-and-territories-flags', 'flags-of-australia', TRUE, FALSE, TRUE, TRUE),
 (2, 7, 5, 'Argentina', 'flag', 'Flags of Argentina', 24, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e6-1f1f7.svg', 'flags', 'argentina-provinces', 'flags-of-argentina', TRUE, FALSE, TRUE, TRUE),
 (2, 7, 5, 'Brazil', 'flag', 'Flags of Brazil', 27, 300, '', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e7-1f1f7.svg', 'flags', 'brazil-states', 'flags-of-brazil', TRUE, FALSE, TRUE, TRUE),
