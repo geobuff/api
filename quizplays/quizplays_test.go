@@ -26,13 +26,7 @@ func TestGetAllPlays(t *testing.T) {
 		expected        int
 	}{
 		{
-			name:            "scan error on GetAllQuizPlays",
-			getAllQuizPlays: func() (int, error) { return 0, errors.New("sql: Scan error on column index 0") },
-			status:          http.StatusOK,
-			expected:        0,
-		},
-		{
-			name:            "other error on GetAllQuizPlays",
+			name:            "error on GetAllQuizPlays",
 			getAllQuizPlays: func() (int, error) { return 0, errors.New("test") },
 			status:          http.StatusInternalServerError,
 			expected:        0,
