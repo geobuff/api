@@ -1,6 +1,9 @@
 package repo
 
-import "database/sql"
+import (
+	"database/sql"
+	"strings"
+)
 
 type PlaysDto struct {
 	QuizName string `json:"name"`
@@ -8,10 +11,31 @@ type PlaysDto struct {
 }
 
 var GetAllQuizPlays = func() (int, error) {
-	statement := "SELECT SUM(plays) from quizplays;"
-	var plays int
-	err := Connection.QueryRow(statement).Scan(&plays)
-	return plays, err
+	var quizPlays int
+	err := Connection.QueryRow("SELECT SUM(plays) from quizplays;").Scan(&quizPlays)
+	if err != nil && strings.Contains(err.Error(), "sql: Scan error on column index 0") {
+		quizPlays = 0
+	} else if err != nil {
+		return 0, err
+	}
+
+	var triviaPlays int
+	err = Connection.QueryRow("SELECT SUM(plays) from triviaplays;").Scan(&triviaPlays)
+	if err != nil && strings.Contains(err.Error(), "sql: Scan error on column index 0") {
+		triviaPlays = 0
+	} else if err != nil {
+		return 0, err
+	}
+
+	var communityQuizPlays int
+	err = Connection.QueryRow("SELECT SUM(plays) from communityquizplays;").Scan(&communityQuizPlays)
+	if err != nil && strings.Contains(err.Error(), "sql: Scan error on column index 0") {
+		communityQuizPlays = 0
+	} else if err != nil {
+		return 0, err
+	}
+
+	return quizPlays + triviaPlays + communityQuizPlays, nil
 }
 
 var GetQuizPlayCount = func(quizID int) (int, error) {
