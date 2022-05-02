@@ -159,9 +159,9 @@ func UpdateStatusLatestOrder(email string) (int, error) {
 }
 
 func DeleteOrder(orderId int) error {
-	statement := "DELETE FROM orders WHERE id = $1 returning id;"
+	Connection.QueryRow("DELETE FROM orderitems WHERE orderid = $1", orderId)
 	var id int
-	return Connection.QueryRow(statement, orderId).Scan(&id)
+	return Connection.QueryRow("DELETE FROM orders WHERE id = $1 returning id;", orderId).Scan(&id)
 }
 
 func RemoveLatestPendingOrder(email string) error {
