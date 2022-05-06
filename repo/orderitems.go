@@ -24,7 +24,7 @@ func insertOrderItem(item CheckoutItemDto, orderId int) error {
 }
 
 func GetOrderItems(orderID int) ([]OrderItemDto, error) {
-	statement := "select i.merchid, m.name, s.id, s.size, mi.imageurl, i.quantity from orderItems i join merchsizes s on s.id = i.sizeid join merch m on m.id = i.merchid join merchimages mi on mi.id = i.merchid AND mi.isprimary WHERE i.orderId = $1;"
+	statement := "select i.merchid, m.name, s.id, s.size, mi.imageurl, i.quantity from orderItems i join merchsizes s on s.id = i.sizeid join merch m on m.id = i.merchid join merchimages mi on mi.merchid = i.merchid AND mi.isprimary WHERE i.orderId = $1;"
 	rows, err := Connection.Query(statement, orderID)
 	if err != nil {
 		return nil, err
