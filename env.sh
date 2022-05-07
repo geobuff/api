@@ -1,6 +1,7 @@
 #!/bin/bash
 
 if [ "$CIRCLE_BRANCH" = "develop" ]; then
+    echo ENVIRONMENT=dev >> .env
     echo SITE_URL=$DEV_SITE_URL >> .env
     echo CONNECTION_STRING=$DEV_CONNECTION_STRING >> .env
     echo AUTH_ISSUER=$DEV_AUTH_ISSUER >> .env
@@ -8,7 +9,9 @@ if [ "$CIRCLE_BRANCH" = "develop" ]; then
     echo CORS_ORIGINS=$DEV_CORS_ORIGINS >> .env
     echo STRIPE_SECRET_KEY=$DEV_STRIPE_SECRET_KEY >> .env
     echo STRIPE_WEBHOOK_SECRET=$DEV_STRIPE_WEBHOOK_SECRET >> .env
+    echo GOOGLE_PROJECT_ID=$DEV_GOOGLE_PROJECT_ID >> .env
 elif [ "$CIRCLE_BRANCH" = "main" ]; then
+    echo ENVIRONMENT=prod >> .env
     echo SITE_URL=$PROD_SITE_URL >> .env
     echo CONNECTION_STRING=$PROD_CONNECTION_STRING >> .env
     echo AUTH_ISSUER=$PROD_AUTH_ISSUER >> .env
@@ -16,6 +19,7 @@ elif [ "$CIRCLE_BRANCH" = "main" ]; then
     echo CORS_ORIGINS=$PROD_CORS_ORIGINS >> .env
     echo STRIPE_SECRET_KEY=$PROD_STRIPE_SECRET_KEY >> .env
     echo STRIPE_WEBHOOK_SECRET=$PROD_STRIPE_WEBHOOK_SECRET >> .env
+    echo GOOGLE_PROJECT_ID=$PROD_GOOGLE_PROJECT_ID >> .env
 fi
 
 echo CORS_METHODS=$CORS_METHODS >> .env
