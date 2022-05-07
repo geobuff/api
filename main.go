@@ -48,11 +48,6 @@ import (
 	"github.com/rs/cors"
 )
 
-const (
-	DEV  = "dev"
-	PROD = "prod"
-)
-
 var errorClient *errorreporting.Client
 
 func main() {
