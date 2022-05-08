@@ -1,0 +1,1 @@
+ALTER TABLE merch DROP column route;
