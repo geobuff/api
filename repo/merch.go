@@ -2,6 +2,7 @@ package repo
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 type Merch struct {
@@ -101,4 +102,22 @@ func isSoldOut(sizes []MerchSize) bool {
 		}
 	}
 	return true
+}
+
+func GetMerchRoutes() ([]string, error) {
+	rows, err := Connection.Query("SELECT route FROM merch;")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var routes = []string{}
+	for rows.Next() {
+		var route string
+		if err = rows.Scan(&route); err != nil {
+			return nil, err
+		}
+		routes = append(routes, fmt.Sprintf("merch/%s", route))
+	}
+	return routes, rows.Err()
 }
