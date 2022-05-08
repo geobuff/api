@@ -2,6 +2,7 @@ package repo
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 // Quiz is the database object for a quiz entry.
@@ -217,4 +218,22 @@ func getContinentQuizCount(continentID int) (int, error) {
 	var count int
 	err := Connection.QueryRow(statement, continentID).Scan(&count)
 	return count, err
+}
+
+func GetQuizRoutes() ([]string, error) {
+	rows, err := Connection.Query("SELECT route FROM quizzes;")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var routes = []string{}
+	for rows.Next() {
+		var route string
+		if err = rows.Scan(&route); err != nil {
+			return nil, err
+		}
+		routes = append(routes, fmt.Sprintf("quiz/%s", route))
+	}
+	return routes, rows.Err()
 }
