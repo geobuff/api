@@ -31,6 +31,7 @@ import (
 	"github.com/geobuff/api/quiztype"
 	"github.com/geobuff/api/quizzes"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/seo"
 	"github.com/geobuff/api/shippingoptions"
 	"github.com/geobuff/api/tempscores"
 	"github.com/geobuff/api/trivia"
@@ -248,6 +249,9 @@ func router() http.Handler {
 
 	// Community Quiz Play endpoints.
 	router.HandleFunc("/api/community-quiz-plays/{id}", communityquizplays.IncrementCommunityQuizPlays).Methods("PUT")
+
+	// SEO endpoints.
+	router.HandleFunc("/api/seo/dynamic-routes", seo.GetDynamicRoutes).Methods("GET")
 
 	return router
 }
