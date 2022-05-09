@@ -40,7 +40,7 @@ type CartItemDto struct {
 }
 
 var GetMerch = func() ([]MerchDto, error) {
-	rows, err := Connection.Query("SELECT * FROM merch;")
+	rows, err := Connection.Query("SELECT * FROM merch ORDER BY id;")
 	if err != nil {
 		return nil, err
 	}
