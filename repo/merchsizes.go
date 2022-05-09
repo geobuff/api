@@ -8,7 +8,7 @@ type MerchSize struct {
 }
 
 func getMerchSizes(merchID int) ([]MerchSize, error) {
-	rows, err := Connection.Query("SELECT * FROM merchsizes WHERE merchid = $1;", merchID)
+	rows, err := Connection.Query("SELECT * FROM merchsizes WHERE merchid = $1 ORDER BY id;", merchID)
 	if err != nil {
 		return nil, err
 	}
