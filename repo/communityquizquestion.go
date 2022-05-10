@@ -16,6 +16,7 @@ type CommunityQuizQuestion struct {
 type GetCommunityQuizQuestionDto struct {
 	ID          int                         `json:"id"`
 	TypeID      int                         `json:"typeId"`
+	Type        string                      `json:"type"`
 	Question    string                      `json:"question"`
 	Map         string                      `json:"map"`
 	Highlighted string                      `json:"highlighted"`
@@ -78,7 +79,7 @@ func GetCommunityQuizQuestionIds(quizID int) ([]int, error) {
 }
 
 func GetCommunityQuizQuestions(quizID int) ([]GetCommunityQuizQuestionDto, error) {
-	statement := "SELECT id, typeid, question, map, highlighted, flagcode, imageurl FROM communityquizquestions WHERE communityquizid = $1;"
+	statement := "SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl FROM communityquizquestions q JOIN triviaQuestionType t ON t.id = q.typeid WHERE communityquizid = $1;"
 	rows, err := Connection.Query(statement, quizID)
 	if err != nil {
 		return nil, err
@@ -88,7 +89,7 @@ func GetCommunityQuizQuestions(quizID int) ([]GetCommunityQuizQuestionDto, error
 	var questions = []GetCommunityQuizQuestionDto{}
 	for rows.Next() {
 		var question GetCommunityQuizQuestionDto
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageUrl); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageUrl); err != nil {
 			return nil, err
 		}
 
