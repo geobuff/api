@@ -186,6 +186,11 @@ func DeleteCommunityQuiz(quizID int) error {
 		return err
 	}
 
+	var id int
+	if err := Connection.QueryRow("DELETE FROM communityquizplays WHERE communityQuizId = $1 RETURNING id;", quizID).Scan(&id); err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
 	for _, questionId := range questionIds {
 		if err = DeleteCommunityQuizAnswers(questionId); err != nil {
 			return err
@@ -196,7 +201,5 @@ func DeleteCommunityQuiz(quizID int) error {
 		}
 	}
 
-	statement := "DELETE FROM communityquizzes WHERE id = $1 RETURNING id;"
-	var id int
-	return Connection.QueryRow(statement, quizID).Scan(&id)
+	return Connection.QueryRow("DELETE FROM communityquizzes WHERE id = $1 RETURNING id;", quizID).Scan(&id)
 }
