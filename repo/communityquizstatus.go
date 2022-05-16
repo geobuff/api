@@ -1,0 +1,6 @@
+package repo
+
+const (
+	COMMUNITY_QUIZ_STATUS_PENDING int = iota + 1
+	COMMUNITY_QUIZ_STATUS_APPROVED
+)
