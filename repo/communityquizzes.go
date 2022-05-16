@@ -8,6 +8,7 @@ import (
 type CommunityQuiz struct {
 	ID          int       `json:"id"`
 	UserID      int       `json:"userId"`
+	StatusID    int       `json:"statusId"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	MaxScore    int       `json:"maxScore"`
@@ -17,6 +18,7 @@ type CommunityQuiz struct {
 type CommunityQuizDto struct {
 	ID          int           `json:"id"`
 	UserID      int           `json:"userId"`
+	Status      string        `json:"status"`
 	Username    string        `json:"username"`
 	Name        string        `json:"name"`
 	Description string        `json:"description"`
@@ -28,6 +30,7 @@ type CommunityQuizDto struct {
 type GetCommunityQuizDto struct {
 	ID          int                           `json:"id"`
 	UserID      int                           `json:"userId"`
+	Status      string                        `json:"status"`
 	Name        string                        `json:"name"`
 	Description string                        `json:"description"`
 	MaxScore    int                           `json:"maxScore"`
@@ -56,8 +59,8 @@ type UpdateCommunityQuizDto struct {
 }
 
 func GetCommunityQuizzes(filter GetCommunityQuizzesFilter) ([]CommunityQuizDto, error) {
-	statement := "SELECT q.id, q.userid, u.username, q.name, q.description, q.maxscore, q.added, p.plays FROM communityquizzes q JOIN users u ON u.id = q.userid LEFT JOIN communityquizplays p ON p.communityQuizId = q.id LIMIT $1 OFFSET $2;"
-	rows, err := Connection.Query(statement, filter.Limit, filter.Page*filter.Limit)
+	statement := "SELECT q.id, q.userid, s.name, u.username, q.name, q.description, q.maxscore, q.added, p.plays FROM communityquizzes q JOIN users u ON u.id = q.userid LEFT JOIN communityquizplays p ON p.communityQuizId = q.id JOIN communityQuizStatus s ON s.id = q.statusid WHERE q.statusid != $1 LIMIT $2 OFFSET $3;"
+	rows, err := Connection.Query(statement, COMMUNITY_QUIZ_STATUS_PENDING, filter.Limit, filter.Page*filter.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +69,7 @@ func GetCommunityQuizzes(filter GetCommunityQuizzesFilter) ([]CommunityQuizDto, 
 	var quizzes = []CommunityQuizDto{}
 	for rows.Next() {
 		var quiz CommunityQuizDto
-		if err = rows.Scan(&quiz.ID, &quiz.UserID, &quiz.Username, &quiz.Name, &quiz.Description, &quiz.MaxScore, &quiz.Added, &quiz.Plays); err != nil {
+		if err = rows.Scan(&quiz.ID, &quiz.UserID, &quiz.Status, &quiz.Username, &quiz.Name, &quiz.Description, &quiz.MaxScore, &quiz.Added, &quiz.Plays); err != nil {
 			return nil, err
 		}
 		quizzes = append(quizzes, quiz)
@@ -75,14 +78,14 @@ func GetCommunityQuizzes(filter GetCommunityQuizzesFilter) ([]CommunityQuizDto, 
 }
 
 func GetFirstCommunityQuizID(offset int) (int, error) {
-	statement := "SELECT id FROM communityquizzes LIMIT 1 OFFSET $1;"
+	statement := "SELECT q.id FROM communityquizzes q JOIN communityQuizStatus s ON s.id = q.statusid WHERE q.statusid != $1 LIMIT 1 OFFSET $2;"
 	var id int
-	err := Connection.QueryRow(statement, offset).Scan(&id)
+	err := Connection.QueryRow(statement, COMMUNITY_QUIZ_STATUS_PENDING, offset).Scan(&id)
 	return id, err
 }
 
 func GetUserCommunityQuizzes(userID int) ([]CommunityQuizDto, error) {
-	statement := "SELECT q.id, q.userid, u.username, q.name, q.description, q.maxscore, q.added, p.plays FROM communityquizzes q JOIN users u ON u.id = q.userid LEFT JOIN communityquizplays p ON p.communityQuizId = q.id WHERE q.userId = $1;"
+	statement := "SELECT q.id, q.userid, s.name, u.username, q.name, q.description, q.maxscore, q.added, p.plays FROM communityquizzes q JOIN users u ON u.id = q.userid LEFT JOIN communityquizplays p ON p.communityQuizId = q.id JOIN communityQuizStatus s ON s.id = q.statusid WHERE q.userId = $1;"
 	rows, err := Connection.Query(statement, userID)
 	if err != nil {
 		return nil, err
@@ -92,7 +95,7 @@ func GetUserCommunityQuizzes(userID int) ([]CommunityQuizDto, error) {
 	var quizzes = []CommunityQuizDto{}
 	for rows.Next() {
 		var quiz CommunityQuizDto
-		if err = rows.Scan(&quiz.ID, &quiz.UserID, &quiz.Username, &quiz.Name, &quiz.Description, &quiz.MaxScore, &quiz.Added, &quiz.Plays); err != nil {
+		if err = rows.Scan(&quiz.ID, &quiz.UserID, &quiz.Status, &quiz.Username, &quiz.Name, &quiz.Description, &quiz.MaxScore, &quiz.Added, &quiz.Plays); err != nil {
 			return nil, err
 		}
 		quizzes = append(quizzes, quiz)
@@ -101,9 +104,9 @@ func GetUserCommunityQuizzes(userID int) ([]CommunityQuizDto, error) {
 }
 
 func InsertCommunityQuiz(quiz CreateCommunityQuizDto) error {
-	statement := "INSERT INTO communityquizzes (userid, name, description, maxscore, added) VALUES ($1, $2, $3, $4, $5) RETURNING id;"
+	statement := "INSERT INTO communityquizzes (userid, statusid, name, description, maxscore, added) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;"
 	var quizID int
-	if err := Connection.QueryRow(statement, quiz.UserID, quiz.Name, quiz.Description, quiz.MaxScore, time.Now()).Scan(&quizID); err != nil {
+	if err := Connection.QueryRow(statement, quiz.UserID, COMMUNITY_QUIZ_STATUS_APPROVED, quiz.Name, quiz.Description, quiz.MaxScore, time.Now()).Scan(&quizID); err != nil {
 		return err
 	}
 
@@ -165,9 +168,9 @@ func UpdateCommunityQuiz(quizID int, quiz UpdateCommunityQuizDto) error {
 }
 
 func GetCommunityQuiz(quizID int) (GetCommunityQuizDto, error) {
-	statement := "SELECT id, userid, name, description, maxscore FROM communityquizzes WHERE id = $1;"
+	statement := "SELECT q.id, q.userid, s.name, q.name, q.description, q.maxscore FROM communityquizzes q JOIN communityQuizStatus s ON s.id = q.statusid WHERE id = $1;"
 	var quiz GetCommunityQuizDto
-	if err := Connection.QueryRow(statement, quizID).Scan(&quiz.ID, &quiz.UserID, &quiz.Name, &quiz.Description, &quiz.MaxScore); err != nil {
+	if err := Connection.QueryRow(statement, quizID).Scan(&quiz.ID, &quiz.UserID, &quiz.Status, &quiz.Name, &quiz.Description, &quiz.MaxScore); err != nil {
 		return quiz, err
 	}
 
