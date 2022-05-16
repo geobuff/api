@@ -1,0 +1,1 @@
+ALTER TABLE communityQuizzes DROP column statusId;

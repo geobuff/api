@@ -1,0 +1,1 @@
+ALTER TABLE communityQuizzes ADD column statusId INTEGER references communityQuizStatus(id) NOT NULL DEFAULT 2;
