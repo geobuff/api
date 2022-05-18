@@ -85,7 +85,7 @@ func GetFirstCommunityQuizID(offset int) (int, error) {
 }
 
 func GetUserCommunityQuizzes(userID int) ([]CommunityQuizDto, error) {
-	statement := "SELECT q.id, q.userid, s.name, u.username, q.name, q.description, q.maxscore, q.added, p.plays FROM communityquizzes q JOIN users u ON u.id = q.userid LEFT JOIN communityquizplays p ON p.communityQuizId = q.id JOIN communityQuizStatus s ON s.id = q.statusid WHERE q.userId = $1;"
+	statement := "SELECT q.id, q.userid, s.name, u.username, q.name, q.description, q.maxscore, q.added, p.plays FROM communityquizzes q JOIN users u ON u.id = q.userid LEFT JOIN communityquizplays p ON p.communityQuizId = q.id JOIN communityQuizStatus s ON s.id = q.statusid WHERE q.userId = $1 ORDER BY q.added DESC;"
 	rows, err := Connection.Query(statement, userID)
 	if err != nil {
 		return nil, err
@@ -168,7 +168,7 @@ func UpdateCommunityQuiz(quizID int, quiz UpdateCommunityQuizDto) error {
 }
 
 func GetCommunityQuiz(quizID int) (GetCommunityQuizDto, error) {
-	statement := "SELECT q.id, q.userid, s.name, q.name, q.description, q.maxscore FROM communityquizzes q JOIN communityQuizStatus s ON s.id = q.statusid WHERE id = $1;"
+	statement := "SELECT q.id, q.userid, s.name, q.name, q.description, q.maxscore FROM communityquizzes q JOIN communityQuizStatus s ON s.id = q.statusid WHERE q.id = $1;"
 	var quiz GetCommunityQuizDto
 	if err := Connection.QueryRow(statement, quizID).Scan(&quiz.ID, &quiz.UserID, &quiz.Status, &quiz.Name, &quiz.Description, &quiz.MaxScore); err != nil {
 		return quiz, err
