@@ -1,6 +1,8 @@
 package repo
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 type CommunityQuizQuestion struct {
 	ID              int    `json:"id"`
@@ -11,6 +13,7 @@ type CommunityQuizQuestion struct {
 	Highlighted     string `json:"highlighted"`
 	FlagCode        string `json:"flagCode"`
 	ImageUrl        string `json:"imageUrl"`
+	Explainer       string `json:"explainer"`
 }
 
 type GetCommunityQuizQuestionDto struct {
@@ -22,6 +25,7 @@ type GetCommunityQuizQuestionDto struct {
 	Highlighted string                      `json:"highlighted"`
 	FlagCode    string                      `json:"flagCode"`
 	ImageUrl    string                      `json:"imageUrl"`
+	Explainer   string                      `json:"explainer"`
 	Answers     []GetCommunityQuizAnswerDto `json:"answers"`
 }
 
@@ -32,6 +36,7 @@ type CreateCommunityQuizQuestionDto struct {
 	Highlighted string                         `json:"highlighted"`
 	FlagCode    string                         `json:"flagCode"`
 	ImageUrl    string                         `json:"imageUrl"`
+	Explainer   string                         `json:"explainer"`
 	Answers     []CreateCommunityQuizAnswerDto `json:"answers"`
 }
 
@@ -43,20 +48,21 @@ type UpdateCommunityQuizQuestionDto struct {
 	Highlighted string                         `json:"highlighted"`
 	FlagCode    string                         `json:"flagCode"`
 	ImageUrl    string                         `json:"imageUrl"`
+	Explainer   string                         `json:"explainer"`
 	Answers     []CreateCommunityQuizAnswerDto `json:"answers"`
 }
 
 func InsertCommunityQuizQuestion(quizID int, question CreateCommunityQuizQuestionDto) (int, error) {
-	statement := "INSERT INTO communityquizquestions (communityquizid, typeid, question, map, highlighted, flagcode, imageurl) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
+	statement := "INSERT INTO communityquizquestions (communityquizid, typeid, question, map, highlighted, flagcode, imageurl, explainer) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, quizID, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageUrl).Scan(&id)
+	err := Connection.QueryRow(statement, quizID, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageUrl, question.Explainer).Scan(&id)
 	return id, err
 }
 
 func UpdateCommunityQuizQuestion(questionID int, question UpdateCommunityQuizQuestionDto) error {
-	statement := "UPDATE communityquizquestions SET typeid = $1, question = $2, map = $3, highlighted = $4, flagcode = $5, imageurl = $6 WHERE id = $7 RETURNING id;"
+	statement := "UPDATE communityquizquestions SET typeid = $1, question = $2, map = $3, highlighted = $4, flagcode = $5, imageurl = $6, explainer = $7 WHERE id = $8 RETURNING id;"
 	var id int
-	return Connection.QueryRow(statement, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageUrl, questionID).Scan(&id)
+	return Connection.QueryRow(statement, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageUrl, question.Explainer, questionID).Scan(&id)
 }
 
 func GetCommunityQuizQuestionIds(quizID int) ([]int, error) {
@@ -79,7 +85,7 @@ func GetCommunityQuizQuestionIds(quizID int) ([]int, error) {
 }
 
 func GetCommunityQuizQuestions(quizID int) ([]GetCommunityQuizQuestionDto, error) {
-	statement := "SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl FROM communityquizquestions q JOIN triviaQuestionType t ON t.id = q.typeid WHERE communityquizid = $1;"
+	statement := "SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.explainer FROM communityquizquestions q JOIN triviaQuestionType t ON t.id = q.typeid WHERE communityquizid = $1;"
 	rows, err := Connection.Query(statement, quizID)
 	if err != nil {
 		return nil, err
@@ -89,7 +95,7 @@ func GetCommunityQuizQuestions(quizID int) ([]GetCommunityQuizQuestionDto, error
 	var questions = []GetCommunityQuizQuestionDto{}
 	for rows.Next() {
 		var question GetCommunityQuizQuestionDto
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageUrl); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageUrl, &question.Explainer); err != nil {
 			return nil, err
 		}
 

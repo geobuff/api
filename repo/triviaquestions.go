@@ -9,6 +9,7 @@ type TriviaQuestion struct {
 	Highlighted string `json:"highlighted"`
 	FlagCode    string `json:"flagCode"`
 	ImageURL    string `json:"imageUrl"`
+	Explainer   string `json:"explainer"`
 }
 
 type QuestionDto struct {
@@ -19,12 +20,13 @@ type QuestionDto struct {
 	Highlighted string      `json:"highlighted"`
 	FlagCode    string      `json:"flagCode"`
 	ImageURL    string      `json:"imageUrl"`
+	Explainer   string      `json:"explainer"`
 	Answers     []AnswerDto `json:"answers"`
 }
 
 func CreateTriviaQuestion(question TriviaQuestion) (int, error) {
-	statement := "INSERT INTO triviaQuestions (triviaId, typeId, question, map, highlighted, flagCode, imageUrl) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
+	statement := "INSERT INTO triviaQuestions (triviaId, typeId, question, map, highlighted, flagCode, imageUrl, explainer) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, question.TriviaId, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageURL).Scan(&id)
+	err := Connection.QueryRow(statement, question.TriviaId, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.Explainer).Scan(&id)
 	return id, err
 }
