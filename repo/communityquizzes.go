@@ -149,6 +149,7 @@ func UpdateCommunityQuiz(quizID int, quiz UpdateCommunityQuizDto) error {
 		questionID, err := InsertCommunityQuizQuestion(id, CreateCommunityQuizQuestionDto{
 			TypeID:      question.TypeID,
 			Question:    question.Question,
+			Explainer:   question.Explainer,
 			Map:         question.Map,
 			Highlighted: question.Highlighted,
 			FlagCode:    question.FlagCode,
