@@ -380,6 +380,7 @@ func createQuestionsAndAnswers(questions []ManualTriviaQuestion, triviaID, quant
 			TriviaId:    triviaID,
 			TypeID:      manualQuestion.TypeID,
 			Question:    manualQuestion.Question,
+			Explainer:   manualQuestion.Explainer,
 			Map:         manualQuestion.Map,
 			Highlighted: manualQuestion.Highlighted,
 			FlagCode:    manualQuestion.FlagCode,

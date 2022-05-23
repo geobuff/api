@@ -135,3 +135,7 @@ INSERT INTO orderStatus (status) values
 
 INSERT INTO shippingOptions (name, description, price, imageUrl) values
 ('NZ-Wide Standard Shipping', 'Expect delivery in 5-7 days', 5.99, 'https://upload.wikimedia.org/wikipedia/commons/1/1f/NZ_Post_logo.png');
+
+INSERT INTO communityQuizStatus (name) values
+('Pending'),
+('Approved');
