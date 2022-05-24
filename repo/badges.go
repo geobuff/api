@@ -58,6 +58,11 @@ var GetUserBadges = func(userId int) ([]BadgeDto, error) {
 		return nil, err
 	}
 
+	communityQuizCount, err := GetUserCommunityQuizCount(userId)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
 	rows, err := Connection.Query("SELECT * FROM badges;")
 	if err != nil {
 		return nil, err
@@ -83,7 +88,7 @@ var GetUserBadges = func(userId int) ([]BadgeDto, error) {
 			ImageUrl:    badge.ImageUrl,
 			Background:  badge.Background,
 			Border:      badge.Border,
-			Progress:    getProgress(leaderboardEntries, badge.ID, badge.TypeID),
+			Progress:    getProgress(leaderboardEntries, badge.ID, badge.TypeID, communityQuizCount),
 			Total:       total,
 		}
 
@@ -94,7 +99,7 @@ var GetUserBadges = func(userId int) ([]BadgeDto, error) {
 
 func getTotal(typeID, badgeID int, continentID sql.NullInt64) (int, error) {
 	switch typeID {
-	case BADGE_TYPE_ONE_OFF:
+	case BADGE_TYPE_LEADERBOARD_SUBMIT, BADGE_TYPE_COMMUNITY_QUIZ:
 		return 1, nil
 	case BADGE_TYPE_WORLD:
 		return getWorldQuizCount(badgeID)
@@ -105,20 +110,27 @@ func getTotal(typeID, badgeID int, continentID sql.NullInt64) (int, error) {
 	}
 }
 
-func getProgress(entries []UserLeaderboardEntryDto, badgeId, typeID int) int {
-	if typeID == BADGE_TYPE_ONE_OFF {
+func getProgress(entries []UserLeaderboardEntryDto, badgeId, typeID, communityQuizCount int) int {
+	switch typeID {
+	case BADGE_TYPE_LEADERBOARD_SUBMIT:
 		if len(entries) > 0 {
 			return 1
 		}
 		return 0
-	}
-
-	var count int
-	for _, val := range entries {
-		if val.BadgeID == badgeId {
-			count = count + 1
+	case BADGE_TYPE_WORLD, BADGE_TYPE_CONTINENT:
+		var count int
+		for _, val := range entries {
+			if val.BadgeID == badgeId {
+				count = count + 1
+			}
 		}
+		return count
+	case BADGE_TYPE_COMMUNITY_QUIZ:
+		if communityQuizCount > 0 {
+			return 1
+		}
+		return 0
+	default:
+		return 0
 	}
-
-	return count
 }

@@ -209,3 +209,9 @@ func DeleteCommunityQuiz(quizID int) error {
 
 	return Connection.QueryRow("DELETE FROM communityquizzes WHERE id = $1 RETURNING id;", quizID).Scan(&id)
 }
+
+func GetUserCommunityQuizCount(userID int) (int, error) {
+	var count int
+	err := Connection.QueryRow("SELECT COUNT(id) FROM communityquizzes WHERE userid = $1;", userID).Scan(&count)
+	return count, err
+}
