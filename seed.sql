@@ -7,9 +7,10 @@ INSERT INTO continents (name) values
 ('Oceania');
 
 INSERT INTO badgetype (name) values
-('One-off'),
+('Leaderboard Submit'),
 ('World'),
-('Continent');
+('Continent'),
+('Community Quiz');
 
 INSERT INTO badges (typeid, continentId, name, description, imageUrl, background, border) values
 (1, null, 'Competitor', 'Submit a leaderboard entry.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3c6.svg', '#FFF1CE', '#C1694F'),
@@ -19,7 +20,8 @@ INSERT INTO badges (typeid, continentId, name, description, imageUrl, background
 (3, 3, 'EuropaBuff', 'Complete all Europe quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3f0.svg', '#ECF3F9', '#226699'),
 (3, 4, 'RockiesBuff', 'Complete all North America quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/26f0.svg', '#E9E9E9', '#4B545D'),
 (3, 5, 'AmazonBuff', 'Complete all South America quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f483.svg', '#FFBFC7', '#A0041E'),
-(3, 6, 'PacificBuff', 'Complete all Oceania quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3dd.svg', '#D3ECFF', '#F4900C');
+(3, 6, 'PacificBuff', 'Complete all Oceania quizzes.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f3dd.svg', '#D3ECFF', '#F4900C'),
+(4, null, 'Sharing is Caring', 'Create a community quiz.', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f91d.svg', '#276f86', '#000000');
 
 INSERT INTO avatarTypes (name) values
 ('Commando'),
