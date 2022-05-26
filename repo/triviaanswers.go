@@ -19,3 +19,9 @@ func CreateTriviaAnswer(answer TriviaAnswer) error {
 	var id int
 	return Connection.QueryRow(statement, answer.TriviaQuestionID, answer.Text, answer.IsCorrect, answer.FlagCode).Scan(&id)
 }
+
+func DeleteTriviaAnswers(triviaQuestionId int) error {
+	statement := "DELETE FROM triviaAnswers WHERE triviaQuestionId = $1 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, triviaQuestionId).Scan(&id)
+}
