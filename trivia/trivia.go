@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
 )
@@ -18,6 +19,32 @@ type GetTriviaDto struct {
 
 func GenerateTrivia(writer http.ResponseWriter, request *http.Request) {
 	err := repo.CreateTrivia()
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+}
+
+func RegenerateTrivia(writer http.ResponseWriter, request *http.Request) {
+	if code, err := auth.IsAdmin(request); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	err := repo.RegenerateTrivia(mux.Vars(request)["date"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+}
+
+func DeleteTrivia(writer http.ResponseWriter, request *http.Request) {
+	if code, err := auth.IsAdmin(request); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	err := repo.DeleteTriviaByDate(mux.Vars(request)["date"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return

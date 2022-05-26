@@ -41,3 +41,9 @@ func IncrementTriviaPlays(triviaId int) error {
 	statement = "UPDATE triviaplays set plays = plays + 1 WHERE id = $1 RETURNING id;"
 	return Connection.QueryRow(statement, id).Scan(&id)
 }
+
+func DeleteTriviaPlays(triviaId int) error {
+	statement := "DELETE FROM triviaplays WHERE triviaid = $1 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, triviaId).Scan(&id)
+}
