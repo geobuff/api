@@ -30,3 +30,9 @@ func CreateTriviaQuestion(question TriviaQuestion) (int, error) {
 	err := Connection.QueryRow(statement, question.TriviaId, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.Explainer).Scan(&id)
 	return id, err
 }
+
+func DeleteTriviaQuestion(questionId int) error {
+	statement := "DELETE FROM triviaQuestions WHERE id = $1 RETURNING id;"
+	var id int
+	return Connection.QueryRow(statement, questionId).Scan(&id)
+}

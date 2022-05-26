@@ -153,6 +153,8 @@ func router() http.Handler {
 	router.HandleFunc("/api/trivia/all", trivia.GetAllTrivia).Methods("POST")
 	router.HandleFunc("/api/trivia/{date}", trivia.GetTriviaByDate).Methods("GET")
 	router.HandleFunc("/api/trivia", trivia.GenerateTrivia).Methods("POST")
+	router.HandleFunc("/api/trivia/{date}", trivia.RegenerateTrivia).Methods("PUT")
+	router.HandleFunc("/api/trivia/{date}", trivia.DeleteTrivia).Methods("DELETE")
 
 	// Trivia Plays endpoints.
 	router.HandleFunc("/api/trivia-plays/week", triviaplays.GetLastWeekTriviaPlays).Methods("GET")

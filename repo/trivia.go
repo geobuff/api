@@ -32,6 +32,10 @@ type GetTriviaFilter struct {
 
 func CreateTrivia() error {
 	date := time.Now().AddDate(0, 0, 1)
+	return CreateTriviaForDate(date)
+}
+
+func CreateTriviaForDate(date time.Time) error {
 	var id int
 	if err := Connection.QueryRow("SELECT id FROM trivia WHERE date = $1", date).Scan(&id); err != sql.ErrNoRows {
 		return errors.New("trivia for current date already created")
@@ -50,6 +54,22 @@ func CreateTrivia() error {
 	}
 
 	return setTriviaMaxScore(id, count)
+}
+
+func RegenerateTrivia(dateString string) error {
+	trivia, err := GetTrivia(dateString)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	if err != sql.ErrNoRows {
+		if err = deleteTrivia(trivia); err != nil {
+			return err
+		}
+	}
+
+	date, err := time.Parse("2006-01-02", dateString)
+	return CreateTriviaForDate(date)
 }
 
 func generateQuestions(triviaId, max int) (int, error) {
@@ -513,4 +533,32 @@ func setTriviaMaxScore(triviaID, maxScore int) error {
 	statement := "UPDATE trivia SET maxScore = $1 WHERE id = $2 RETURNING id;"
 	var id int
 	return Connection.QueryRow(statement, maxScore, triviaID).Scan(&id)
+}
+
+func DeleteTriviaByDate(dateString string) error {
+	trivia, err := GetTrivia(dateString)
+	if err != nil {
+		return err
+	}
+
+	return deleteTrivia(trivia)
+}
+
+func deleteTrivia(trivia *TriviaDto) error {
+	if err := DeleteTriviaPlays(trivia.ID); err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	for _, question := range trivia.Questions {
+		if err := DeleteTriviaAnswers(question.ID); err != nil && err != sql.ErrNoRows {
+			return err
+		}
+
+		if err := DeleteTriviaQuestion(question.ID); err != nil && err != sql.ErrNoRows {
+			return err
+		}
+	}
+
+	var id int
+	return Connection.QueryRow("DELETE FROM trivia WHERE id = $1 RETURNING id;", trivia.ID).Scan(&id)
 }
