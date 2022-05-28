@@ -1,0 +1,1 @@
+ALTER TABLE manualtriviaquestions ADD column lastUpdated DATE DEFAULT '2022-05-27';
