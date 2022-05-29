@@ -20,11 +20,12 @@ type AvatarDto struct {
 	Description       string `json:"description"`
 	PrimaryImageUrl   string `json:"primaryImageUrl"`
 	SecondaryImageUrl string `json:"secondaryImageUrl"`
+	GridPlacement     int    `json:"gridPlacement"`
 }
 
 // GetAvatars returns all avatars.
 var GetAvatars = func() ([]AvatarDto, error) {
-	rows, err := Connection.Query("SELECT a.id, t.name, a.countrycode, a.name, a.description, a.primaryImageUrl, a.secondaryImageUrl FROM avatars a JOIN avatarTypes t ON t.id = a.typeid ORDER BY a.gridplacement;")
+	rows, err := Connection.Query("SELECT a.id, t.name, a.countrycode, a.name, a.description, a.primaryImageUrl, a.secondaryImageUrl, a.gridplacement FROM avatars a JOIN avatarTypes t ON t.id = a.typeid ORDER BY a.gridplacement;")
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +34,7 @@ var GetAvatars = func() ([]AvatarDto, error) {
 	var avatars = []AvatarDto{}
 	for rows.Next() {
 		var avatar AvatarDto
-		if err = rows.Scan(&avatar.ID, &avatar.Type, &avatar.CountryCode, &avatar.Name, &avatar.Description, &avatar.PrimaryImageUrl, &avatar.SecondaryImageUrl); err != nil {
+		if err = rows.Scan(&avatar.ID, &avatar.Type, &avatar.CountryCode, &avatar.Name, &avatar.Description, &avatar.PrimaryImageUrl, &avatar.SecondaryImageUrl, &avatar.GridPlacement); err != nil {
 			return nil, err
 		}
 		avatars = append(avatars, avatar)
@@ -43,8 +44,8 @@ var GetAvatars = func() ([]AvatarDto, error) {
 
 // GetAvatar returns an avatar with the matching id.
 var GetAvatar = func(id int) (AvatarDto, error) {
-	statement := "SELECT a.id, t.name, a.countrycode, a.name, a.description, a.primaryImageUrl, a.secondaryImageUrl FROM avatars a JOIN avatarTypes t ON t.id = a.typeid WHERE a.id = $1;"
+	statement := "SELECT a.id, t.name, a.countrycode, a.name, a.description, a.primaryImageUrl, a.secondaryImageUrl, a.gridplacement FROM avatars a JOIN avatarTypes t ON t.id = a.typeid WHERE a.id = $1;"
 	var avatar AvatarDto
-	err := Connection.QueryRow(statement, id).Scan(&avatar.ID, &avatar.Type, &avatar.CountryCode, &avatar.Name, &avatar.Description, &avatar.PrimaryImageUrl, &avatar.SecondaryImageUrl)
+	err := Connection.QueryRow(statement, id).Scan(&avatar.ID, &avatar.Type, &avatar.CountryCode, &avatar.Name, &avatar.Description, &avatar.PrimaryImageUrl, &avatar.SecondaryImageUrl, &avatar.GridPlacement)
 	return avatar, err
 }
