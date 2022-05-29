@@ -1,0 +1,1 @@
+ALTER TABLE avatars ADD column gridPlacement INTEGER DEFAULT 0;

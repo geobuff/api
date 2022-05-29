@@ -9,6 +9,7 @@ type Avatar struct {
 	Description       string `json:"description"`
 	PrimaryImageUrl   string `json:"primaryImageUrl"`
 	SecondaryImageUrl string `json:"secondaryImageUrl"`
+	GridPlacement     int    `json:"gridPlacement"`
 }
 
 type AvatarDto struct {
@@ -23,7 +24,7 @@ type AvatarDto struct {
 
 // GetAvatars returns all avatars.
 var GetAvatars = func() ([]AvatarDto, error) {
-	rows, err := Connection.Query("SELECT a.id, t.name, a.countrycode, a.name, a.description, a.primaryImageUrl, a.secondaryImageUrl FROM avatars a JOIN avatarTypes t ON t.id = a.typeid;")
+	rows, err := Connection.Query("SELECT a.id, t.name, a.countrycode, a.name, a.description, a.primaryImageUrl, a.secondaryImageUrl FROM avatars a JOIN avatarTypes t ON t.id = a.typeid ORDER BY a.gridplacement;")
 	if err != nil {
 		return nil, err
 	}
