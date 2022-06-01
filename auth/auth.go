@@ -60,7 +60,6 @@ type ResetTokenUpdateDto struct {
 	Password string `json:"password"`
 }
 
-// Login verifies a user before returning a token with relevant information.
 func Login(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
@@ -99,7 +98,6 @@ func Login(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(token)
 }
 
-// Register creates a new user in the database and returns a token holding relevant information.
 func Register(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
@@ -200,7 +198,6 @@ func UsernameExists(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(exists)
 }
 
-// SendResetToken sends a password reset email if the user is valid.
 func SendResetToken(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
@@ -242,7 +239,6 @@ func SendResetToken(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// ResetTokenValid checks if a token matches the user's database token.
 func ResetTokenValid(writer http.ResponseWriter, request *http.Request) {
 	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
 	if err != nil {
@@ -266,7 +262,6 @@ func ResetTokenValid(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(valid)
 }
 
-// UpdatePasswordUsingToken updates the users password using the email reset token.
 func UpdatePasswordUsingToken(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {

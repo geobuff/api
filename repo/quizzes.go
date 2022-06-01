@@ -5,7 +5,6 @@ import (
 	"fmt"
 )
 
-// Quiz is the database object for a quiz entry.
 type Quiz struct {
 	ID             int           `json:"id"`
 	TypeID         int           `json:"typeId"`
@@ -82,7 +81,6 @@ type UpdateQuizDto struct {
 	Enabled        bool          `json:"enabled"`
 }
 
-// GetQuizzes returns all quizzes.
 var GetQuizzes = func(filter QuizzesFilterDto) ([]Quiz, error) {
 	statement := "SELECT q.id, q.typeid, q.badgeid, q.continentid, q.country, q.singular, q.name, q.maxscore, q.time, q.mapsvg, q.imageurl, q.plural, q.apipath, q.route, q.hasleaderboard, q.hasgrouping, q.hasflags, q.enabled FROM quizzes q JOIN quizType t ON t.id = q.typeId LEFT JOIN quizPlays p ON q.id = p.quizId WHERE q.name ILIKE '%' || $1 || '%' OR t.name ILIKE '%' || $1 || '%' "
 
@@ -116,7 +114,6 @@ var GetFirstQuizID = func(offset int) (int, error) {
 	return id, err
 }
 
-// GetQuiz return a quiz with the matching id.
 var GetQuiz = func(id int) (Quiz, error) {
 	statement := "SELECT * FROM quizzes WHERE id = $1;"
 	var quiz Quiz
@@ -124,7 +121,6 @@ var GetQuiz = func(id int) (Quiz, error) {
 	return quiz, err
 }
 
-// GetQuizID gets the quiz id based on name.
 func GetQuizID(name string) (int, error) {
 	statement := "SELECT id FROM quizzes WHERE name ILIKE '%' || $1 || '%';"
 	var id int

@@ -18,7 +18,6 @@ type QuizPageDto struct {
 	HasMore bool        `json:"hasMore"`
 }
 
-// GetQuizzes returns all quizzes.
 func GetQuizzes(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
@@ -53,7 +52,6 @@ func GetQuizzes(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// GetQuiz gets a quiz entry by id.
 func GetQuiz(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {

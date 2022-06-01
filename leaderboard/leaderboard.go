@@ -14,13 +14,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// EntriesDto is used to display a paged result of leaderboard entries.
 type EntriesDto struct {
 	Entries []repo.LeaderboardEntryDto `json:"entries"`
 	HasMore bool                       `json:"hasMore"`
 }
 
-// GetEntries gets the leaderboard entries for a given page.
 func GetEntries(writer http.ResponseWriter, request *http.Request) {
 	quizID, err := strconv.Atoi(mux.Vars(request)["quizId"])
 	if err != nil {
@@ -61,7 +59,6 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// GetUserEntries gets all leaderboard entries for a user.
 func GetUserEntries(writer http.ResponseWriter, request *http.Request) {
 	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
 	if err != nil {
@@ -80,7 +77,6 @@ func GetUserEntries(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// GetEntry gets a leaderboard entry by quiz and user id.
 func GetEntry(writer http.ResponseWriter, request *http.Request) {
 	quizID, err := strconv.Atoi(mux.Vars(request)["quizId"])
 	if err != nil {
@@ -105,7 +101,6 @@ func GetEntry(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// CreateEntry creates a new leaderboard entry.
 func CreateEntry(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
@@ -149,7 +144,6 @@ func CreateEntry(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(newEntry)
 }
 
-// UpdateEntry updates an existing leaderboard entry.
 func UpdateEntry(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
@@ -207,7 +201,6 @@ func UpdateEntry(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(updatedEntry)
 }
 
-// DeleteEntry deletes an existing leaderboard entry.
 func DeleteEntry(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
