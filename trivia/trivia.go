@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
@@ -45,6 +46,25 @@ func DeleteTrivia(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	err := repo.DeleteTriviaByDate(mux.Vars(request)["date"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+}
+
+func DeleteOldTrivia(writer http.ResponseWriter, request *http.Request) {
+	if code, err := auth.IsAdmin(request); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	newTriviaCount, err := strconv.Atoi(mux.Vars(request)["newTriviaCount"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	err = repo.DeleteOldTrivia(newTriviaCount)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
