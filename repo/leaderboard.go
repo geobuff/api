@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-// LeaderboardEntry is the database object for leaderboard entries.
 type LeaderboardEntry struct {
 	ID     int       `json:"id"`
 	QuizID int       `json:"quizId"`
@@ -16,7 +15,6 @@ type LeaderboardEntry struct {
 	Added  time.Time `json:"added"`
 }
 
-// LeaderboardEntryDto contains additional fields for display in the leaderboard table.
 type LeaderboardEntryDto struct {
 	ID          int       `json:"id"`
 	QuizID      int       `json:"quizId"`
@@ -30,7 +28,6 @@ type LeaderboardEntryDto struct {
 	Rank        int       `json:"rank"`
 }
 
-// GetEntriesFilterParams contain the filter fields for the leaderboard.
 type GetEntriesFilterParams struct {
 	Page  int    `json:"page"`
 	Limit int    `json:"limit"`
@@ -39,7 +36,6 @@ type GetEntriesFilterParams struct {
 	Rank  int    `json:"rank"`
 }
 
-// UserLeaderboardEntryDto provides us with additional fields used in the user profile.
 type UserLeaderboardEntryDto struct {
 	ID           int       `json:"id"`
 	UserID       int       `json:"userId"`
@@ -53,7 +49,6 @@ type UserLeaderboardEntryDto struct {
 	Rank         int       `json:"rank"`
 }
 
-// GetLeaderboardEntries returns a page of leaderboard entries.
 var GetLeaderboardEntries = func(quizID int, filterParams GetEntriesFilterParams) ([]LeaderboardEntryDto, error) {
 	var rows *sql.Rows
 	var err error
@@ -96,7 +91,6 @@ func getRangeFilter(rangeFilter string) string {
 	}
 }
 
-// GetLeaderboardEntryID returns the first ID for a given page.
 var GetLeaderboardEntryID = func(quizID int, filterParams GetEntriesFilterParams) (int, error) {
 	query := "SELECT l.id FROM leaderboard l JOIN users u on u.id = l.userid WHERE l.quizid = $1 AND u.username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT 1 OFFSET $3;"
 	var id int
@@ -104,7 +98,6 @@ var GetLeaderboardEntryID = func(quizID int, filterParams GetEntriesFilterParams
 	return id, err
 }
 
-// GetUserLeaderboardEntries returns the leaderboard entry with a given id.
 var GetUserLeaderboardEntries = func(userID int) ([]UserLeaderboardEntryDto, error) {
 	query := "SELECT * from (SELECT l.id, l.userid, l.quizid, q.badgeId, q.name, q.imageUrl, l.score, l.time, l.added, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN quizzes q on q.id = l.quizid) c WHERE c.userid = $1;"
 
@@ -125,7 +118,6 @@ var GetUserLeaderboardEntries = func(userID int) ([]UserLeaderboardEntryDto, err
 	return entries, rows.Err()
 }
 
-// GetLeaderboardEntry returns the leaderboard entry with a given id.
 var GetLeaderboardEntry = func(quizID, userID int) (LeaderboardEntryDto, error) {
 	statement := "SELECT * from (SELECT l.id, l.quizid, l.userid, u.username, q.name, u.countrycode, l.score, l.time, l.added, RANK () OVER (PARTITION BY l.quizid ORDER BY score desc, l.time) rank FROM leaderboard l JOIN users u on u.id = l.userId JOIN quizzes q on q.id = l.quizid WHERE l.quizid = $1) c WHERE c.userid = $2;"
 	var entry LeaderboardEntryDto
@@ -133,7 +125,6 @@ var GetLeaderboardEntry = func(quizID, userID int) (LeaderboardEntryDto, error) 
 	return entry, err
 }
 
-// GetLeaderboardEntry returns the leaderboard entry with a given id.
 var GetLeaderboardEntryById = func(id int) (LeaderboardEntry, error) {
 	statement := "SELECT * from leaderboard WHERE id = $1;"
 	var entry LeaderboardEntry
@@ -141,7 +132,6 @@ var GetLeaderboardEntryById = func(id int) (LeaderboardEntry, error) {
 	return entry, err
 }
 
-// InsertLeaderboardEntry inserts a new leaderboard entry into the countries_leaderboard table.
 var InsertLeaderboardEntry = func(entry LeaderboardEntry) (int, error) {
 	statement := "INSERT INTO leaderboard (quizId, userId, score, time, added) VALUES ($1, $2, $3, $4, $5) RETURNING id;"
 	var id int
@@ -149,14 +139,12 @@ var InsertLeaderboardEntry = func(entry LeaderboardEntry) (int, error) {
 	return id, err
 }
 
-// UpdateLeaderboardEntry updates an existing leaderboard entry.
 var UpdateLeaderboardEntry = func(entry LeaderboardEntry) error {
 	statement := "UPDATE leaderboard set quizId = $2, userId = $3, score = $4, time = $5, added = $6 where id = $1 RETURNING id;"
 	var id int
 	return Connection.QueryRow(statement, entry.ID, entry.QuizID, entry.UserID, entry.Score, entry.Time, entry.Added).Scan(&id)
 }
 
-// DeleteLeaderboardEntry deletes a leaderboard entry.
 var DeleteLeaderboardEntry = func(entryID int) error {
 	statement := "DELETE FROM leaderboard WHERE id = $1 RETURNING id;"
 	var id int

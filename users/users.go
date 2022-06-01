@@ -14,13 +14,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// PageDto is used to display a paged result of user entries.
 type UserPageDto struct {
 	Users   []repo.UserDto `json:"users"`
 	HasMore bool           `json:"hasMore"`
 }
 
-// GetUsers gets the user entries for a given page.
 func GetUsers(writer http.ResponseWriter, request *http.Request) {
 	pageParam := request.URL.Query().Get("page")
 	page, err := strconv.Atoi(pageParam)
@@ -54,7 +52,6 @@ func GetUsers(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// GetUser gets a user entry by id.
 func GetUser(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
@@ -89,7 +86,6 @@ func GetLastWeekTotalUsers(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(data)
 }
 
-// UpdateUser creates a new user entry.
 func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
@@ -204,7 +200,6 @@ func UpdateUserXP(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(increase)
 }
 
-// DeleteUser deletes an existing user entry.
 func DeleteUser(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {

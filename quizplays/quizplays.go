@@ -11,7 +11,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// GetAllPlays gets the total play count.
 func GetAllQuizPlays(writer http.ResponseWriter, request *http.Request) {
 	plays, err := repo.GetAllQuizPlays()
 	if err != nil {
@@ -23,7 +22,6 @@ func GetAllQuizPlays(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(plays)
 }
 
-// GetPlays gets a play count for a given quiz.
 func GetQuizPlays(writer http.ResponseWriter, request *http.Request) {
 	quizID, err := strconv.Atoi(mux.Vars(request)["quizId"])
 	if err != nil {
@@ -57,7 +55,6 @@ func GetTopFiveQuizPlays(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(plays)
 }
 
-// IncrementPlays increments the play count for a quiz.
 func IncrementQuizPlays(writer http.ResponseWriter, request *http.Request) {
 	quizID, err := strconv.Atoi(mux.Vars(request)["quizId"])
 	if err != nil {

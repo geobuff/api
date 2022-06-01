@@ -8,7 +8,6 @@ import (
 	"github.com/geobuff/api/helpers"
 )
 
-// User is the database object for a user entry.
 type User struct {
 	ID                  int            `json:"id"`
 	AvatarId            int            `json:"avatarId"`
@@ -24,7 +23,6 @@ type User struct {
 	Joined              time.Time      `json:"joined"`
 }
 
-// UserDto is the dto for a user entry.
 type UserDto struct {
 	ID                      int       `json:"id"`
 	AvatarId                int       `json:"avatarId"`
@@ -79,7 +77,6 @@ type TotalUsersDto struct {
 	Count int    `json:"count"`
 }
 
-// GetUsers returns a page of users.
 var GetUsers = func(limit int, offset int) ([]UserDto, error) {
 	rows, err := Connection.Query("SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.joined FROM users u JOIN avatars a on a.id = u.avatarid ORDER BY joined DESC LIMIT $1 OFFSET $2;", limit, offset)
 	if err != nil {
@@ -98,7 +95,6 @@ var GetUsers = func(limit int, offset int) ([]UserDto, error) {
 	return users, rows.Err()
 }
 
-// GetFirstID returns the first ID for a given page.
 var GetFirstUserID = func(offset int) (int, error) {
 	statement := "SELECT id FROM users LIMIT 1 OFFSET $1;"
 	var id int
@@ -106,7 +102,6 @@ var GetFirstUserID = func(offset int) (int, error) {
 	return id, err
 }
 
-// GetUser returns the user with a given id.
 var GetUser = func(id int) (UserDto, error) {
 	statement := "SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.joined FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.id = $1;"
 	var user UserDto
@@ -128,7 +123,6 @@ var GetAuthUserUsingEmail = func(email string) (AuthUserDto, error) {
 	return user, err
 }
 
-// InsertUser inserts a new user into the users table.
 var InsertUser = func(user User) (int, error) {
 	statement := "INSERT INTO users (avatarid, username, email, passwordHash, countrycode, xp, isPremium, isAdmin, joined) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;"
 	var id int
@@ -136,7 +130,6 @@ var InsertUser = func(user User) (int, error) {
 	return id, err
 }
 
-// UpdateUser updates a user entry.
 var UpdateUser = func(userID int, user UpdateUserDto) error {
 	statement := "UPDATE users set avatarid = $2, username = $3, email = $4, countryCode = $5, xp = $6 WHERE id = $1 RETURNING id;"
 	var id int
@@ -151,7 +144,6 @@ func UpdateUserXP(userID, score, maxScore int) (int, error) {
 	return increase, err
 }
 
-// DeleteUser deletes a users scores, leaderboard entries and then the user entry in the users table.
 var DeleteUser = func(userID int) error {
 	quizzes, err := GetUserCommunityQuizzes(userID)
 	if err != nil && err != sql.ErrNoRows {

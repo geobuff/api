@@ -27,7 +27,6 @@ func GetDiscounts(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(discounts)
 }
 
-// GetDiscount gets a discount for a given code.
 func GetDiscount(writer http.ResponseWriter, request *http.Request) {
 	switch discount, err := repo.GetDiscountByCode(mux.Vars(request)["code"]); err {
 	case sql.ErrNoRows:

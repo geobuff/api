@@ -8,7 +8,6 @@ import (
 	"github.com/geobuff/api/repo"
 )
 
-// GetAvatars returns all the avatars.
 func GetAvatars(writer http.ResponseWriter, request *http.Request) {
 	avatars, err := repo.GetAvatars()
 	if err != nil {

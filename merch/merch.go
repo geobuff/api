@@ -9,7 +9,6 @@ import (
 	"github.com/geobuff/api/repo"
 )
 
-// GetMerch returns all the merch entries.
 func GetMerch(writer http.ResponseWriter, request *http.Request) {
 	merch, err := repo.GetMerch()
 	if err != nil {

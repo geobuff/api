@@ -1,6 +1,5 @@
 package repo
 
-// Avatar is the database object for a avatar entry.
 type Avatar struct {
 	ID                int    `json:"id"`
 	TypeID            int    `json:"typeId"`
@@ -23,7 +22,6 @@ type AvatarDto struct {
 	GridPlacement     int    `json:"gridPlacement"`
 }
 
-// GetAvatars returns all avatars.
 var GetAvatars = func() ([]AvatarDto, error) {
 	rows, err := Connection.Query("SELECT a.id, t.name, a.countrycode, a.name, a.description, a.primaryImageUrl, a.secondaryImageUrl, a.gridplacement FROM avatars a JOIN avatarTypes t ON t.id = a.typeid ORDER BY a.gridplacement;")
 	if err != nil {
@@ -42,7 +40,6 @@ var GetAvatars = func() ([]AvatarDto, error) {
 	return avatars, rows.Err()
 }
 
-// GetAvatar returns an avatar with the matching id.
 var GetAvatar = func(id int) (AvatarDto, error) {
 	statement := "SELECT a.id, t.name, a.countrycode, a.name, a.description, a.primaryImageUrl, a.secondaryImageUrl, a.gridplacement FROM avatars a JOIN avatarTypes t ON t.id = a.typeid WHERE a.id = $1;"
 	var avatar AvatarDto

@@ -2,7 +2,6 @@ package repo
 
 import "database/sql"
 
-// Discount is the database object for a discount entry.
 type Discount struct {
 	ID      int           `json:"id"`
 	MerchID sql.NullInt64 `json:"merchId"`

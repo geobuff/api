@@ -5,7 +5,6 @@ import (
 	"errors"
 )
 
-// Badge is the database object for a badge entry.
 type Badge struct {
 	ID          int           `json:"id"`
 	TypeID      int           `json:"typeId"`
@@ -51,7 +50,6 @@ func GetBadges() ([]CreateQuizBadgeDto, error) {
 	return badges, rows.Err()
 }
 
-// GetUserBadges returns all badges for a user.
 var GetUserBadges = func(userId int) ([]BadgeDto, error) {
 	leaderboardEntries, err := GetUserLeaderboardEntries(userId)
 	if err != nil {
