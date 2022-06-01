@@ -153,6 +153,17 @@ func UpdateUserXP(userID, score, maxScore int) (int, error) {
 
 // DeleteUser deletes a users scores, leaderboard entries and then the user entry in the users table.
 var DeleteUser = func(userID int) error {
+	quizzes, err := GetUserCommunityQuizzes(userID)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	for _, quiz := range quizzes {
+		if err := DeleteCommunityQuiz(quiz.ID); err != nil {
+			return err
+		}
+	}
+
 	leaderboardStatement := "DELETE FROM leaderboard WHERE userId = $1;"
 	Connection.QueryRow(leaderboardStatement, userID)
 	usersStatement := "DELETE FROM users WHERE id = $1 RETURNING id;"
