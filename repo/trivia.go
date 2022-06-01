@@ -562,3 +562,44 @@ func deleteTrivia(trivia *TriviaDto) error {
 	var id int
 	return Connection.QueryRow("DELETE FROM trivia WHERE id = $1 RETURNING id;", trivia.ID).Scan(&id)
 }
+
+func DeleteOldTrivia(newTriviaCount int) error {
+	dates, err := getOldTriviaDates(newTriviaCount)
+	if err == sql.ErrNoRows {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	for _, date := range dates {
+		formattedDate := date.Format("2006-01-02")
+		trivia, err := GetTrivia(formattedDate)
+		if err != nil {
+			return err
+		}
+
+		if err = deleteTrivia(trivia); err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+func getOldTriviaDates(newTriviaCount int) ([]time.Time, error) {
+	rows, err := Connection.Query("SELECT date FROM trivia WHERE date < $1;", time.Now().AddDate(0, 0, 0-newTriviaCount))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var dates = []time.Time{}
+	for rows.Next() {
+		var date time.Time
+		if err = rows.Scan(&date); err != nil {
+			return nil, err
+		}
+		dates = append(dates, date)
+	}
+
+	return dates, rows.Err()
+}
