@@ -2,6 +2,7 @@ package repo
 
 import (
 	"database/sql"
+	"math/rand"
 )
 
 type CommunityQuizQuestion struct {
@@ -102,6 +103,12 @@ func GetCommunityQuizQuestions(quizID int) ([]GetCommunityQuizQuestionDto, error
 		answers, err := GetCommunityQuizAnswers(question.ID)
 		if err != nil {
 			return nil, err
+		}
+
+		if len(answers) > 2 {
+			rand.Shuffle(len(answers), func(i, j int) {
+				answers[i], answers[j] = answers[j], answers[i]
+			})
 		}
 		question.Answers = answers
 
