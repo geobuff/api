@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"log"
 	"math/rand"
@@ -9,7 +10,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
+
+	crypto_rand "crypto/rand"
 
 	"cloud.google.com/go/errorreporting"
 	"github.com/didip/tollbooth"
@@ -52,8 +54,14 @@ import (
 var errorClient *errorreporting.Client
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
-	err := loadConfig()
+	var b [8]byte
+	_, err := crypto_rand.Read(b[:])
+	if err != nil {
+		panic("cannot seed math/rand package with cryptographically secure random number generator")
+	}
+	rand.Seed(int64(binary.LittleEndian.Uint64(b[:])))
+
+	err = loadConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -155,6 +163,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/trivia", trivia.GenerateTrivia).Methods("POST")
 	router.HandleFunc("/api/trivia/{date}", trivia.RegenerateTrivia).Methods("PUT")
 	router.HandleFunc("/api/trivia/{date}", trivia.DeleteTrivia).Methods("DELETE")
+	router.HandleFunc("/api/trivia/old/{newTriviaCount}", trivia.DeleteOldTrivia).Methods("DELETE")
 
 	// Trivia Plays endpoints.
 	router.HandleFunc("/api/trivia-plays/week", triviaplays.GetLastWeekTriviaPlays).Methods("GET")

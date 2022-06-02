@@ -2,6 +2,7 @@ package repo
 
 import (
 	"database/sql"
+	"math/rand"
 	"time"
 )
 
@@ -181,6 +182,11 @@ func GetCommunityQuiz(quizID int) (GetCommunityQuizDto, error) {
 	if err != nil {
 		return quiz, err
 	}
+
+	rand.Shuffle(len(questions), func(i, j int) {
+		questions[i], questions[j] = questions[j], questions[i]
+	})
+
 	quiz.Questions = questions
 
 	return quiz, err

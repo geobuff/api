@@ -123,10 +123,6 @@ func generateQuestions(triviaId, max int) (int, error) {
 	return count, nil
 }
 
-func randomBool() bool {
-	return rand.Float32() < 0.5
-}
-
 func whatCountry(triviaId int) error {
 	max := len(helpers.TopLandmass)
 	index := rand.Intn(max)
@@ -501,7 +497,9 @@ func GetTrivia(date string) (*TriviaDto, error) {
 		}
 
 		if len(answers) > 2 {
-			shuffleAnswers(answers)
+			rand.Shuffle(len(answers), func(i, j int) {
+				answers[i], answers[j] = answers[j], answers[i]
+			})
 		}
 
 		question.Answers = answers
@@ -514,13 +512,6 @@ func GetTrivia(date string) (*TriviaDto, error) {
 
 	result.Questions = questions
 	return &result, rows.Err()
-}
-
-func shuffleAnswers(slice []AnswerDto) {
-	for i := range slice {
-		j := rand.Intn(i + 1)
-		slice[i], slice[j] = slice[j], slice[i]
-	}
 }
 
 func copyMapping(orig []mapping.Mapping) []mapping.Mapping {
@@ -561,4 +552,45 @@ func deleteTrivia(trivia *TriviaDto) error {
 
 	var id int
 	return Connection.QueryRow("DELETE FROM trivia WHERE id = $1 RETURNING id;", trivia.ID).Scan(&id)
+}
+
+func DeleteOldTrivia(newTriviaCount int) error {
+	dates, err := getOldTriviaDates(newTriviaCount)
+	if err == sql.ErrNoRows {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	for _, date := range dates {
+		formattedDate := date.Format("2006-01-02")
+		trivia, err := GetTrivia(formattedDate)
+		if err != nil {
+			return err
+		}
+
+		if err = deleteTrivia(trivia); err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+func getOldTriviaDates(newTriviaCount int) ([]time.Time, error) {
+	rows, err := Connection.Query("SELECT date FROM trivia WHERE date < $1;", time.Now().AddDate(0, 0, 0-newTriviaCount))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var dates = []time.Time{}
+	for rows.Next() {
+		var date time.Time
+		if err = rows.Scan(&date); err != nil {
+			return nil, err
+		}
+		dates = append(dates, date)
+	}
+
+	return dates, rows.Err()
 }

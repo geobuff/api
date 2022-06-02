@@ -21,7 +21,6 @@ func GetBadges(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(badges)
 }
 
-// GetUserBadges returns a users badges.
 func GetUserBadges(writer http.ResponseWriter, request *http.Request) {
 	userID, err := strconv.Atoi(mux.Vars(request)["userId"])
 	if err != nil {

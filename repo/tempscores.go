@@ -6,7 +6,6 @@ import (
 	"github.com/lib/pq"
 )
 
-// TempScore is the database object for a tempscore entry.
 type TempScore struct {
 	ID      int       `json:"id"`
 	Score   int       `json:"score"`
@@ -16,7 +15,6 @@ type TempScore struct {
 	Added   time.Time `json:"added"`
 }
 
-// GetTempScore returns a tempscore with the matching id.
 var GetTempScore = func(id int) (TempScore, error) {
 	statement := "SELECT * from tempscores WHERE id = $1;"
 	var score TempScore
@@ -24,7 +22,6 @@ var GetTempScore = func(id int) (TempScore, error) {
 	return score, err
 }
 
-// InsertTempScore inserts a tempscore entry into the tempscores table.
 var InsertTempScore = func(score TempScore) (int, error) {
 	statement := "INSERT INTO tempscores (score, time, results, recents, added) VALUES ($1, $2, $3, $4, $5) RETURNING id;"
 	var id int
@@ -32,7 +29,6 @@ var InsertTempScore = func(score TempScore) (int, error) {
 	return id, err
 }
 
-// DeleteTempScore deletes a tempscore entry.
 var DeleteTempScore = func(id int) error {
 	statement := "DELETE FROM tempscores WHERE id = $1 RETURNING id;"
 	var tempScoreID int
