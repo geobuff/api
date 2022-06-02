@@ -123,10 +123,6 @@ func generateQuestions(triviaId, max int) (int, error) {
 	return count, nil
 }
 
-func randomBool() bool {
-	return rand.Float32() < 0.5
-}
-
 func whatCountry(triviaId int) error {
 	max := len(helpers.TopLandmass)
 	index := rand.Intn(max)
@@ -501,7 +497,9 @@ func GetTrivia(date string) (*TriviaDto, error) {
 		}
 
 		if len(answers) > 2 {
-			shuffleAnswers(answers)
+			rand.Shuffle(len(answers), func(i, j int) {
+				answers[i], answers[j] = answers[j], answers[i]
+			})
 		}
 
 		question.Answers = answers
@@ -514,13 +512,6 @@ func GetTrivia(date string) (*TriviaDto, error) {
 
 	result.Questions = questions
 	return &result, rows.Err()
-}
-
-func shuffleAnswers(slice []AnswerDto) {
-	for i := range slice {
-		j := rand.Intn(i + 1)
-		slice[i], slice[j] = slice[j], slice[i]
-	}
 }
 
 func copyMapping(orig []mapping.Mapping) []mapping.Mapping {
