@@ -536,7 +536,7 @@ func DeleteTriviaByDate(dateString string) error {
 }
 
 func deleteTrivia(trivia *TriviaDto) error {
-	if err := DeleteTriviaPlays(trivia.ID); err != nil && err != sql.ErrNoRows {
+	if err := ClearTriviaPlayTriviaId(trivia.ID); err != nil && err != sql.ErrNoRows {
 		return err
 	}
 
