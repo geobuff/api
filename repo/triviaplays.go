@@ -1,6 +1,13 @@
 package repo
 
-import "database/sql"
+import (
+	"database/sql"
+)
+
+type TriviaPlay struct {
+	ID       int           `json:"id"`
+	TriviaID sql.NullInt64 `json:"triviaId"`
+}
 
 func GetLastWeekTriviaPlays() ([]PlaysDto, error) {
 	rows, err := Connection.Query("SELECT q.name, p.plays FROM triviaplays p JOIN trivia q ON q.id = p.triviaid ORDER BY q.date DESC LIMIT 7;")
@@ -45,5 +52,11 @@ func IncrementTriviaPlays(triviaId int) error {
 func DeleteTriviaPlays(triviaId int) error {
 	statement := "DELETE FROM triviaplays WHERE triviaid = $1 RETURNING id;"
 	var id int
+	return Connection.QueryRow(statement, triviaId).Scan(&id)
+}
+
+func ClearTriviaPlayTriviaId(triviaId int) error {
+	var id int
+	statement := "UPDATE triviaplays set triviaid = null WHERE triviaid = $1 RETURNING id;"
 	return Connection.QueryRow(statement, triviaId).Scan(&id)
 }

@@ -199,7 +199,7 @@ func DeleteCommunityQuiz(quizID int) error {
 	}
 
 	var id int
-	if err := Connection.QueryRow("DELETE FROM communityquizplays WHERE communityQuizId = $1 RETURNING id;", quizID).Scan(&id); err != nil && err != sql.ErrNoRows {
+	if err := ClearCommunityQuizPlayCommunityQuizId(quizID); err != nil && err != sql.ErrNoRows {
 		return err
 	}
 
