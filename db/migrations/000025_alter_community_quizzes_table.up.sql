@@ -1,0 +1,1 @@
+ALTER TABLE communityquizzes ADD column ispublic BOOLEAN DEFAULT true;
