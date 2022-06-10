@@ -144,3 +144,11 @@ INSERT INTO shippingOptions (name, description, price, imageUrl) values
 INSERT INTO communityQuizStatus (name) values
 ('Pending'),
 ('Approved');
+
+INSERT INTO triviaQuestionCategory (name) values
+('Landmarks'),
+('Currency'),
+('Rivers'),
+('Borders'),
+('Community Quiz'),
+('Misc');

@@ -38,6 +38,7 @@ import (
 	"github.com/geobuff/api/tempscores"
 	"github.com/geobuff/api/trivia"
 	"github.com/geobuff/api/triviaplays"
+	"github.com/geobuff/api/triviaquestioncategory"
 	"github.com/geobuff/api/triviaquestiontype"
 	"github.com/geobuff/api/triviaremindersubscribers"
 	"github.com/geobuff/api/users"
@@ -171,6 +172,9 @@ func router() http.Handler {
 
 	// Trivia Question Type endpoints.
 	router.HandleFunc("/api/trivia-question-types", triviaquestiontype.GetTriviaQuestionTypes).Methods("GET")
+
+	// Trivia Question Category endpoints.
+	router.HandleFunc("/api/trivia-question-categories", triviaquestioncategory.GetTriviaQuestionCategories).Methods("GET")
 
 	// Manual Trivia Question endpoints.
 	router.HandleFunc("/api/manual-trivia-questions/all", manualtriviaquestions.GetManualTriviaQuestions).Methods("POST")
