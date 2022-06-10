@@ -19,25 +19,31 @@ type ManualQuestionsDto struct {
 }
 
 func GetManualTriviaQuestions(writer http.ResponseWriter, request *http.Request) {
-	pageParam := request.URL.Query().Get("page")
-	page, err := strconv.Atoi(pageParam)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
 	if code, err := auth.IsAdmin(request); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
 
-	questions, err := repo.GetAllManualTriviaQuestions(10, page*10)
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var filterParams repo.GetManualTriviaQuestionEntriesFilterParams
+	err = json.Unmarshal(requestBody, &filterParams)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	questions, err := repo.GetAllManualTriviaQuestions(filterParams)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
-	switch _, err := repo.GetFirstManualTriviaQuestionID((page + 1) * 10); err {
+	switch _, err := repo.GetFirstManualTriviaQuestionID(filterParams); err {
 	case sql.ErrNoRows:
 		entriesDto := ManualQuestionsDto{questions, false}
 		writer.Header().Set("Content-Type", "application/json")

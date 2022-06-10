@@ -28,7 +28,7 @@ type LeaderboardEntryDto struct {
 	Rank        int       `json:"rank"`
 }
 
-type GetEntriesFilterParams struct {
+type GetLeaderboardEntriesFilterParams struct {
 	Page  int    `json:"page"`
 	Limit int    `json:"limit"`
 	Range string `json:"range"`
@@ -49,7 +49,7 @@ type UserLeaderboardEntryDto struct {
 	Rank         int       `json:"rank"`
 }
 
-var GetLeaderboardEntries = func(quizID int, filterParams GetEntriesFilterParams) ([]LeaderboardEntryDto, error) {
+var GetLeaderboardEntries = func(quizID int, filterParams GetLeaderboardEntriesFilterParams) ([]LeaderboardEntryDto, error) {
 	var rows *sql.Rows
 	var err error
 	if filterParams.Rank != 0 {
@@ -91,7 +91,7 @@ func getRangeFilter(rangeFilter string) string {
 	}
 }
 
-var GetLeaderboardEntryID = func(quizID int, filterParams GetEntriesFilterParams) (int, error) {
+var GetLeaderboardEntryID = func(quizID int, filterParams GetLeaderboardEntriesFilterParams) (int, error) {
 	query := "SELECT l.id FROM leaderboard l JOIN users u on u.id = l.userid WHERE l.quizid = $1 AND u.username ILIKE '%' || $2 || '%' " + getRangeFilter(filterParams.Range) + " ORDER BY score DESC, time LIMIT 1 OFFSET $3;"
 	var id int
 	err := Connection.QueryRow(query, quizID, filterParams.User, (filterParams.Page+1)*filterParams.Limit).Scan(&id)
