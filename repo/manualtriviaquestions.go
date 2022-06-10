@@ -11,6 +11,7 @@ import (
 type ManualTriviaQuestion struct {
 	ID          int          `json:"id"`
 	TypeID      int          `json:"typeId"`
+	CategoryID  int          `json:"categoryId"`
 	Question    string       `json:"question"`
 	Map         string       `json:"map"`
 	Highlighted string       `json:"highlighted"`
@@ -26,6 +27,7 @@ type ManualTriviaQuestionDto struct {
 	ID          int                  `json:"id"`
 	TypeID      int                  `json:"typeId"`
 	Type        string               `json:"type"`
+	Category    string               `json:"category"`
 	Question    string               `json:"question"`
 	Map         string               `json:"map"`
 	Highlighted string               `json:"highlighted"`
@@ -39,10 +41,11 @@ type ManualTriviaQuestionDto struct {
 }
 
 type GetManualTriviaQuestionEntriesFilterParams struct {
-	Page     int    `json:"page"`
-	Limit    int    `json:"limit"`
-	TypeID   int    `json:"typeId"`
-	Question string `json:"question"`
+	Page       int    `json:"page"`
+	Limit      int    `json:"limit"`
+	TypeID     int    `json:"typeId"`
+	CategoryID int    `json:"categoryId"`
+	Question   string `json:"question"`
 }
 
 type CreateManualTriviaQuestionDto struct {
@@ -70,7 +73,7 @@ type UpdateManualTriviaQuestionDto struct {
 }
 
 func GetAllManualTriviaQuestions(filterParams GetManualTriviaQuestionEntriesFilterParams) ([]ManualTriviaQuestionDto, error) {
-	statement := "SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.lastused, q.quizDate, q.explainer, q.lastupdated FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid WHERE q.question ILIKE '%' || $1 || '%' " + getTypeFilter(filterParams.TypeID) + " ORDER BY q.lastupdated DESC LIMIT $2 OFFSET $3;"
+	statement := "SELECT q.id, q.typeid, t.name, c.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.lastused, q.quizDate, q.explainer, q.lastupdated FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid JOIN triviaquestioncategory c ON c.id = q.categoryid WHERE q.question ILIKE '%' || $1 || '%' " + getTypeFilter(filterParams.TypeID) + getCategoryFilter(filterParams.CategoryID) + " ORDER BY q.lastupdated DESC LIMIT $2 OFFSET $3;"
 	rows, err := Connection.Query(statement, filterParams.Question, filterParams.Limit, filterParams.Page*filterParams.Limit)
 
 	if err != nil {
@@ -81,7 +84,7 @@ func GetAllManualTriviaQuestions(filterParams GetManualTriviaQuestionEntriesFilt
 	var questions = []ManualTriviaQuestionDto{}
 	for rows.Next() {
 		var question ManualTriviaQuestionDto
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.Category, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated); err != nil {
 			return nil, err
 		}
 
@@ -103,8 +106,15 @@ func getTypeFilter(typeID int) string {
 	return fmt.Sprintf(" AND t.id = %d ", typeID)
 }
 
+func getCategoryFilter(categoryID int) string {
+	if categoryID == 0 {
+		return ""
+	}
+	return fmt.Sprintf(" AND c.id = %d ", categoryID)
+}
+
 var GetFirstManualTriviaQuestionID = func(filterParams GetManualTriviaQuestionEntriesFilterParams) (int, error) {
-	statement := "SELECT q.id FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid WHERE q.question ILIKE '%' || $1 || '%' " + getTypeFilter(filterParams.TypeID) + " ORDER BY q.lastupdated DESC LIMIT 1 OFFSET $2;"
+	statement := "SELECT q.id FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid JOIN triviaquestioncategory c ON c.id = q.categoryid WHERE q.question ILIKE '%' || $1 || '%' " + getTypeFilter(filterParams.TypeID) + getCategoryFilter(filterParams.CategoryID) + " ORDER BY q.lastupdated DESC LIMIT 1 OFFSET $2;"
 	var id int
 	err := Connection.QueryRow(statement, filterParams.Question, (filterParams.Page+1)*filterParams.Limit).Scan(&id)
 	return id, err
