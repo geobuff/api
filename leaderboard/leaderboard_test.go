@@ -26,8 +26,8 @@ func TestGetEntries(t *testing.T) {
 
 	tt := []struct {
 		name                  string
-		getLeaderboardEntries func(quizID int, filterParams repo.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error)
-		getLeaderboardEntryID func(quizID int, filterParams repo.GetEntriesFilterParams) (int, error)
+		getLeaderboardEntries func(quizID int, filterParams repo.GetLeaderboardEntriesFilterParams) ([]repo.LeaderboardEntryDto, error)
+		getLeaderboardEntryID func(quizID int, filterParams repo.GetLeaderboardEntriesFilterParams) (int, error)
 		quizID                string
 		body                  string
 		status                int
@@ -53,7 +53,7 @@ func TestGetEntries(t *testing.T) {
 		},
 		{
 			name: "error on GetLeaderboardEntries",
-			getLeaderboardEntries: func(quizID int, filterParams repo.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
+			getLeaderboardEntries: func(quizID int, filterParams repo.GetLeaderboardEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
 				return nil, errors.New("test")
 			},
 			getLeaderboardEntryID: repo.GetLeaderboardEntryID,
@@ -64,10 +64,10 @@ func TestGetEntries(t *testing.T) {
 		},
 		{
 			name: "error on GetLeaderboardEntryID",
-			getLeaderboardEntries: func(quizID int, filterParams repo.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
+			getLeaderboardEntries: func(quizID int, filterParams repo.GetLeaderboardEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
 				return []repo.LeaderboardEntryDto{}, nil
 			},
-			getLeaderboardEntryID: func(quizID int, filterParams repo.GetEntriesFilterParams) (int, error) {
+			getLeaderboardEntryID: func(quizID int, filterParams repo.GetLeaderboardEntriesFilterParams) (int, error) {
 				return 0, errors.New("test")
 			},
 			quizID:  "1",
@@ -77,21 +77,23 @@ func TestGetEntries(t *testing.T) {
 		},
 		{
 			name: "happy path, has more is false",
-			getLeaderboardEntries: func(quizID int, filterParams repo.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
+			getLeaderboardEntries: func(quizID int, filterParams repo.GetLeaderboardEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
 				return []repo.LeaderboardEntryDto{}, nil
 			},
-			getLeaderboardEntryID: func(quizID int, filterParams repo.GetEntriesFilterParams) (int, error) { return 0, sql.ErrNoRows },
-			quizID:                "1",
-			body:                  `{"page": 0, "limit": 10, "range": "", "user": ""}`,
-			status:                http.StatusOK,
-			hasMore:               false,
+			getLeaderboardEntryID: func(quizID int, filterParams repo.GetLeaderboardEntriesFilterParams) (int, error) {
+				return 0, sql.ErrNoRows
+			},
+			quizID:  "1",
+			body:    `{"page": 0, "limit": 10, "range": "", "user": ""}`,
+			status:  http.StatusOK,
+			hasMore: false,
 		},
 		{
 			name: "happy path, has more is true",
-			getLeaderboardEntries: func(quizID int, filterParams repo.GetEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
+			getLeaderboardEntries: func(quizID int, filterParams repo.GetLeaderboardEntriesFilterParams) ([]repo.LeaderboardEntryDto, error) {
 				return []repo.LeaderboardEntryDto{}, nil
 			},
-			getLeaderboardEntryID: func(quizID int, filterParams repo.GetEntriesFilterParams) (int, error) { return 1, nil },
+			getLeaderboardEntryID: func(quizID int, filterParams repo.GetLeaderboardEntriesFilterParams) (int, error) { return 1, nil },
 			quizID:                "1",
 			body:                  `{"page": 0, "limit": 10, "range": "", "user": ""}`,
 			status:                http.StatusOK,
