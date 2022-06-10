@@ -38,6 +38,13 @@ type ManualTriviaQuestionDto struct {
 	Answers     []ManualTriviaAnswer `json:"answers"`
 }
 
+type GetManualTriviaQuestionEntriesFilterParams struct {
+	Page     int    `json:"page"`
+	Limit    int    `json:"limit"`
+	TypeID   int    `json:"typeId"`
+	Question string `json:"question"`
+}
+
 type CreateManualTriviaQuestionDto struct {
 	TypeID      int                           `json:"typeId"`
 	Question    string                        `json:"question"`
@@ -62,8 +69,10 @@ type UpdateManualTriviaQuestionDto struct {
 	Answers     []UpdateManualTriviaAnswerDto `json:"answers"`
 }
 
-func GetAllManualTriviaQuestions(limit, offset int) ([]ManualTriviaQuestionDto, error) {
-	rows, err := Connection.Query("SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.lastused, q.quizDate, q.explainer, q.lastupdated FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid ORDER BY q.lastupdated DESC LIMIT $1 OFFSET $2;", limit, offset)
+func GetAllManualTriviaQuestions(filterParams GetManualTriviaQuestionEntriesFilterParams) ([]ManualTriviaQuestionDto, error) {
+	statement := "SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.lastused, q.quizDate, q.explainer, q.lastupdated FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid WHERE q.question ILIKE '%' || $1 || '%' " + getTypeFilter(filterParams.TypeID) + " ORDER BY q.lastupdated DESC LIMIT $2 OFFSET $3;"
+	rows, err := Connection.Query(statement, filterParams.Question, filterParams.Limit, filterParams.Page*filterParams.Limit)
+
 	if err != nil {
 		return nil, err
 	}
@@ -87,10 +96,17 @@ func GetAllManualTriviaQuestions(limit, offset int) ([]ManualTriviaQuestionDto, 
 	return questions, rows.Err()
 }
 
-var GetFirstManualTriviaQuestionID = func(offset int) (int, error) {
-	statement := "SELECT id FROM manualtriviaquestions LIMIT 1 OFFSET $1;"
+func getTypeFilter(typeID int) string {
+	if typeID == 0 {
+		return ""
+	}
+	return fmt.Sprintf(" AND t.id = %d ", typeID)
+}
+
+var GetFirstManualTriviaQuestionID = func(filterParams GetManualTriviaQuestionEntriesFilterParams) (int, error) {
+	statement := "SELECT q.id FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid WHERE q.question ILIKE '%' || $1 || '%' " + getTypeFilter(filterParams.TypeID) + " ORDER BY q.lastupdated DESC LIMIT 1 OFFSET $2;"
 	var id int
-	err := Connection.QueryRow(statement, offset).Scan(&id)
+	err := Connection.QueryRow(statement, filterParams.Question, (filterParams.Page+1)*filterParams.Limit).Scan(&id)
 	return id, err
 }
 

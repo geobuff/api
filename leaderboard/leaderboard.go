@@ -32,7 +32,7 @@ func GetEntries(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var filterParams repo.GetEntriesFilterParams
+	var filterParams repo.GetLeaderboardEntriesFilterParams
 	err = json.Unmarshal(requestBody, &filterParams)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
