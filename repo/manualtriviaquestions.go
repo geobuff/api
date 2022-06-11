@@ -11,6 +11,7 @@ import (
 type ManualTriviaQuestion struct {
 	ID          int          `json:"id"`
 	TypeID      int          `json:"typeId"`
+	CategoryID  int          `json:"categoryId"`
 	Question    string       `json:"question"`
 	Map         string       `json:"map"`
 	Highlighted string       `json:"highlighted"`
@@ -26,6 +27,8 @@ type ManualTriviaQuestionDto struct {
 	ID          int                  `json:"id"`
 	TypeID      int                  `json:"typeId"`
 	Type        string               `json:"type"`
+	CategoryId  int                  `json:"categoryId"`
+	Category    string               `json:"category"`
 	Question    string               `json:"question"`
 	Map         string               `json:"map"`
 	Highlighted string               `json:"highlighted"`
@@ -39,14 +42,16 @@ type ManualTriviaQuestionDto struct {
 }
 
 type GetManualTriviaQuestionEntriesFilterParams struct {
-	Page     int    `json:"page"`
-	Limit    int    `json:"limit"`
-	TypeID   int    `json:"typeId"`
-	Question string `json:"question"`
+	Page       int    `json:"page"`
+	Limit      int    `json:"limit"`
+	TypeID     int    `json:"typeId"`
+	CategoryID int    `json:"categoryId"`
+	Question   string `json:"question"`
 }
 
 type CreateManualTriviaQuestionDto struct {
 	TypeID      int                           `json:"typeId"`
+	CategoryID  int                           `json:"categoryId"`
 	Question    string                        `json:"question"`
 	Map         string                        `json:"map"`
 	Highlighted string                        `json:"highlighted"`
@@ -59,6 +64,7 @@ type CreateManualTriviaQuestionDto struct {
 
 type UpdateManualTriviaQuestionDto struct {
 	TypeID      int                           `json:"typeId"`
+	CategoryID  int                           `json:"categoryId"`
 	Question    string                        `json:"question"`
 	Map         string                        `json:"map"`
 	Highlighted string                        `json:"highlighted"`
@@ -70,7 +76,7 @@ type UpdateManualTriviaQuestionDto struct {
 }
 
 func GetAllManualTriviaQuestions(filterParams GetManualTriviaQuestionEntriesFilterParams) ([]ManualTriviaQuestionDto, error) {
-	statement := "SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.lastused, q.quizDate, q.explainer, q.lastupdated FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid WHERE q.question ILIKE '%' || $1 || '%' " + getTypeFilter(filterParams.TypeID) + " ORDER BY q.lastupdated DESC LIMIT $2 OFFSET $3;"
+	statement := "SELECT q.id, q.typeid, t.name, c.id, c.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.lastused, q.quizDate, q.explainer, q.lastupdated FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid JOIN triviaquestioncategory c ON c.id = q.categoryid WHERE q.question ILIKE '%' || $1 || '%' " + getTypeFilter(filterParams.TypeID) + getCategoryFilter(filterParams.CategoryID) + " ORDER BY q.lastupdated DESC LIMIT $2 OFFSET $3;"
 	rows, err := Connection.Query(statement, filterParams.Question, filterParams.Limit, filterParams.Page*filterParams.Limit)
 
 	if err != nil {
@@ -81,7 +87,7 @@ func GetAllManualTriviaQuestions(filterParams GetManualTriviaQuestionEntriesFilt
 	var questions = []ManualTriviaQuestionDto{}
 	for rows.Next() {
 		var question ManualTriviaQuestionDto
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.CategoryId, &question.Category, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated); err != nil {
 			return nil, err
 		}
 
@@ -103,17 +109,24 @@ func getTypeFilter(typeID int) string {
 	return fmt.Sprintf(" AND t.id = %d ", typeID)
 }
 
+func getCategoryFilter(categoryID int) string {
+	if categoryID == 0 {
+		return ""
+	}
+	return fmt.Sprintf(" AND c.id = %d ", categoryID)
+}
+
 var GetFirstManualTriviaQuestionID = func(filterParams GetManualTriviaQuestionEntriesFilterParams) (int, error) {
-	statement := "SELECT q.id FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid WHERE q.question ILIKE '%' || $1 || '%' " + getTypeFilter(filterParams.TypeID) + " ORDER BY q.lastupdated DESC LIMIT 1 OFFSET $2;"
+	statement := "SELECT q.id FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid JOIN triviaquestioncategory c ON c.id = q.categoryid WHERE q.question ILIKE '%' || $1 || '%' " + getTypeFilter(filterParams.TypeID) + getCategoryFilter(filterParams.CategoryID) + " ORDER BY q.lastupdated DESC LIMIT 1 OFFSET $2;"
 	var id int
 	err := Connection.QueryRow(statement, filterParams.Question, (filterParams.Page+1)*filterParams.Limit).Scan(&id)
 	return id, err
 }
 
 func CreateManualTriviaQuestion(question CreateManualTriviaQuestionDto) error {
-	statement := "INSERT INTO manualtriviaquestions (typeid, question, map, highlighted, flagcode, imageurl, quizDate, explainer, lastupdated) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;"
+	statement := "INSERT INTO manualtriviaquestions (typeid, categoryid, question, map, highlighted, flagcode, imageurl, quizDate, explainer, lastupdated) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, question.TypeID, strings.TrimSpace(question.Question), question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.QuizDate, question.Explainer, time.Now()).Scan(&id)
+	err := Connection.QueryRow(statement, question.TypeID, question.CategoryID, strings.TrimSpace(question.Question), question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.QuizDate, question.Explainer, time.Now()).Scan(&id)
 	if err != nil {
 		return err
 	}
@@ -149,9 +162,9 @@ func ValidateCreateQuestion(question CreateManualTriviaQuestionDto) error {
 }
 
 func UpdateManualTriviaQuestion(questionID int, question UpdateManualTriviaQuestionDto) error {
-	statement := "UPDATE manualtriviaquestions SET typeid = $2, question = $3, map = $4, highlighted = $5, flagcode = $6, imageurl = $7, quizDate = $8, explainer = $9, lastupdated = $10 WHERE id = $1 RETURNING id;"
+	statement := "UPDATE manualtriviaquestions SET typeid = $2, categoryid = $3, question = $4, map = $5, highlighted = $6, flagcode = $7, imageurl = $8, quizDate = $9, explainer = $10, lastupdated = $11 WHERE id = $1 RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, questionID, question.TypeID, strings.TrimSpace(question.Question), question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.QuizDate, question.Explainer, time.Now()).Scan(&id)
+	err := Connection.QueryRow(statement, questionID, question.TypeID, question.CategoryID, strings.TrimSpace(question.Question), question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.QuizDate, question.Explainer, time.Now()).Scan(&id)
 	if err != nil {
 		return err
 	}
@@ -183,7 +196,7 @@ func DeleteManualTriviaQuestion(questionID int) error {
 }
 
 func GetManualTriviaQuestions(typeID int, lastUsedMax string) ([]ManualTriviaQuestion, error) {
-	statement := "SELECT * FROM manualtriviaquestions WHERE typeid = $1 AND quizdate IS null AND (lastUsed IS null OR lastUsed < $2);"
+	statement := "SELECT DISTINCT ON (categoryid) * FROM manualtriviaquestions WHERE typeid = $1 AND quizdate IS null AND (lastUsed IS null OR lastUsed < $2);"
 	rows, err := Connection.Query(statement, typeID, lastUsedMax)
 	if err != nil {
 		return nil, err
@@ -193,7 +206,7 @@ func GetManualTriviaQuestions(typeID int, lastUsedMax string) ([]ManualTriviaQue
 	var questions = []ManualTriviaQuestion{}
 	for rows.Next() {
 		var question ManualTriviaQuestion
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.CategoryID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated); err != nil {
 			return nil, err
 		}
 		questions = append(questions, question)
@@ -219,7 +232,7 @@ func GetTodaysManualTriviaQuestions() ([]ManualTriviaQuestion, error) {
 	var questions = []ManualTriviaQuestion{}
 	for rows.Next() {
 		var question ManualTriviaQuestion
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.CategoryID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated); err != nil {
 			return nil, err
 		}
 		questions = append(questions, question)

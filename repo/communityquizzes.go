@@ -44,8 +44,9 @@ type GetCommunityQuizDto struct {
 }
 
 type GetCommunityQuizzesFilter struct {
-	Page  int `json:"page"`
-	Limit int `json:"limit"`
+	Page   int    `json:"page"`
+	Limit  int    `json:"limit"`
+	Filter string `json:"filter"`
 }
 
 type CreateCommunityQuizDto struct {
@@ -67,8 +68,8 @@ type UpdateCommunityQuizDto struct {
 }
 
 func GetCommunityQuizzes(filter GetCommunityQuizzesFilter) ([]CommunityQuizDto, error) {
-	statement := "SELECT q.id, q.userid, s.name, u.username, q.name, q.description, q.maxscore, q.added, q.verified, q.ispublic, p.plays FROM communityquizzes q JOIN users u ON u.id = q.userid LEFT JOIN communityquizplays p ON p.communityQuizId = q.id JOIN communityQuizStatus s ON s.id = q.statusid WHERE q.statusid != $1 AND q.ispublic LIMIT $2 OFFSET $3;"
-	rows, err := Connection.Query(statement, COMMUNITY_QUIZ_STATUS_PENDING, filter.Limit, filter.Page*filter.Limit)
+	statement := "SELECT q.id, q.userid, s.name, u.username, q.name, q.description, q.maxscore, q.added, q.verified, q.ispublic, p.plays FROM communityquizzes q JOIN users u ON u.id = q.userid LEFT JOIN communityquizplays p ON p.communityQuizId = q.id JOIN communityQuizStatus s ON s.id = q.statusid WHERE (q.name ILIKE '%' || $1 || '%' OR q.description ILIKE '%' || $1 || '%') AND q.statusid != $2 AND q.ispublic LIMIT $3 OFFSET $4;"
+	rows, err := Connection.Query(statement, filter.Filter, COMMUNITY_QUIZ_STATUS_PENDING, filter.Limit, filter.Page*filter.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -85,10 +86,10 @@ func GetCommunityQuizzes(filter GetCommunityQuizzesFilter) ([]CommunityQuizDto, 
 	return quizzes, rows.Err()
 }
 
-func GetFirstCommunityQuizID(offset int) (int, error) {
-	statement := "SELECT q.id FROM communityquizzes q JOIN communityQuizStatus s ON s.id = q.statusid WHERE q.statusid != $1 AND q.ispublic LIMIT 1 OFFSET $2;"
+func GetFirstCommunityQuizID(filter GetCommunityQuizzesFilter) (int, error) {
+	statement := "SELECT q.id FROM communityquizzes q JOIN communityQuizStatus s ON s.id = q.statusid WHERE (q.name ILIKE '%' || $1 || '%' OR q.description ILIKE '%' || $1 || '%') AND q.statusid != $2 AND q.ispublic LIMIT 1 OFFSET $3;"
 	var id int
-	err := Connection.QueryRow(statement, COMMUNITY_QUIZ_STATUS_PENDING, offset).Scan(&id)
+	err := Connection.QueryRow(statement, filter.Filter, COMMUNITY_QUIZ_STATUS_PENDING, (filter.Page+1)*filter.Limit).Scan(&id)
 	return id, err
 }
 
