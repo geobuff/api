@@ -26,8 +26,9 @@ type TriviaDto struct {
 }
 
 type GetTriviaFilter struct {
-	Page  int `json:"page"`
-	Limit int `json:"limit"`
+	Page   int    `json:"page"`
+	Limit  int    `json:"limit"`
+	Filter string `json:"filter"`
 }
 
 func CreateTrivia() error {
@@ -437,7 +438,8 @@ func createQuestionsAndAnswers(questions []ManualTriviaQuestion, triviaID, quant
 }
 
 func GetAllTrivia(filter GetTriviaFilter) ([]Trivia, error) {
-	rows, err := Connection.Query("SELECT * FROM trivia ORDER BY date DESC LIMIT $1 OFFSET $2;", filter.Limit, filter.Page*filter.Limit)
+	statement := "SELECT * FROM trivia WHERE name ILIKE '%' || $1 || '%' ORDER BY date DESC LIMIT $2 OFFSET $3;"
+	rows, err := Connection.Query(statement, filter.Filter, filter.Limit, filter.Page*filter.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -454,10 +456,10 @@ func GetAllTrivia(filter GetTriviaFilter) ([]Trivia, error) {
 	return trivia, rows.Err()
 }
 
-func GetFirstTriviaID(offset int) (int, error) {
-	statement := "SELECT id FROM trivia LIMIT 1 OFFSET $1;"
+func GetFirstTriviaID(filter GetTriviaFilter) (int, error) {
+	statement := "SELECT id FROM trivia WHERE name ILIKE '%' || $1 || '%' ORDER BY date DESC LIMIT 1 OFFSET $2;"
 	var id int
-	err := Connection.QueryRow(statement, offset).Scan(&id)
+	err := Connection.QueryRow(statement, filter.Filter, (filter.Page+1)*filter.Page).Scan(&id)
 	return id, err
 }
 

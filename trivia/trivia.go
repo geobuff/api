@@ -91,7 +91,7 @@ func GetAllTrivia(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	switch _, err := repo.GetFirstTriviaID((filter.Page + 1) * filter.Limit); err {
+	switch _, err := repo.GetFirstTriviaID(filter); err {
 	case sql.ErrNoRows:
 		entriesDto := GetTriviaDto{trivia, false}
 		writer.Header().Set("Content-Type", "application/json")

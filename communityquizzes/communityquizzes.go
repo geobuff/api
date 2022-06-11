@@ -38,7 +38,7 @@ func GetCommunityQuizzes(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	switch _, err := repo.GetFirstCommunityQuizID((filter.Page + 1) * filter.Limit); err {
+	switch _, err := repo.GetFirstCommunityQuizID(filter); err {
 	case sql.ErrNoRows:
 		entriesDto := CommunityQuizPageDto{quizzes, false}
 		writer.Header().Set("Content-Type", "application/json")
