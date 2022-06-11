@@ -196,7 +196,7 @@ func DeleteManualTriviaQuestion(questionID int) error {
 }
 
 func GetManualTriviaQuestions(typeID int, lastUsedMax string) ([]ManualTriviaQuestion, error) {
-	statement := "SELECT * FROM manualtriviaquestions WHERE typeid = $1 AND quizdate IS null AND (lastUsed IS null OR lastUsed < $2);"
+	statement := "SELECT DISTINCT ON (categoryid) * FROM manualtriviaquestions WHERE typeid = $1 AND quizdate IS null AND (lastUsed IS null OR lastUsed < $2);"
 	rows, err := Connection.Query(statement, typeID, lastUsedMax)
 	if err != nil {
 		return nil, err
@@ -206,7 +206,7 @@ func GetManualTriviaQuestions(typeID int, lastUsedMax string) ([]ManualTriviaQue
 	var questions = []ManualTriviaQuestion{}
 	for rows.Next() {
 		var question ManualTriviaQuestion
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.CategoryID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated); err != nil {
 			return nil, err
 		}
 		questions = append(questions, question)
