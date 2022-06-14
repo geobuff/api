@@ -108,13 +108,30 @@ func generateQuestions(triviaId, max int) (int, error) {
 
 	count = count + todaysQuestionCount
 	if count < max {
-		textQuestionCount, err := setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_TEXT, (max-count)/2)
+		categories, err := GetTriviaQuestionCategories()
+		if err != nil {
+			return count, err
+		}
+
+		remainder := max - count
+		var allowedCategories []int
+		for i := 0; i < remainder; i++ {
+			index := rand.Intn(len(categories))
+			allowedCategories = append(allowedCategories, categories[index].ID)
+			categories = append(categories[:index], categories[index+1:]...)
+		}
+
+		maxTextCount := remainder / 2
+		textCategories := allowedCategories[:maxTextCount]
+		imageCategories := allowedCategories[maxTextCount:]
+
+		textQuestionCount, err := setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_TEXT, maxTextCount, textCategories)
 		if err != nil && err != sql.ErrNoRows {
 			return count, err
 		}
 		count = count + textQuestionCount
 
-		imageQuestionCount, err := setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_IMAGE, max-count)
+		imageQuestionCount, err := setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_IMAGE, max-count, imageCategories)
 		if err != nil && err != sql.ErrNoRows {
 			return count, err
 		}
@@ -372,9 +389,9 @@ func whatFlag(triviaId int) error {
 	return nil
 }
 
-func setRandomManualTriviaQuestions(triviaID, typeID, quantity int) (int, error) {
+func setRandomManualTriviaQuestions(triviaID, typeID, quantity int, allowedCategories []int) (int, error) {
 	lastUsedMax := time.Now().AddDate(0, 0, -7)
-	questions, err := GetManualTriviaQuestions(typeID, lastUsedMax.Format("2006-01-02"))
+	questions, err := GetManualTriviaQuestions(typeID, lastUsedMax.Format("2006-01-02"), allowedCategories)
 	if err != nil {
 		return 0, err
 	}

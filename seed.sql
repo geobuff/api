@@ -149,6 +149,7 @@ INSERT INTO communityQuizStatus (name) values
 INSERT INTO triviaQuestionCategory (name) values
 ('Landmarks'),
 ('Currency'),
+('Mountains'),
 ('Rivers'),
 ('Borders'),
 ('Community Quiz'),
