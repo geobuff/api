@@ -199,7 +199,7 @@ func DeleteManualTriviaQuestion(questionID int) error {
 }
 
 func GetManualTriviaQuestions(typeID int, lastUsedMax string, allowedCategories []int) ([]ManualTriviaQuestion, error) {
-	statement := "SELECT * FROM manualtriviaquestions WHERE typeid = $1 AND quizdate IS null AND (lastUsed IS null OR lastUsed < $2) AND categoryid = ANY($3);"
+	statement := "SELECT DISTINCT ON (categoryid) * FROM manualtriviaquestions WHERE typeid = $1 AND quizdate IS null AND (lastUsed IS null OR lastUsed < $2) AND categoryid = ANY($3);"
 	rows, err := Connection.Query(statement, typeID, lastUsedMax, pq.Array(convertCategories(allowedCategories)))
 	if err != nil {
 		return nil, err
