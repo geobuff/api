@@ -487,7 +487,7 @@ func GetTrivia(date string) (*TriviaDto, error) {
 		return nil, err
 	}
 
-	rows, err := Connection.Query("SELECT q.id, t.name, q.question, q.map, q.highlighted, q.flagCode, q.imageUrl FROM triviaQuestions q JOIN triviaQuestionType t ON t.id = q.typeId WHERE q.triviaId = $1;", result.ID)
+	rows, err := Connection.Query("SELECT q.id, t.name, q.question, q.map, q.highlighted, q.flagCode, q.imageUrl, q.explainer FROM triviaQuestions q JOIN triviaQuestionType t ON t.id = q.typeId WHERE q.triviaId = $1;", result.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -496,7 +496,7 @@ func GetTrivia(date string) (*TriviaDto, error) {
 	var questions = []QuestionDto{}
 	for rows.Next() {
 		var question QuestionDto
-		if err = rows.Scan(&question.ID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL); err != nil {
+		if err = rows.Scan(&question.ID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.Explainer); err != nil {
 			return nil, err
 		}
 
