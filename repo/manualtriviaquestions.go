@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 type ManualTriviaQuestion struct {
@@ -195,9 +198,9 @@ func DeleteManualTriviaQuestion(questionID int) error {
 	return Connection.QueryRow("DELETE FROM manualtriviaquestions WHERE id = $1 RETURNING id;", questionID).Scan(&id)
 }
 
-func GetManualTriviaQuestions(typeID int, lastUsedMax string) ([]ManualTriviaQuestion, error) {
-	statement := "SELECT DISTINCT ON (categoryid) * FROM manualtriviaquestions WHERE typeid = $1 AND quizdate IS null AND (lastUsed IS null OR lastUsed < $2);"
-	rows, err := Connection.Query(statement, typeID, lastUsedMax)
+func GetManualTriviaQuestions(typeID int, lastUsedMax string, allowedCategories []int) ([]ManualTriviaQuestion, error) {
+	statement := "SELECT * FROM manualtriviaquestions WHERE typeid = $1 AND quizdate IS null AND (lastUsed IS null OR lastUsed < $2) AND categoryid = ANY($3);"
+	rows, err := Connection.Query(statement, typeID, lastUsedMax, pq.Array(convertCategories(allowedCategories)))
 	if err != nil {
 		return nil, err
 	}
@@ -212,6 +215,14 @@ func GetManualTriviaQuestions(typeID int, lastUsedMax string) ([]ManualTriviaQue
 		questions = append(questions, question)
 	}
 	return questions, rows.Err()
+}
+
+func convertCategories(categories []int) []string {
+	var result []string
+	for _, val := range categories {
+		result = append(result, strconv.Itoa(val))
+	}
+	return result
 }
 
 func UpdateManualTriviaQuestionLastUsed(questionID int) error {
