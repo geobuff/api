@@ -122,8 +122,8 @@ func generateQuestions(triviaId, max int) (int, error) {
 		}
 
 		maxTextCount := remainder / 2
-		textCategories := allowedCategories[:maxTextCount]
-		imageCategories := allowedCategories[maxTextCount:]
+		textCategories := allowedCategories[:maxTextCount-1]
+		imageCategories := allowedCategories[maxTextCount-1:]
 
 		textQuestionCount, err := setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_TEXT, maxTextCount, textCategories)
 		if err != nil && err != sql.ErrNoRows {
