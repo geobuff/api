@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/errorreporting v0.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/didip/tollbooth v4.0.2+incompatible
-	github.com/geobuff/mapping v0.0.0-20220616205427-5272e3bcd208
+	github.com/geobuff/mapping v0.0.0-20220617033947-ce7a9e26b44f
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/google/uuid v1.3.0
