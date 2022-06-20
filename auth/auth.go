@@ -154,26 +154,10 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 		CountryCode:  registerDto.CountryCode,
 	}
 
-	id, err := repo.InsertUser(newUser)
-	if err != nil {
+	if err := repo.InsertUser(newUser); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
-
-	user, err := repo.GetAuthUser(id)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
-	token, err := buildToken(user)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(token)
 }
 
 func EmailExists(writer http.ResponseWriter, request *http.Request) {
@@ -386,7 +370,7 @@ var buildToken = func(user repo.AuthUserDto) (string, error) {
 		Joined:                  user.Joined,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
-			ExpiresAt: time.Now().AddDate(0, 0, 30).Unix(),
+			ExpiresAt: time.Now().AddDate(0, 0, 7).Unix(),
 			Issuer:    os.Getenv("AUTH_ISSUER"),
 		},
 	}

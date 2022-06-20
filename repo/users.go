@@ -123,11 +123,10 @@ var GetAuthUserUsingEmail = func(email string) (AuthUserDto, error) {
 	return user, err
 }
 
-var InsertUser = func(user User) (int, error) {
+var InsertUser = func(user User) error {
 	statement := "INSERT INTO users (avatarid, username, email, passwordHash, countrycode, xp, isPremium, isAdmin, joined) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, user.AvatarId, user.Username, user.Email, user.PasswordHash, user.CountryCode, 0, false, false, time.Now()).Scan(&id)
-	return id, err
+	return Connection.QueryRow(statement, user.AvatarId, user.Username, user.Email, user.PasswordHash, user.CountryCode, 0, false, false, time.Now()).Scan(&id)
 }
 
 var UpdateUser = func(userID int, user UpdateUserDto) error {
