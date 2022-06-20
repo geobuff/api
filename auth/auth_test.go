@@ -134,16 +134,12 @@ func TestRegister(t *testing.T) {
 	savedEmailExists := repo.EmailExists
 	savedHashPassword := hashPassword
 	savedInsertUser := repo.InsertUser
-	savedGetUser := repo.GetAuthUser
-	savedBuildToken := buildToken
 
 	defer func() {
 		repo.UsernameExists = savedUsernameExists
 		repo.EmailExists = savedEmailExists
 		hashPassword = savedHashPassword
 		repo.InsertUser = savedInsertUser
-		repo.GetAuthUser = savedGetUser
-		buildToken = savedBuildToken
 	}()
 
 	validation.Init()
@@ -153,9 +149,7 @@ func TestRegister(t *testing.T) {
 		usernameExists func(username string) (bool, error)
 		emailExists    func(email string) (bool, error)
 		hashPassword   func(password []byte) (string, error)
-		insertUser     func(user repo.User) (int, error)
-		getUser        func(id int) (repo.AuthUserDto, error)
-		buildToken     func(user repo.AuthUserDto) (string, error)
+		insertUser     func(user repo.User) error
 		body           string
 		status         int
 	}{
@@ -165,8 +159,6 @@ func TestRegister(t *testing.T) {
 			emailExists:    repo.EmailExists,
 			hashPassword:   hashPassword,
 			insertUser:     repo.InsertUser,
-			getUser:        repo.GetAuthUser,
-			buildToken:     buildToken,
 			body:           "testing",
 			status:         http.StatusBadRequest,
 		},
@@ -176,8 +168,6 @@ func TestRegister(t *testing.T) {
 			emailExists:    repo.EmailExists,
 			hashPassword:   hashPassword,
 			insertUser:     repo.InsertUser,
-			getUser:        repo.GetAuthUser,
-			buildToken:     buildToken,
 			body:           `{"username": "test"}`,
 			status:         http.StatusBadRequest,
 		},
@@ -187,8 +177,6 @@ func TestRegister(t *testing.T) {
 			emailExists:    repo.EmailExists,
 			hashPassword:   hashPassword,
 			insertUser:     repo.InsertUser,
-			getUser:        repo.GetAuthUser,
-			buildToken:     buildToken,
 			body:           `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:         http.StatusInternalServerError,
 		},
@@ -198,8 +186,6 @@ func TestRegister(t *testing.T) {
 			emailExists:    repo.EmailExists,
 			hashPassword:   hashPassword,
 			insertUser:     repo.InsertUser,
-			getUser:        repo.GetAuthUser,
-			buildToken:     buildToken,
 			body:           `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:         http.StatusBadRequest,
 		},
@@ -209,8 +195,6 @@ func TestRegister(t *testing.T) {
 			emailExists:    func(email string) (bool, error) { return false, errors.New("test") },
 			hashPassword:   hashPassword,
 			insertUser:     repo.InsertUser,
-			getUser:        repo.GetAuthUser,
-			buildToken:     buildToken,
 			body:           `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:         http.StatusInternalServerError,
 		},
@@ -220,8 +204,6 @@ func TestRegister(t *testing.T) {
 			emailExists:    func(email string) (bool, error) { return true, nil },
 			hashPassword:   hashPassword,
 			insertUser:     repo.InsertUser,
-			getUser:        repo.GetAuthUser,
-			buildToken:     buildToken,
 			body:           `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:         http.StatusBadRequest,
 		},
@@ -231,8 +213,6 @@ func TestRegister(t *testing.T) {
 			emailExists:    func(email string) (bool, error) { return false, nil },
 			hashPassword:   func(password []byte) (string, error) { return "", errors.New("test") },
 			insertUser:     repo.InsertUser,
-			getUser:        repo.GetAuthUser,
-			buildToken:     buildToken,
 			body:           `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:         http.StatusInternalServerError,
 		},
@@ -243,44 +223,16 @@ func TestRegister(t *testing.T) {
 			hashPassword: func(password []byte) (string, error) {
 				return "$2a$04$EPhTOaXYzAqV366oEUzNQOCGnfUWwdnsxPMGmsATA4ikOxBi48buW", nil
 			},
-			insertUser: func(user repo.User) (int, error) { return 0, errors.New("test") },
-			getUser:    repo.GetAuthUser,
-			buildToken: buildToken,
+			insertUser: func(user repo.User) error { return errors.New("test") },
 			body:       `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:     http.StatusInternalServerError,
-		},
-		{
-			name:           "error on GetUser",
-			usernameExists: func(username string) (bool, error) { return false, nil },
-			emailExists:    func(email string) (bool, error) { return false, nil },
-			hashPassword: func(password []byte) (string, error) {
-				return "$2a$04$EPhTOaXYzAqV366oEUzNQOCGnfUWwdnsxPMGmsATA4ikOxBi48buW", nil
-			},
-			insertUser: func(user repo.User) (int, error) { return 1, nil },
-			getUser:    func(id int) (repo.AuthUserDto, error) { return repo.AuthUserDto{}, errors.New("test") },
-			buildToken: buildToken,
-			body:       `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
-			status:     http.StatusInternalServerError,
-		},
-		{
-			name:           "error on BuildToken",
-			usernameExists: func(username string) (bool, error) { return false, nil },
-			emailExists:    func(email string) (bool, error) { return false, nil },
-			hashPassword:   func(password []byte) (string, error) { return "test", nil },
-			insertUser:     func(user repo.User) (int, error) { return 1, nil },
-			getUser:        func(id int) (repo.AuthUserDto, error) { return repo.AuthUserDto{}, nil },
-			buildToken:     func(user repo.AuthUserDto) (string, error) { return "", errors.New("test") },
-			body:           `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
-			status:         http.StatusInternalServerError,
 		},
 		{
 			name:           "happy path",
 			usernameExists: func(username string) (bool, error) { return false, nil },
 			emailExists:    func(email string) (bool, error) { return false, nil },
 			hashPassword:   func(password []byte) (string, error) { return "test", nil },
-			insertUser:     func(user repo.User) (int, error) { return 1, nil },
-			getUser:        func(id int) (repo.AuthUserDto, error) { return repo.AuthUserDto{}, nil },
-			buildToken:     func(user repo.AuthUserDto) (string, error) { return "test", nil },
+			insertUser:     func(user repo.User) error { return nil },
 			body:           `{"avatarId": 1, "username": "test", "email": "scrub@gmail.com", "countryCode": "nz", "password": "Password1!"}`,
 			status:         http.StatusOK,
 		},
@@ -292,8 +244,6 @@ func TestRegister(t *testing.T) {
 			repo.EmailExists = tc.emailExists
 			hashPassword = tc.hashPassword
 			repo.InsertUser = tc.insertUser
-			repo.GetAuthUser = tc.getUser
-			buildToken = tc.buildToken
 
 			request, err := http.NewRequest("POST", "", bytes.NewBuffer([]byte(tc.body)))
 			if err != nil {
@@ -307,19 +257,6 @@ func TestRegister(t *testing.T) {
 
 			if result.StatusCode != tc.status {
 				t.Errorf("expected status %v; got %v", tc.status, result.StatusCode)
-			}
-
-			if tc.status == http.StatusOK {
-				body, err := ioutil.ReadAll(result.Body)
-				if err != nil {
-					t.Fatalf("could not read response: %v", err)
-				}
-
-				var parsed string
-				err = json.Unmarshal(body, &parsed)
-				if err != nil {
-					t.Errorf("could not unmarshal response body: %v", err)
-				}
 			}
 		})
 	}
