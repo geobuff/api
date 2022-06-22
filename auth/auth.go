@@ -158,10 +158,20 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 		CountryCode:  registerDto.CountryCode,
 	}
 
-	if err := repo.InsertUser(newUser); err != nil {
+	id, err := repo.InsertUser(newUser)
+	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
+
+	user, err := repo.GetUser(id)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(user)
 }
 
 func RefreshToken(writer http.ResponseWriter, request *http.Request) {

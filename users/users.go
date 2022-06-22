@@ -70,6 +70,18 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+func GetUserByEmail(writer http.ResponseWriter, request *http.Request) {
+	switch user, err := repo.GetUserByEmail(mux.Vars(request)["email"]); err {
+	case sql.ErrNoRows:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusNoContent)
+	case nil:
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(user)
+	default:
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+	}
+}
+
 func GetLastWeekTotalUsers(writer http.ResponseWriter, request *http.Request) {
 	if code, err := auth.IsAdmin(request); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
