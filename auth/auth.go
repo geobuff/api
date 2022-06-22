@@ -50,6 +50,10 @@ type RegisterDto struct {
 	Password    string `json:"password" validate:"required,password"`
 }
 
+type RefreshTokenDto struct {
+	Token string `json:"token"`
+}
+
 type PasswordResetDto struct {
 	Email string `json:"email"`
 }
@@ -158,6 +162,45 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
+}
+
+func RefreshToken(writer http.ResponseWriter, request *http.Request) {
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var refreshTokenDto RefreshTokenDto
+	err = json.Unmarshal(requestBody, &refreshTokenDto)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	claims, err := getClaims(refreshTokenDto.Token)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	user, err := repo.GetAuthUserUsingEmail(claims.Email)
+	if err == sql.ErrNoRows {
+		http.Error(writer, fmt.Sprintf("User with email %s does not exist.", claims.Email), http.StatusBadRequest)
+		return
+	} else if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	token, err := buildToken(user)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(token)
 }
 
 func EmailExists(writer http.ResponseWriter, request *http.Request) {
@@ -370,7 +413,7 @@ var buildToken = func(user repo.AuthUserDto) (string, error) {
 		Joined:                  user.Joined,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
-			ExpiresAt: time.Now().AddDate(0, 0, 7).Unix(),
+			ExpiresAt: time.Now().AddDate(0, 0, 1).Unix(),
 			Issuer:    os.Getenv("AUTH_ISSUER"),
 		},
 	}
