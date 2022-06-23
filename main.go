@@ -191,6 +191,7 @@ func router() http.Handler {
 	// Auth endpoints.
 	router.HandleFunc("/api/auth/login", auth.Login).Methods("POST")
 	router.HandleFunc("/api/auth/register", auth.Register).Methods("POST")
+	router.HandleFunc("/api/auth/refresh", auth.RefreshToken).Methods("POST")
 	router.HandleFunc("/api/auth/send-reset-token", auth.SendResetToken).Methods("POST")
 	router.HandleFunc("/api/auth/reset-token-valid/{userId}/{token}", auth.ResetTokenValid).Methods("GET")
 	router.HandleFunc("/api/auth", auth.UpdatePasswordUsingToken).Methods("PUT")
@@ -200,6 +201,7 @@ func router() http.Handler {
 	// User endpoints.
 	router.HandleFunc("/api/users", users.GetUsers).Methods("GET")
 	router.HandleFunc("/api/users/{id}", users.GetUser).Methods("GET")
+	router.HandleFunc("/api/users/email/{email}", users.GetUserByEmail).Methods("GET")
 	router.HandleFunc("/api/users/total/week", users.GetLastWeekTotalUsers).Methods("GET")
 	router.HandleFunc("/api/users/{id}", users.UpdateUser).Methods("PUT")
 	router.HandleFunc("/api/users/xp/{id}", users.UpdateUserXP).Methods("PUT")

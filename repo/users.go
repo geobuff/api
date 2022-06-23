@@ -34,6 +34,8 @@ type UserDto struct {
 	Email                   string    `json:"email"`
 	CountryCode             string    `json:"countryCode"`
 	Joined                  time.Time `json:"joined"`
+	IsAdmin                 bool      `json:"isAdmin"`
+	XP                      int       `json:"xp"`
 }
 
 type AuthUserDto struct {
@@ -78,7 +80,7 @@ type TotalUsersDto struct {
 }
 
 var GetUsers = func(limit int, offset int) ([]UserDto, error) {
-	rows, err := Connection.Query("SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.joined FROM users u JOIN avatars a on a.id = u.avatarid ORDER BY joined DESC LIMIT $1 OFFSET $2;", limit, offset)
+	rows, err := Connection.Query("SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.joined, u.isadmin, u.xp FROM users u JOIN avatars a on a.id = u.avatarid ORDER BY joined DESC LIMIT $1 OFFSET $2;", limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +89,7 @@ var GetUsers = func(limit int, offset int) ([]UserDto, error) {
 	var users = []UserDto{}
 	for rows.Next() {
 		var user UserDto
-		if err = rows.Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.Joined); err != nil {
+		if err = rows.Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.Joined, &user.IsAdmin, &user.XP); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -103,9 +105,16 @@ var GetFirstUserID = func(offset int) (int, error) {
 }
 
 var GetUser = func(id int) (UserDto, error) {
-	statement := "SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.joined FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.id = $1;"
+	statement := "SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.joined, u.isadmin, u.xp FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.id = $1;"
 	var user UserDto
-	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.Joined)
+	err := Connection.QueryRow(statement, id).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.Joined, &user.IsAdmin, &user.XP)
+	return user, err
+}
+
+var GetUserByEmail = func(email string) (UserDto, error) {
+	statement := "SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, u.joined, u.isadmin, u.xp FROM users u JOIN avatars a on a.id = u.avatarid WHERE u.email = $1;"
+	var user UserDto
+	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.Joined, &user.IsAdmin, &user.XP)
 	return user, err
 }
 
