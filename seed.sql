@@ -46,6 +46,9 @@ INSERT INTO quiztype (name) values
 INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxScore, time, mapSVG, imageUrl, plural, apiPath, route, hasLeaderboard, hasGrouping, hasFlags, enabled) values
 (1, 2, null, '', 'country', 'Countries of the World', 197, 900, 'WorldCountries', '/headers/world-map-header.svg', 'countries', 'world-countries', 'countries-of-the-world', TRUE, TRUE, TRUE, TRUE),
 (1, 2, null, '', 'capital', 'Capitals of the World', 197, 900, 'WorldCapitals', '/headers/world-map-header.svg', 'capitals', 'world-capitals', 'capitals-of-the-world', TRUE, TRUE, TRUE, TRUE),
+(1, 2, null, '', 'continent', 'Continents of the World', 7, 300, 'WorldContinents', '/headers/world-map-header.svg', 'continents', 'world-continents', 'continents-of-the-world', FALSE, FALSE, FALSE, TRUE),
+(1, 2, null, '', 'ocean', 'Oceans of the World', 5, 300, 'WorldOceans', '/headers/world-map-header.svg', 'oceans', 'world-oceans', 'oceans-of-the-world', FALSE, FALSE, FALSE, TRUE),
+(1, 2, null, '', 'mountain', 'Seven Summits', 7, 300, 'SevenSummits', '/headers/world-map-header.svg', 'mountains', 'seven-summits', 'seven-summits', FALSE, FALSE, TRUE, TRUE),
 (1, 3, 1, '', 'country', 'Countries of Africa', 54, 300, 'AfricaCountries', '/headers/africa-countries-header.svg', 'countries', 'africa-countries', 'countries-of-africa', TRUE, FALSE, TRUE, TRUE),
 (1, 4, 2, '', 'country', 'Countries of Asia', 50, 300, 'AsiaCountries', '/headers/asia-countries-header.svg', 'countries', 'asia-countries', 'countries-of-asia', TRUE, FALSE, TRUE, TRUE),
 (1, 5, 3, '', 'country', 'Countries of Europe', 51, 300, 'EuropeCountries', '/headers/europe-countries-header.svg', 'countries', 'europe-countries', 'countries-of-europe', TRUE, FALSE, TRUE, TRUE),
@@ -68,7 +71,6 @@ INSERT INTO quizzes (typeId, badgeId, continentId, country, singular, name, maxS
 (1, 3, 1, 'Nigeria', 'state', 'States of Nigeria', 37, 300, 'NigeriaStates', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1f3-1f1ec.svg', 'states', 'nigeria-states', 'states-of-nigeria', TRUE, FALSE, FALSE, TRUE),
 (1, 4, 2, 'Pakistan', 'administrative unit', 'Administrative Units of Pakistan', 8, 300, 'PakistanAdministrativeUnits', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1f5-1f1f0.svg', 'administrative units', 'pakistan-administrative-units', 'administrative-units-of-pakistan', TRUE, FALSE, FALSE, TRUE),
 (1, 4, 2, 'Russia', 'federal subject', 'Federal Subjects of Russia', 83, 600, 'RussiaFederalSubjects', 'https://upload.wikimedia.org/wikipedia/en/f/f3/Flag_of_Russia.svg', 'federal subjects', 'russia-federal-subjects', 'federal-subjects-of-russia', TRUE, FALSE, TRUE, TRUE),
-(1, 2, null, '', 'mountain', 'Seven Summits', 7, 300, 'SevenSummits', '/headers/world-map-header.svg', 'mountains', 'seven-summits', 'seven-summits', FALSE, FALSE, TRUE, TRUE),
 (1, 4, 2, 'South Korea', 'province', 'Provinces of South Korea', 17, 300, 'SouthKoreaProvinces', 'https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg', 'provinces', 'south-korea-provinces', 'provinces-of-south-korea', TRUE, FALSE, TRUE, TRUE),
 (1, 5, 3, 'Spain', 'province', 'Provinces of Spain', 52, 300, 'SpainProvinces', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1ea-1f1f8.svg', 'provinces', 'spain-provinces', 'provinces-of-spain', TRUE, FALSE, TRUE, TRUE),
 (1, 4, 2, 'Turkey', 'province', 'Provinces of Turkey', 81, 600, 'TurkeyProvinces', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1f9-1f1f7.svg', 'provinces', 'turkey-provinces', 'provinces-of-turkey', TRUE, FALSE, FALSE, TRUE),
