@@ -27,7 +27,6 @@ import (
 	"github.com/geobuff/api/manualtriviaquestions"
 	"github.com/geobuff/api/mappings"
 	"github.com/geobuff/api/merch"
-	"github.com/geobuff/api/newslettersubscribers"
 	"github.com/geobuff/api/orders"
 	"github.com/geobuff/api/quizplays"
 	"github.com/geobuff/api/quiztype"
@@ -40,7 +39,6 @@ import (
 	"github.com/geobuff/api/triviaplays"
 	"github.com/geobuff/api/triviaquestioncategory"
 	"github.com/geobuff/api/triviaquestiontype"
-	"github.com/geobuff/api/triviaremindersubscribers"
 	"github.com/geobuff/api/users"
 	"github.com/geobuff/api/validation"
 	"github.com/golang-migrate/migrate/v4"
@@ -247,14 +245,6 @@ func router() http.Handler {
 	// Discount endpoints.
 	router.HandleFunc("/api/discounts", discounts.GetDiscounts).Methods("GET")
 	router.HandleFunc("/api/discounts/{code}", discounts.GetDiscount).Methods("GET")
-
-	// Trivia Reminder Subscriber endpoints.
-	router.HandleFunc("/api/trivia-reminder-subscribers", triviaremindersubscribers.CreateTriviaReminderSubscriber).Methods("POST")
-	router.HandleFunc("/api/trivia-reminder-subscribers/{id}", triviaremindersubscribers.Unsubscribe).Methods("DELETE")
-
-	// Newletter Subscriber endpoints.
-	router.HandleFunc("/api/newsletter-subscribers", newslettersubscribers.CreateNewsletterSubscriber).Methods("POST")
-	router.HandleFunc("/api/newsletter-subscribers/{id}", newslettersubscribers.Unsubscribe).Methods("DELETE")
 
 	// Community Quiz endpoints.
 	router.HandleFunc("/api/community-quizzes/all", communityquizzes.GetCommunityQuizzes).Methods("POST")
