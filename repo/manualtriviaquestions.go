@@ -12,36 +12,40 @@ import (
 )
 
 type ManualTriviaQuestion struct {
-	ID          int          `json:"id"`
-	TypeID      int          `json:"typeId"`
-	CategoryID  int          `json:"categoryId"`
-	Question    string       `json:"question"`
-	Map         string       `json:"map"`
-	Highlighted string       `json:"highlighted"`
-	FlagCode    string       `json:"flagCode"`
-	ImageURL    string       `json:"imageUrl"`
-	Explainer   string       `json:"explainer"`
-	LastUsed    sql.NullTime `json:"lastUsed"`
-	QuizDate    sql.NullTime `json:"quizDate"`
-	LastUpdated time.Time    `json:"lastUpdated"`
+	ID                 int          `json:"id"`
+	TypeID             int          `json:"typeId"`
+	CategoryID         int          `json:"categoryId"`
+	Question           string       `json:"question"`
+	Map                string       `json:"map"`
+	Highlighted        string       `json:"highlighted"`
+	FlagCode           string       `json:"flagCode"`
+	ImageURL           string       `json:"imageUrl"`
+	ImageAttributeName string       `json:"imageAttributeName"`
+	ImageAttributeURL  string       `json:"imageAttributeUrl"`
+	Explainer          string       `json:"explainer"`
+	LastUsed           sql.NullTime `json:"lastUsed"`
+	QuizDate           sql.NullTime `json:"quizDate"`
+	LastUpdated        time.Time    `json:"lastUpdated"`
 }
 
 type ManualTriviaQuestionDto struct {
-	ID          int                  `json:"id"`
-	TypeID      int                  `json:"typeId"`
-	Type        string               `json:"type"`
-	CategoryId  int                  `json:"categoryId"`
-	Category    string               `json:"category"`
-	Question    string               `json:"question"`
-	Map         string               `json:"map"`
-	Highlighted string               `json:"highlighted"`
-	FlagCode    string               `json:"flagCode"`
-	ImageURL    string               `json:"imageUrl"`
-	Explainer   string               `json:"explainer"`
-	LastUsed    sql.NullTime         `json:"lastUsed"`
-	QuizDate    sql.NullTime         `json:"quizDate"`
-	LastUpdated time.Time            `json:"lastUpdated"`
-	Answers     []ManualTriviaAnswer `json:"answers"`
+	ID                 int                  `json:"id"`
+	TypeID             int                  `json:"typeId"`
+	Type               string               `json:"type"`
+	CategoryId         int                  `json:"categoryId"`
+	Category           string               `json:"category"`
+	Question           string               `json:"question"`
+	Map                string               `json:"map"`
+	Highlighted        string               `json:"highlighted"`
+	FlagCode           string               `json:"flagCode"`
+	ImageURL           string               `json:"imageUrl"`
+	ImageAttributeName string               `json:"imageAttributeName"`
+	ImageAttributeURL  string               `json:"imageAttributeUrl"`
+	Explainer          string               `json:"explainer"`
+	LastUsed           sql.NullTime         `json:"lastUsed"`
+	QuizDate           sql.NullTime         `json:"quizDate"`
+	LastUpdated        time.Time            `json:"lastUpdated"`
+	Answers            []ManualTriviaAnswer `json:"answers"`
 }
 
 type GetManualTriviaQuestionEntriesFilterParams struct {
@@ -53,33 +57,37 @@ type GetManualTriviaQuestionEntriesFilterParams struct {
 }
 
 type CreateManualTriviaQuestionDto struct {
-	TypeID      int                           `json:"typeId"`
-	CategoryID  int                           `json:"categoryId"`
-	Question    string                        `json:"question"`
-	Map         string                        `json:"map"`
-	Highlighted string                        `json:"highlighted"`
-	FlagCode    string                        `json:"flagCode"`
-	ImageURL    string                        `json:"imageUrl"`
-	Explainer   string                        `json:"explainer"`
-	QuizDate    sql.NullTime                  `json:"quizDate"`
-	Answers     []CreateManualTriviaAnswerDto `json:"answers"`
+	TypeID             int                           `json:"typeId"`
+	CategoryID         int                           `json:"categoryId"`
+	Question           string                        `json:"question"`
+	Map                string                        `json:"map"`
+	Highlighted        string                        `json:"highlighted"`
+	FlagCode           string                        `json:"flagCode"`
+	ImageURL           string                        `json:"imageUrl"`
+	ImageAttributeName string                        `json:"imageAttributeName"`
+	ImageAttributeURL  string                        `json:"imageAttributeUrl"`
+	Explainer          string                        `json:"explainer"`
+	QuizDate           sql.NullTime                  `json:"quizDate"`
+	Answers            []CreateManualTriviaAnswerDto `json:"answers"`
 }
 
 type UpdateManualTriviaQuestionDto struct {
-	TypeID      int                           `json:"typeId"`
-	CategoryID  int                           `json:"categoryId"`
-	Question    string                        `json:"question"`
-	Map         string                        `json:"map"`
-	Highlighted string                        `json:"highlighted"`
-	FlagCode    string                        `json:"flagCode"`
-	ImageURL    string                        `json:"imageUrl"`
-	Explainer   string                        `json:"explainer"`
-	QuizDate    sql.NullTime                  `json:"quizDate"`
-	Answers     []UpdateManualTriviaAnswerDto `json:"answers"`
+	TypeID             int                           `json:"typeId"`
+	CategoryID         int                           `json:"categoryId"`
+	Question           string                        `json:"question"`
+	Map                string                        `json:"map"`
+	Highlighted        string                        `json:"highlighted"`
+	FlagCode           string                        `json:"flagCode"`
+	ImageURL           string                        `json:"imageUrl"`
+	ImageAttributeName string                        `json:"imageAttributeName"`
+	ImageAttributeURL  string                        `json:"imageAttributeUrl"`
+	Explainer          string                        `json:"explainer"`
+	QuizDate           sql.NullTime                  `json:"quizDate"`
+	Answers            []UpdateManualTriviaAnswerDto `json:"answers"`
 }
 
 func GetAllManualTriviaQuestions(filterParams GetManualTriviaQuestionEntriesFilterParams) ([]ManualTriviaQuestionDto, error) {
-	statement := "SELECT q.id, q.typeid, t.name, c.id, c.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.lastused, q.quizDate, q.explainer, q.lastupdated FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid JOIN triviaquestioncategory c ON c.id = q.categoryid WHERE q.question ILIKE '%' || $1 || '%' " + getTypeFilter(filterParams.TypeID) + getCategoryFilter(filterParams.CategoryID) + " ORDER BY q.lastupdated DESC LIMIT $2 OFFSET $3;"
+	statement := "SELECT q.id, q.typeid, t.name, c.id, c.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.imageAttributeName, q.imageAttributeUrl, q.lastused, q.quizDate, q.explainer, q.lastupdated FROM manualtriviaquestions q JOIN triviaquestiontype t ON t.id = q.typeid JOIN triviaquestioncategory c ON c.id = q.categoryid WHERE q.question ILIKE '%' || $1 || '%' " + getTypeFilter(filterParams.TypeID) + getCategoryFilter(filterParams.CategoryID) + " ORDER BY q.lastupdated DESC LIMIT $2 OFFSET $3;"
 	rows, err := Connection.Query(statement, filterParams.Question, filterParams.Limit, filterParams.Page*filterParams.Limit)
 
 	if err != nil {
@@ -90,7 +98,7 @@ func GetAllManualTriviaQuestions(filterParams GetManualTriviaQuestionEntriesFilt
 	var questions = []ManualTriviaQuestionDto{}
 	for rows.Next() {
 		var question ManualTriviaQuestionDto
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.CategoryId, &question.Category, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.CategoryId, &question.Category, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.ImageAttributeName, &question.ImageAttributeURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated); err != nil {
 			return nil, err
 		}
 
@@ -127,9 +135,9 @@ var GetFirstManualTriviaQuestionID = func(filterParams GetManualTriviaQuestionEn
 }
 
 func CreateManualTriviaQuestion(question CreateManualTriviaQuestionDto) error {
-	statement := "INSERT INTO manualtriviaquestions (typeid, categoryid, question, map, highlighted, flagcode, imageurl, quizDate, explainer, lastupdated) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;"
+	statement := "INSERT INTO manualtriviaquestions (typeid, categoryid, question, map, highlighted, flagcode, imageurl, imageAttributeName, imageAttributeUrl, quizDate, explainer, lastupdated) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, question.TypeID, question.CategoryID, strings.TrimSpace(question.Question), question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.QuizDate, question.Explainer, time.Now()).Scan(&id)
+	err := Connection.QueryRow(statement, question.TypeID, question.CategoryID, strings.TrimSpace(question.Question), question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.ImageAttributeName, question.ImageAttributeURL, question.QuizDate, question.Explainer, time.Now()).Scan(&id)
 	if err != nil {
 		return err
 	}
@@ -165,9 +173,9 @@ func ValidateCreateQuestion(question CreateManualTriviaQuestionDto) error {
 }
 
 func UpdateManualTriviaQuestion(questionID int, question UpdateManualTriviaQuestionDto) error {
-	statement := "UPDATE manualtriviaquestions SET typeid = $2, categoryid = $3, question = $4, map = $5, highlighted = $6, flagcode = $7, imageurl = $8, quizDate = $9, explainer = $10, lastupdated = $11 WHERE id = $1 RETURNING id;"
+	statement := "UPDATE manualtriviaquestions SET typeid = $2, categoryid = $3, question = $4, map = $5, highlighted = $6, flagcode = $7, imageurl = $8, imageAttributeName = $9, imageAttributeUrl = $10, quizDate = $11, explainer = $12, lastupdated = $13 WHERE id = $1 RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, questionID, question.TypeID, question.CategoryID, strings.TrimSpace(question.Question), question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.QuizDate, question.Explainer, time.Now()).Scan(&id)
+	err := Connection.QueryRow(statement, questionID, question.TypeID, question.CategoryID, strings.TrimSpace(question.Question), question.Map, question.Highlighted, question.FlagCode, question.ImageURL, question.ImageAttributeName, question.ImageAttributeURL, question.QuizDate, question.Explainer, time.Now()).Scan(&id)
 	if err != nil {
 		return err
 	}
@@ -209,7 +217,7 @@ func GetManualTriviaQuestions(typeID int, lastUsedMax string, allowedCategories 
 	var questions = []ManualTriviaQuestion{}
 	for rows.Next() {
 		var question ManualTriviaQuestion
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated, &question.CategoryID); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated, &question.CategoryID, &question.ImageAttributeName, &question.ImageAttributeURL); err != nil {
 			return nil, err
 		}
 		questions = append(questions, question)
@@ -243,7 +251,7 @@ func GetTodaysManualTriviaQuestions() ([]ManualTriviaQuestion, error) {
 	var questions = []ManualTriviaQuestion{}
 	for rows.Next() {
 		var question ManualTriviaQuestion
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated, &question.CategoryID); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.LastUsed, &question.QuizDate, &question.Explainer, &question.LastUpdated, &question.CategoryID, &question.ImageAttributeName, &question.ImageAttributeURL); err != nil {
 			return nil, err
 		}
 		questions = append(questions, question)

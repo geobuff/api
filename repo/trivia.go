@@ -411,14 +411,16 @@ func createQuestionsAndAnswers(questions []ManualTriviaQuestion, triviaID, quant
 		manualQuestion := questions[index]
 
 		question := TriviaQuestion{
-			TriviaId:    triviaID,
-			TypeID:      manualQuestion.TypeID,
-			Question:    manualQuestion.Question,
-			Explainer:   manualQuestion.Explainer,
-			Map:         manualQuestion.Map,
-			Highlighted: manualQuestion.Highlighted,
-			FlagCode:    manualQuestion.FlagCode,
-			ImageURL:    manualQuestion.ImageURL,
+			TriviaId:           triviaID,
+			TypeID:             manualQuestion.TypeID,
+			Question:           manualQuestion.Question,
+			Explainer:          manualQuestion.Explainer,
+			Map:                manualQuestion.Map,
+			Highlighted:        manualQuestion.Highlighted,
+			FlagCode:           manualQuestion.FlagCode,
+			ImageURL:           manualQuestion.ImageURL,
+			ImageAttributeName: manualQuestion.ImageAttributeName,
+			ImageAttributeURL:  manualQuestion.ImageAttributeURL,
 		}
 
 		questionID, err := CreateTriviaQuestion(question)
