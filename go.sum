@@ -422,12 +422,6 @@ github.com/fullsailor/pkcs7 v0.0.0-20190404230743-d7302db945fa/go.mod h1:KnogPXt
 github.com/gabriel-vasile/mimetype v1.3.1/go.mod h1:fA8fi6KUiG7MgQQ+mEWotXoEOvmxRtOJlERCzSmRvr8=
 github.com/gabriel-vasile/mimetype v1.4.0/go.mod h1:fA8fi6KUiG7MgQQ+mEWotXoEOvmxRtOJlERCzSmRvr8=
 github.com/garyburd/redigo v0.0.0-20150301180006-535138d7bcd7/go.mod h1:NR3MbYisc3/PwhQ00EMzDiPmrwpPxAn5GI05/YaO1SY=
-github.com/geobuff/mapping v0.0.0-20220617033947-ce7a9e26b44f h1:raNZbUyjyKYVw0zEh0fmMh5gSCm21oKBIdgdiHeJ9LM=
-github.com/geobuff/mapping v0.0.0-20220617033947-ce7a9e26b44f/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
-github.com/geobuff/mapping v0.0.0-20220624053119-fedf3d93bc62 h1:jwItFqWnOwXcm2sD0qUV/EoTfQob4b9M+l8v/N/O2v4=
-github.com/geobuff/mapping v0.0.0-20220624053119-fedf3d93bc62/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
-github.com/geobuff/mapping v0.0.0-20220627032001-09fa348424b3 h1:e018cxg3TDoJJxhRUJdqbiTPd6Yip5Cat6jXKfvYGFQ=
-github.com/geobuff/mapping v0.0.0-20220627032001-09fa348424b3/go.mod h1:esinUV6CTXPxaVct8ONIuFCcgxwX70XCnmp2k4/vb+Y=
 github.com/getsentry/raven-go v0.2.0/go.mod h1:KungGk8q33+aIAZUIVWZDr2OfAEBsO49PX4NzFV5kcQ=
 github.com/ghodss/yaml v0.0.0-20150909031657-73d445a93680/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=

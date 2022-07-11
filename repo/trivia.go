@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/geobuff/api/helpers"
-	"github.com/geobuff/mapping"
 )
 
 type Trivia struct {
@@ -169,7 +168,7 @@ func whatCountry(triviaId int) error {
 		return err
 	}
 
-	countries := copyMapping(mapping.Mappings["world-countries"])
+	countries := copyMapping(Mappings["world-countries"])
 	for i, val := range countries {
 		if val.SVGName == country {
 			index = i
@@ -205,7 +204,7 @@ func whatCapital(triviaId int) error {
 	index := rand.Intn(max)
 	country := helpers.TopLandmass[index]
 	var code string
-	for _, val := range mapping.Mappings["world-countries"] {
+	for _, val := range Mappings["world-countries"] {
 		if val.SVGName == country {
 			code = val.Code
 			break
@@ -236,7 +235,7 @@ func whatCapital(triviaId int) error {
 		return err
 	}
 
-	capitals := copyMapping(mapping.Mappings["world-capitals"])
+	capitals := copyMapping(Mappings["world-capitals"])
 	for i, val := range capitals {
 		if val.SVGName == capitalName {
 			index = i
@@ -268,7 +267,7 @@ func whatCapital(triviaId int) error {
 }
 
 func getCapitalName(code string) string {
-	for _, value := range mapping.Mappings["world-capitals"] {
+	for _, value := range Mappings["world-capitals"] {
 		if value.Code == code {
 			return value.SVGName
 		}
@@ -277,7 +276,7 @@ func getCapitalName(code string) string {
 }
 
 func getCountryName(code string) string {
-	for _, value := range mapping.Mappings["world-countries"] {
+	for _, value := range Mappings["world-countries"] {
 		if value.Code == code {
 			return value.SVGName
 		}
@@ -286,7 +285,7 @@ func getCountryName(code string) string {
 }
 
 func whatUSState(triviaId int) error {
-	states := copyMapping(mapping.Mappings["us-states"])
+	states := copyMapping(Mappings["us-states"])
 	max := len(states)
 	index := rand.Intn(max)
 	state := states[index]
@@ -339,7 +338,7 @@ func whatUSState(triviaId int) error {
 }
 
 func whatFlag(triviaId int) error {
-	countries := copyMapping(mapping.Mappings["world-countries"])
+	countries := copyMapping(Mappings["world-countries"])
 	max := len(countries)
 	index := rand.Intn(max)
 	country := countries[index]
@@ -535,8 +534,8 @@ func GetTrivia(date string) (*TriviaDto, error) {
 	return &result, rows.Err()
 }
 
-func copyMapping(orig []mapping.Mapping) []mapping.Mapping {
-	cpy := make([]mapping.Mapping, len(orig))
+func copyMapping(orig []Mapping) []Mapping {
+	cpy := make([]Mapping, len(orig))
 	copy(cpy, orig)
 	return cpy
 }

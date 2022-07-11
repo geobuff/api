@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/geobuff/mapping"
+	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
 )
 
@@ -37,13 +37,13 @@ func TestGetMapping(t *testing.T) {
 		t.Fatalf("could not read response: %v", err)
 	}
 
-	var parsed []mapping.Mapping
+	var parsed []repo.Mapping
 	err = json.Unmarshal(body, &parsed)
 	if err != nil {
 		t.Errorf("could not unmarshal response body: %v", err)
 	}
 
-	if !reflect.DeepEqual(parsed, mapping.Mappings[key]) {
+	if !reflect.DeepEqual(parsed, repo.Mappings[key]) {
 		t.Fatalf("response body does not match expected list of mappings")
 	}
 }
