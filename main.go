@@ -23,6 +23,7 @@ import (
 	"github.com/geobuff/api/communityquizzes"
 	"github.com/geobuff/api/continents"
 	"github.com/geobuff/api/discounts"
+	"github.com/geobuff/api/flags"
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/manualtriviaquestions"
 	"github.com/geobuff/api/mappings"
@@ -182,6 +183,10 @@ func router() http.Handler {
 
 	// Mapping endpoints.
 	router.HandleFunc("/api/mappings/{key}", mappings.GetMapping).Methods("GET")
+
+	// Mapping endpoints.
+	router.HandleFunc("/api/flags", flags.GetFlagGroups).Methods("GET")
+	router.HandleFunc("/api/flags/{key}", flags.GetFlagGroup).Methods("GET")
 
 	// Continent endpoints.
 	router.HandleFunc("/api/continents", continents.GetContinents).Methods("GET")
