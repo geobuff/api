@@ -1,0 +1,9 @@
+ALTER TABLE manualtriviaquestions DROP column imageWidth;
+ALTER TABLE manualtriviaquestions DROP column imageHeight;
+ALTER TABLE manualtriviaquestions DROP column imageAlt;
+ALTER TABLE triviaquestions DROP column imageWidth;
+ALTER TABLE triviaquestions DROP column imageHeight;
+ALTER TABLE triviaquestions DROP column imageAlt;
+ALTER TABLE communityquizquestions DROP column imageWidth;
+ALTER TABLE communityquizquestions DROP column imageHeight;
+ALTER TABLE communityquizquestions DROP column imageAlt;
