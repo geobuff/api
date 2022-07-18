@@ -16,6 +16,9 @@ type CommunityQuizQuestion struct {
 	ImageUrl           string `json:"imageUrl"`
 	ImageAttributeName string `json:"imageAttributeName"`
 	ImageAttributeURL  string `json:"imageAttributeUrl"`
+	ImageWidth         int    `json:"imageWidth"`
+	ImageHeight        int    `json:"imageHeight"`
+	ImageAlt           string `json:"imageAlt"`
 	Explainer          string `json:"explainer"`
 }
 
@@ -30,6 +33,9 @@ type GetCommunityQuizQuestionDto struct {
 	ImageUrl           string                      `json:"imageUrl"`
 	ImageAttributeName string                      `json:"imageAttributeName"`
 	ImageAttributeURL  string                      `json:"imageAttributeUrl"`
+	ImageWidth         int                         `json:"imageWidth"`
+	ImageHeight        int                         `json:"imageHeight"`
+	ImageAlt           string                      `json:"imageAlt"`
 	Explainer          string                      `json:"explainer"`
 	Answers            []GetCommunityQuizAnswerDto `json:"answers"`
 }
@@ -43,6 +49,9 @@ type CreateCommunityQuizQuestionDto struct {
 	ImageUrl           string                         `json:"imageUrl"`
 	ImageAttributeName string                         `json:"imageAttributeName"`
 	ImageAttributeURL  string                         `json:"imageAttributeUrl"`
+	ImageWidth         int                            `json:"imageWidth"`
+	ImageHeight        int                            `json:"imageHeight"`
+	ImageAlt           string                         `json:"imageAlt"`
 	Explainer          string                         `json:"explainer"`
 	Answers            []CreateCommunityQuizAnswerDto `json:"answers"`
 }
@@ -57,21 +66,24 @@ type UpdateCommunityQuizQuestionDto struct {
 	ImageUrl           string                         `json:"imageUrl"`
 	ImageAttributeName string                         `json:"imageAttributeName"`
 	ImageAttributeURL  string                         `json:"imageAttributeUrl"`
+	ImageWidth         int                            `json:"imageWidth"`
+	ImageHeight        int                            `json:"imageHeight"`
+	ImageAlt           string                         `json:"imageAlt"`
 	Explainer          string                         `json:"explainer"`
 	Answers            []CreateCommunityQuizAnswerDto `json:"answers"`
 }
 
 func InsertCommunityQuizQuestion(quizID int, question CreateCommunityQuizQuestionDto) (int, error) {
-	statement := "INSERT INTO communityquizquestions (communityquizid, typeid, question, map, highlighted, flagcode, imageurl, imageAttributeName, imageAttributeUrl, explainer) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;"
+	statement := "INSERT INTO communityquizquestions (communityquizid, typeid, question, map, highlighted, flagcode, imageurl, imageAttributeName, imageAttributeUrl, imageWidth, imageHeight, imageAlt, explainer) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id;"
 	var id int
-	err := Connection.QueryRow(statement, quizID, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageUrl, question.ImageAttributeName, question.ImageAttributeURL, question.Explainer).Scan(&id)
+	err := Connection.QueryRow(statement, quizID, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageUrl, question.ImageAttributeName, question.ImageAttributeURL, question.ImageWidth, question.ImageHeight, question.ImageAlt, question.Explainer).Scan(&id)
 	return id, err
 }
 
 func UpdateCommunityQuizQuestion(questionID int, question UpdateCommunityQuizQuestionDto) error {
-	statement := "UPDATE communityquizquestions SET typeid = $1, question = $2, map = $3, highlighted = $4, flagcode = $5, imageurl = $6, imageAttributeName = $7, imageAttributeUrl = $8, explainer = $9 WHERE id = $10 RETURNING id;"
+	statement := "UPDATE communityquizquestions SET typeid = $1, question = $2, map = $3, highlighted = $4, flagcode = $5, imageurl = $6, imageAttributeName = $7, imageAttributeUrl = $8, imageWidth = $9, imageHeight = $10, imageAlt = $11, explainer = $12 WHERE id = $13 RETURNING id;"
 	var id int
-	return Connection.QueryRow(statement, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageUrl, question.ImageAttributeName, question.ImageAttributeURL, question.Explainer, questionID).Scan(&id)
+	return Connection.QueryRow(statement, question.TypeID, question.Question, question.Map, question.Highlighted, question.FlagCode, question.ImageUrl, question.ImageAttributeName, question.ImageAttributeURL, question.ImageWidth, question.ImageHeight, question.ImageAlt, question.Explainer, questionID).Scan(&id)
 }
 
 func GetCommunityQuizQuestionIds(quizID int) ([]int, error) {
@@ -94,7 +106,7 @@ func GetCommunityQuizQuestionIds(quizID int) ([]int, error) {
 }
 
 func GetCommunityQuizQuestions(quizID int) ([]GetCommunityQuizQuestionDto, error) {
-	statement := "SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.imageAttributeName, q.imageAttributeUrl, q.explainer FROM communityquizquestions q JOIN triviaQuestionType t ON t.id = q.typeid WHERE communityquizid = $1;"
+	statement := "SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.imageAttributeName, q.imageAttributeUrl, q.imageWidth, q.imageHeight, q.imageAlt, q.explainer FROM communityquizquestions q JOIN triviaQuestionType t ON t.id = q.typeid WHERE communityquizid = $1;"
 	rows, err := Connection.Query(statement, quizID)
 	if err != nil {
 		return nil, err
@@ -104,7 +116,7 @@ func GetCommunityQuizQuestions(quizID int) ([]GetCommunityQuizQuestionDto, error
 	var questions = []GetCommunityQuizQuestionDto{}
 	for rows.Next() {
 		var question GetCommunityQuizQuestionDto
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageUrl, &question.ImageAttributeName, &question.ImageAttributeURL, &question.Explainer); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageUrl, &question.ImageAttributeName, &question.ImageAttributeURL, &question.ImageWidth, &question.ImageHeight, &question.ImageAlt, &question.Explainer); err != nil {
 			return nil, err
 		}
 
