@@ -1,0 +1,9 @@
+ALTER TABLE manualtriviaquestions ADD column imageWidth INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE manualtriviaquestions ADD column imageHeight INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE manualtriviaquestions ADD column imageAlt TEXT NOT NULL DEFAULT '';
+ALTER TABLE triviaquestions ADD column imageWidth INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE triviaquestions ADD column imageHeight INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE triviaquestions ADD column imageAlt TEXT NOT NULL DEFAULT '';
+ALTER TABLE communityquizquestions ADD column imageWidth INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE communityquizquestions ADD column imageHeight INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE communityquizquestions ADD column imageAlt TEXT NOT NULL DEFAULT '';

@@ -420,6 +420,9 @@ func createQuestionsAndAnswers(questions []ManualTriviaQuestion, triviaID, quant
 			ImageURL:           manualQuestion.ImageURL,
 			ImageAttributeName: manualQuestion.ImageAttributeName,
 			ImageAttributeURL:  manualQuestion.ImageAttributeURL,
+			ImageWidth:         manualQuestion.ImageWidth,
+			ImageHeight:        manualQuestion.ImageHeight,
+			ImageAlt:           manualQuestion.ImageAlt,
 		}
 
 		questionID, err := CreateTriviaQuestion(question)
