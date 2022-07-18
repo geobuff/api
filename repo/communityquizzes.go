@@ -154,13 +154,18 @@ func UpdateCommunityQuiz(quizID int, quiz UpdateCommunityQuizDto) error {
 		}
 
 		questionID, err := InsertCommunityQuizQuestion(id, CreateCommunityQuizQuestionDto{
-			TypeID:      question.TypeID,
-			Question:    question.Question,
-			Explainer:   question.Explainer,
-			Map:         question.Map,
-			Highlighted: question.Highlighted,
-			FlagCode:    question.FlagCode,
-			ImageUrl:    question.ImageUrl,
+			TypeID:             question.TypeID,
+			Question:           question.Question,
+			Explainer:          question.Explainer,
+			Map:                question.Map,
+			Highlighted:        question.Highlighted,
+			FlagCode:           question.FlagCode,
+			ImageUrl:           question.ImageUrl,
+			ImageAttributeName: question.ImageAttributeName,
+			ImageAttributeURL:  question.ImageAttributeURL,
+			ImageWidth:         question.ImageWidth,
+			ImageHeight:        question.ImageHeight,
+			ImageAlt:           question.ImageAlt,
 		})
 
 		if err != nil {
