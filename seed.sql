@@ -162,4 +162,5 @@ INSERT INTO triviaQuestionCategory (name) values
 ('Borders'),
 ('Community Quiz'),
 ('Misc'),
-('Exports');
+('Exports'),
+('Sports');
