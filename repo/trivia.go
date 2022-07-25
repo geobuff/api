@@ -491,50 +491,13 @@ func GetTrivia(date string) (*TriviaDto, error) {
 		return nil, err
 	}
 
-	rows, err := Connection.Query("SELECT q.id, t.name, q.question, q.map, q.highlighted, q.flagCode, q.imageUrl, q.explainer FROM triviaQuestions q JOIN triviaQuestionType t ON t.id = q.typeId WHERE q.triviaId = $1;", result.ID)
+	questions, err := GetTriviaQuestions(result.ID)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	var questions = []QuestionDto{}
-	for rows.Next() {
-		var question QuestionDto
-		if err = rows.Scan(&question.ID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.Explainer); err != nil {
-			return nil, err
-		}
-
-		rows, err := Connection.Query("SELECT text, isCorrect, flagCode FROM triviaAnswers WHERE triviaQuestionId = $1;", question.ID)
-		if err != nil {
-			return nil, err
-		}
-		defer rows.Close()
-
-		var answers = []AnswerDto{}
-		for rows.Next() {
-			var answer AnswerDto
-			if err = rows.Scan(&answer.Text, &answer.IsCorrect, &answer.FlagCode); err != nil {
-				return nil, err
-			}
-			answers = append(answers, answer)
-		}
-
-		if len(answers) > 2 {
-			rand.Shuffle(len(answers), func(i, j int) {
-				answers[i], answers[j] = answers[j], answers[i]
-			})
-		}
-
-		question.Answers = answers
-		questions = append(questions, question)
-	}
-
-	rand.Shuffle(len(questions), func(i, j int) {
-		questions[i], questions[j] = questions[j], questions[i]
-	})
 
 	result.Questions = questions
-	return &result, rows.Err()
+	return &result, nil
 }
 
 func copyMapping(orig []Mapping) []Mapping {

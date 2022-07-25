@@ -1,5 +1,7 @@
 package repo
 
+import "math/rand"
+
 type TriviaQuestion struct {
 	ID                 int    `json:"id"`
 	TriviaId           int    `json:"triviaId"`
@@ -32,6 +34,36 @@ type QuestionDto struct {
 	ImageAlt           string      `json:"imageAlt"`
 	Explainer          string      `json:"explainer"`
 	Answers            []AnswerDto `json:"answers"`
+}
+
+func GetTriviaQuestions(triviaId int) ([]QuestionDto, error) {
+	rows, err := Connection.Query("SELECT q.id, t.name, q.question, q.map, q.highlighted, q.flagCode, q.imageUrl, q.imageAttributeName, q.imageAttributeUrl, q.imageWidth, q.imageHeight, q.imageAlt, q.explainer FROM triviaQuestions q JOIN triviaQuestionType t ON t.id = q.typeId WHERE q.triviaId = $1;", triviaId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var questions = []QuestionDto{}
+	for rows.Next() {
+		var question QuestionDto
+		if err = rows.Scan(&question.ID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.ImageAttributeName, &question.ImageAttributeURL, &question.ImageWidth, &question.ImageHeight, &question.ImageAlt, &question.Explainer); err != nil {
+			return nil, err
+		}
+
+		answers, err := GetTriviaAnswers(question.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		question.Answers = answers
+		questions = append(questions, question)
+	}
+
+	rand.Shuffle(len(questions), func(i, j int) {
+		questions[i], questions[j] = questions[j], questions[i]
+	})
+
+	return questions, nil
 }
 
 func CreateTriviaQuestion(question TriviaQuestion) (int, error) {
