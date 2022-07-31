@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS flagEntries;
+DROP TABLE IF EXISTS flagGroups;
