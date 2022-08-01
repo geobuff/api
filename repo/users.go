@@ -115,7 +115,7 @@ var GetUser = func(id int) (UserDto, error) {
 var GetUserByEmail = func(email string) (UserDto, error) {
 	statement := "SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, f.url, u.joined, u.isadmin, u.xp FROM users u JOIN avatars a on a.id = u.avatarid JOIN flagentries f ON f.code = u.countrycode WHERE u.email = $1;"
 	var user UserDto
-	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.Joined, &user.IsAdmin, &user.XP)
+	err := Connection.QueryRow(statement, email).Scan(&user.ID, &user.AvatarId, &user.AvatarName, &user.AvatarDescription, &user.AvatarPrimaryImageUrl, &user.AvatarSecondaryImageUrl, &user.Username, &user.Email, &user.CountryCode, &user.FlagUrl, &user.Joined, &user.IsAdmin, &user.XP)
 	return user, err
 }
 
