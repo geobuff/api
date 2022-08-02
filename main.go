@@ -182,7 +182,8 @@ func router() http.Handler {
 	router.HandleFunc("/api/manual-trivia-questions/{id}", manualtriviaquestions.DeleteManualTriviaQuestion).Methods("DELETE")
 
 	// Mapping endpoints.
-	router.HandleFunc("/api/mappings/{key}", mappings.GetMapping).Methods("GET")
+	router.HandleFunc("/api/mappings", mappings.GetMappingGroups).Methods("GET")
+	router.HandleFunc("/api/mappings/{key}", mappings.GetMappingEntries).Methods("GET")
 
 	// Flag endpoints.
 	router.HandleFunc("/api/flags", flags.GetFlagGroups).Methods("GET")
