@@ -73,23 +73,38 @@ func RegenerateTrivia(dateString string) error {
 }
 
 func generateQuestions(triviaId, max int) (int, error) {
+	countries, err := GetMappingEntries("world-countries")
+	if err != nil {
+		return 0, err
+	}
+
+	capitals, err := GetMappingEntries("world-capitals")
+	if err != nil {
+		return 0, err
+	}
+
+	states, err := GetMappingEntries("us-states")
+	if err != nil {
+		return 0, err
+	}
+
 	count := 0
-	err := whatCountry(triviaId)
+	err = whatCountry(triviaId, countries)
 	if err != nil {
 		return count, err
 	}
 
-	err = whatCapital(triviaId)
+	err = whatCapital(triviaId, countries, capitals)
 	if err != nil {
 		return count, err
 	}
 
-	err = whatUSState(triviaId)
+	err = whatUSState(triviaId, states)
 	if err != nil {
 		return count, err
 	}
 
-	err = whatFlag(triviaId)
+	err = whatFlag(triviaId, countries)
 	if err != nil {
 		return count, err
 	}
@@ -140,7 +155,7 @@ func generateQuestions(triviaId, max int) (int, error) {
 	return count, nil
 }
 
-func whatCountry(triviaId int) error {
+func whatCountry(triviaId int, countries []MappingEntry) error {
 	max := len(helpers.TopLandmass)
 	index := rand.Intn(max)
 	country := helpers.TopLandmass[index]
@@ -168,7 +183,6 @@ func whatCountry(triviaId int) error {
 		return err
 	}
 
-	countries := copyMapping(Mappings["world-countries"])
 	for i, val := range countries {
 		if val.SVGName == country {
 			index = i
@@ -199,18 +213,24 @@ func whatCountry(triviaId int) error {
 	return nil
 }
 
-func whatCapital(triviaId int) error {
+func whatCapital(triviaId int, countries []MappingEntry, capitals []MappingEntry) error {
 	max := len(helpers.TopLandmass)
 	index := rand.Intn(max)
 	country := helpers.TopLandmass[index]
 	var code string
-	for _, val := range Mappings["world-countries"] {
+	for _, val := range countries {
 		if val.SVGName == country {
 			code = val.Code
 			break
 		}
 	}
-	capitalName := getCapitalName(code)
+
+	var capitalName string
+	for _, value := range capitals {
+		if value.Code == code {
+			capitalName = value.SVGName
+		}
+	}
 
 	question := TriviaQuestion{
 		TriviaId:    triviaId,
@@ -235,7 +255,6 @@ func whatCapital(triviaId int) error {
 		return err
 	}
 
-	capitals := copyMapping(Mappings["world-capitals"])
 	for i, val := range capitals {
 		if val.SVGName == capitalName {
 			index = i
@@ -266,26 +285,7 @@ func whatCapital(triviaId int) error {
 	return nil
 }
 
-func getCapitalName(code string) string {
-	for _, value := range Mappings["world-capitals"] {
-		if value.Code == code {
-			return value.SVGName
-		}
-	}
-	return ""
-}
-
-func getCountryName(code string) string {
-	for _, value := range Mappings["world-countries"] {
-		if value.Code == code {
-			return value.SVGName
-		}
-	}
-	return ""
-}
-
-func whatUSState(triviaId int) error {
-	states := copyMapping(Mappings["us-states"])
+func whatUSState(triviaId int, states []MappingEntry) error {
 	max := len(states)
 	index := rand.Intn(max)
 	state := states[index]
@@ -337,8 +337,7 @@ func whatUSState(triviaId int) error {
 	return nil
 }
 
-func whatFlag(triviaId int) error {
-	countries := copyMapping(Mappings["world-countries"])
+func whatFlag(triviaId int, countries []MappingEntry) error {
 	max := len(countries)
 	index := rand.Intn(max)
 	country := countries[index]
@@ -498,12 +497,6 @@ func GetTrivia(date string) (*TriviaDto, error) {
 
 	result.Questions = questions
 	return &result, nil
-}
-
-func copyMapping(orig []Mapping) []Mapping {
-	cpy := make([]Mapping, len(orig))
-	copy(cpy, orig)
-	return cpy
 }
 
 func setTriviaMaxScore(triviaID, maxScore int) error {

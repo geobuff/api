@@ -22,7 +22,7 @@ type MappingEntry struct {
 }
 
 func GetMappingGroups() ([]MappingGroup, error) {
-	rows, err := Connection.Query("SELECT * from mappingGroups;")
+	rows, err := Connection.Query("SELECT * from mappingGroups ORDER BY key ASC;")
 	if err != nil {
 		return nil, err
 	}
