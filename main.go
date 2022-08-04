@@ -27,6 +27,7 @@ import (
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/manualtriviaquestions"
 	"github.com/geobuff/api/mappings"
+	"github.com/geobuff/api/maps"
 	"github.com/geobuff/api/merch"
 	"github.com/geobuff/api/orders"
 	"github.com/geobuff/api/quizplays"
@@ -184,6 +185,11 @@ func router() http.Handler {
 	// Mapping endpoints.
 	router.HandleFunc("/api/mappings", mappings.GetMappingGroups).Methods("GET")
 	router.HandleFunc("/api/mappings/{key}", mappings.GetMappingEntries).Methods("GET")
+
+	// Map endpoints.
+	router.HandleFunc("/api/maps", maps.GetMaps).Methods("GET")
+	router.HandleFunc("/api/maps/highlighted/{className}", maps.GetMapHighlightedRegions).Methods("GET")
+	router.HandleFunc("/api/maps/{className}", maps.GetMap).Methods("GET")
 
 	// Flag endpoints.
 	router.HandleFunc("/api/flags", flags.GetFlagGroups).Methods("GET")
