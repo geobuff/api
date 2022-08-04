@@ -2,6 +2,7 @@ package flags
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/geobuff/api/repo"
@@ -9,20 +10,34 @@ import (
 )
 
 func GetFlagGroups(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(repo.FlagGroups)
-}
-
-func GetFlagGroup(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Content-Type", "application/json")
-
-	key := mux.Vars(request)["key"]
-	for _, group := range repo.FlagGroups {
-		if group.Key == key {
-			json.NewEncoder(writer).Encode(group)
-			return
-		}
+	groups, err := repo.GetFlagGroups()
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
 	}
 
-	http.Error(writer, "invalid key; does not match existing flag group", http.StatusBadRequest)
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(groups)
+}
+
+func GetFlagEntries(writer http.ResponseWriter, request *http.Request) {
+	entries, err := repo.GetFlagEntries(mux.Vars(request)["key"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(entries)
+}
+
+func GetFlagUrl(writer http.ResponseWriter, request *http.Request) {
+	url, err := repo.GetFlagUrl(mux.Vars(request)["code"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(url)
 }

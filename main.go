@@ -27,6 +27,7 @@ import (
 	"github.com/geobuff/api/leaderboard"
 	"github.com/geobuff/api/manualtriviaquestions"
 	"github.com/geobuff/api/mappings"
+	"github.com/geobuff/api/maps"
 	"github.com/geobuff/api/merch"
 	"github.com/geobuff/api/orders"
 	"github.com/geobuff/api/quizplays"
@@ -182,11 +183,18 @@ func router() http.Handler {
 	router.HandleFunc("/api/manual-trivia-questions/{id}", manualtriviaquestions.DeleteManualTriviaQuestion).Methods("DELETE")
 
 	// Mapping endpoints.
-	router.HandleFunc("/api/mappings/{key}", mappings.GetMapping).Methods("GET")
+	router.HandleFunc("/api/mappings", mappings.GetMappingGroups).Methods("GET")
+	router.HandleFunc("/api/mappings/{key}", mappings.GetMappingEntries).Methods("GET")
 
-	// Mapping endpoints.
+	// Map endpoints.
+	router.HandleFunc("/api/maps", maps.GetMaps).Methods("GET")
+	router.HandleFunc("/api/maps/highlighted/{className}", maps.GetMapHighlightedRegions).Methods("GET")
+	router.HandleFunc("/api/maps/{className}", maps.GetMap).Methods("GET")
+
+	// Flag endpoints.
 	router.HandleFunc("/api/flags", flags.GetFlagGroups).Methods("GET")
-	router.HandleFunc("/api/flags/{key}", flags.GetFlagGroup).Methods("GET")
+	router.HandleFunc("/api/flags/{key}", flags.GetFlagEntries).Methods("GET")
+	router.HandleFunc("/api/flags/url/{code}", flags.GetFlagUrl).Methods("GET")
 
 	// Continent endpoints.
 	router.HandleFunc("/api/continents", continents.GetContinents).Methods("GET")
