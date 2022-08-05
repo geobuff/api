@@ -72,6 +72,8 @@ type MapElementDto struct {
 }
 
 type GetMapsDto struct {
+	Name  string `json:"name"`
+	Key   string `json:"key"`
 	Label string `json:"label"`
 	Value string `json:"value"`
 }
@@ -82,7 +84,7 @@ type HighlightedRegionDto struct {
 }
 
 func GetMaps() ([]GetMapsDto, error) {
-	rows, err := Connection.Query("SELECT label, classname from maps;")
+	rows, err := Connection.Query("SELECT label, key, label, classname from maps;")
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +93,7 @@ func GetMaps() ([]GetMapsDto, error) {
 	var maps = []GetMapsDto{}
 	for rows.Next() {
 		var m GetMapsDto
-		if err = rows.Scan(&m.Label, &m.Value); err != nil {
+		if err = rows.Scan(&m.Name, &m.Key, &m.Label, &m.Value); err != nil {
 			return nil, err
 		}
 		maps = append(maps, m)
