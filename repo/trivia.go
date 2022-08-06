@@ -155,7 +155,7 @@ func generateQuestions(triviaId, max int) (int, error) {
 	return count, nil
 }
 
-func whatCountry(triviaId int, countries []MappingEntry) error {
+func whatCountry(triviaId int, countries []MappingEntryDto) error {
 	max := len(helpers.TopLandmass)
 	index := rand.Intn(max)
 	country := helpers.TopLandmass[index]
@@ -213,7 +213,7 @@ func whatCountry(triviaId int, countries []MappingEntry) error {
 	return nil
 }
 
-func whatCapital(triviaId int, countries []MappingEntry, capitals []MappingEntry) error {
+func whatCapital(triviaId int, countries []MappingEntryDto, capitals []MappingEntryDto) error {
 	max := len(helpers.TopLandmass)
 	index := rand.Intn(max)
 	country := helpers.TopLandmass[index]
@@ -285,7 +285,7 @@ func whatCapital(triviaId int, countries []MappingEntry, capitals []MappingEntry
 	return nil
 }
 
-func whatUSState(triviaId int, states []MappingEntry) error {
+func whatUSState(triviaId int, states []MappingEntryDto) error {
 	max := len(states)
 	index := rand.Intn(max)
 	state := states[index]
@@ -337,7 +337,7 @@ func whatUSState(triviaId int, states []MappingEntry) error {
 	return nil
 }
 
-func whatFlag(triviaId int, countries []MappingEntry) error {
+func whatFlag(triviaId int, countries []MappingEntryDto) error {
 	max := len(countries)
 	index := rand.Intn(max)
 	country := countries[index]

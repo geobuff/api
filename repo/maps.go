@@ -102,17 +102,17 @@ func GetMaps() ([]GetMapsDto, error) {
 	return maps, rows.Err()
 }
 
-func GetMap(className string) (*MapDto, error) {
+func GetMap(className string) (MapDto, error) {
 	statement := "SELECT * from maps WHERE classname = $1;"
 	var m MapDto
 	err := Connection.QueryRow(statement, className).Scan(&m.ID, &m.Key, &m.ClassName, &m.Label, &m.ViewBox)
 	if err != nil {
-		return nil, err
+		return MapDto{}, err
 	}
 
 	rows, err := Connection.Query("SELECT e.mapid, t.name, e.elementid, e.name, e.d, e.points, e.x, e.y, e.width, e.height, e.cx, e.cy, e.r, e.transform, e.xlinkhref, e.clippath, e.clippathid, e.x1, e.y1, e.x2, e.y2 FROM mapElements e JOIN mapElementType t ON t.id = e.typeid WHERE e.mapId = $1;", m.ID)
 	if err != nil {
-		return nil, err
+		return MapDto{}, err
 	}
 	defer rows.Close()
 
@@ -120,13 +120,13 @@ func GetMap(className string) (*MapDto, error) {
 	for rows.Next() {
 		var e MapElementDto
 		if err = rows.Scan(&e.MapID, &e.Type, &e.ID, &e.Name, &e.D, &e.Points, &e.X, &e.Y, &e.Width, &e.Height, &e.Cx, &e.Cy, &e.R, &e.Transform, &e.XlinkHref, &e.ClipPath, &e.ClipPathId, &e.X1, &e.Y1, &e.X2, &e.Y2); err != nil {
-			return nil, err
+			return MapDto{}, err
 		}
 		elements = append(elements, e)
 	}
 
 	m.Elements = elements
-	return &m, rows.Err()
+	return m, rows.Err()
 }
 
 func GetMapHighlightedRegions(className string) ([]HighlightedRegionDto, error) {
