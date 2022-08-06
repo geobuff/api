@@ -1,6 +1,9 @@
 package repo
 
-import "math/rand"
+import (
+	"database/sql"
+	"math/rand"
+)
 
 type TriviaQuestion struct {
 	ID                 int    `json:"id"`
@@ -20,24 +23,26 @@ type TriviaQuestion struct {
 }
 
 type QuestionDto struct {
-	ID                 int         `json:"id"`
-	Type               string      `json:"type"`
-	Question           string      `json:"question"`
-	Map                string      `json:"map"`
-	Highlighted        string      `json:"highlighted"`
-	FlagCode           string      `json:"flagCode"`
-	ImageURL           string      `json:"imageUrl"`
-	ImageAttributeName string      `json:"imageAttributeName"`
-	ImageAttributeURL  string      `json:"imageAttributeUrl"`
-	ImageWidth         int         `json:"imageWidth"`
-	ImageHeight        int         `json:"imageHeight"`
-	ImageAlt           string      `json:"imageAlt"`
-	Explainer          string      `json:"explainer"`
-	Answers            []AnswerDto `json:"answers"`
+	ID                 int            `json:"id"`
+	Type               string         `json:"type"`
+	Question           string         `json:"question"`
+	MapName            string         `json:"mapName"`
+	Map                MapDto         `json:"map"`
+	Highlighted        string         `json:"highlighted"`
+	FlagCode           string         `json:"flagCode"`
+	FlagUrl            sql.NullString `json:"flagUrl"`
+	ImageURL           string         `json:"imageUrl"`
+	ImageAttributeName string         `json:"imageAttributeName"`
+	ImageAttributeURL  string         `json:"imageAttributeUrl"`
+	ImageWidth         int            `json:"imageWidth"`
+	ImageHeight        int            `json:"imageHeight"`
+	ImageAlt           string         `json:"imageAlt"`
+	Explainer          string         `json:"explainer"`
+	Answers            []AnswerDto    `json:"answers"`
 }
 
 func GetTriviaQuestions(triviaId int) ([]QuestionDto, error) {
-	rows, err := Connection.Query("SELECT q.id, t.name, q.question, q.map, q.highlighted, q.flagCode, q.imageUrl, q.imageAttributeName, q.imageAttributeUrl, q.imageWidth, q.imageHeight, q.imageAlt, q.explainer FROM triviaQuestions q JOIN triviaQuestionType t ON t.id = q.typeId WHERE q.triviaId = $1;", triviaId)
+	rows, err := Connection.Query("SELECT q.id, t.name, q.question, q.map, q.highlighted, q.flagCode, f.url, q.imageUrl, q.imageAttributeName, q.imageAttributeUrl, q.imageWidth, q.imageHeight, q.imageAlt, q.explainer FROM triviaQuestions q JOIN triviaQuestionType t ON t.id = q.typeId LEFT JOIN flagEntries f ON f.code = q.flagCode WHERE q.triviaId = $1;", triviaId)
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +51,16 @@ func GetTriviaQuestions(triviaId int) ([]QuestionDto, error) {
 	var questions = []QuestionDto{}
 	for rows.Next() {
 		var question QuestionDto
-		if err = rows.Scan(&question.ID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageURL, &question.ImageAttributeName, &question.ImageAttributeURL, &question.ImageWidth, &question.ImageHeight, &question.ImageAlt, &question.Explainer); err != nil {
+		if err = rows.Scan(&question.ID, &question.Type, &question.Question, &question.MapName, &question.Highlighted, &question.FlagCode, &question.FlagUrl, &question.ImageURL, &question.ImageAttributeName, &question.ImageAttributeURL, &question.ImageWidth, &question.ImageHeight, &question.ImageAlt, &question.Explainer); err != nil {
 			return nil, err
+		}
+
+		if question.MapName != "" {
+			svgMap, err := GetMap(question.MapName)
+			if err != nil {
+				return nil, err
+			}
+			question.Map = svgMap
 		}
 
 		answers, err := GetTriviaAnswers(question.ID)
