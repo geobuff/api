@@ -1,6 +1,9 @@
 package repo
 
-import "math/rand"
+import (
+	"database/sql"
+	"math/rand"
+)
 
 type TriviaAnswer struct {
 	ID               int    `json:"id"`
@@ -11,13 +14,14 @@ type TriviaAnswer struct {
 }
 
 type AnswerDto struct {
-	Text      string `json:"text"`
-	IsCorrect bool   `json:"isCorrect"`
-	FlagCode  string `json:"flagCode"`
+	Text      string         `json:"text"`
+	IsCorrect bool           `json:"isCorrect"`
+	FlagCode  string         `json:"flagCode"`
+	FlagUrl   sql.NullString `json:"flagUrl"`
 }
 
 func GetTriviaAnswers(triviaQuestionId int) ([]AnswerDto, error) {
-	rows, err := Connection.Query("SELECT text, isCorrect, flagCode FROM triviaAnswers WHERE triviaQuestionId = $1;", triviaQuestionId)
+	rows, err := Connection.Query("SELECT a.text, a.isCorrect, a.flagCode, f.url FROM triviaAnswers a LEFT JOIN flagentries f ON f.code = a.flagcode WHERE triviaQuestionId = $1;", triviaQuestionId)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +30,7 @@ func GetTriviaAnswers(triviaQuestionId int) ([]AnswerDto, error) {
 	var answers = []AnswerDto{}
 	for rows.Next() {
 		var answer AnswerDto
-		if err = rows.Scan(&answer.Text, &answer.IsCorrect, &answer.FlagCode); err != nil {
+		if err = rows.Scan(&answer.Text, &answer.IsCorrect, &answer.FlagCode, &answer.FlagUrl); err != nil {
 			return nil, err
 		}
 		answers = append(answers, answer)
