@@ -26,6 +26,28 @@ type Quiz struct {
 	Enabled        bool          `json:"enabled"`
 }
 
+type QuizDto struct {
+	ID             int           `json:"id"`
+	TypeID         int           `json:"typeId"`
+	BadgeID        sql.NullInt64 `json:"badgeId"`
+	ContinentID    sql.NullInt64 `json:"continentId"`
+	Country        string        `json:"country"`
+	Singular       string        `json:"singular"`
+	Name           string        `json:"name"`
+	MaxScore       int           `json:"maxScore"`
+	Time           int           `json:"time"`
+	MapName        string        `json:"mapName"`
+	Map            MapDto        `json:"map"`
+	ImageURL       string        `json:"imageUrl"`
+	Plural         string        `json:"plural"`
+	APIPath        string        `json:"apiPath"`
+	Route          string        `json:"route"`
+	HasLeaderboard bool          `json:"hasLeaderboard"`
+	HasGrouping    bool          `json:"hasGrouping"`
+	HasFlags       bool          `json:"hasFlags"`
+	Enabled        bool          `json:"enabled"`
+}
+
 type TriviaQuizDto struct {
 	Name     string `json:"name"`
 	MapSVG   string `json:"mapSVG"`
@@ -118,6 +140,22 @@ var GetQuiz = func(id int) (Quiz, error) {
 	statement := "SELECT * FROM quizzes WHERE id = $1;"
 	var quiz Quiz
 	err := Connection.QueryRow(statement, id).Scan(&quiz.ID, &quiz.TypeID, &quiz.BadgeID, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapSVG, &quiz.ImageURL, &quiz.Plural, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
+	return quiz, err
+}
+
+var GetQuizByRoute = func(route string) (QuizDto, error) {
+	statement := "SELECT * FROM quizzes WHERE route = $1;"
+	var quiz QuizDto
+	err := Connection.QueryRow(statement, route).Scan(&quiz.ID, &quiz.TypeID, &quiz.BadgeID, &quiz.ContinentID, &quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MaxScore, &quiz.Time, &quiz.MapName, &quiz.ImageURL, &quiz.Plural, &quiz.APIPath, &quiz.Route, &quiz.HasLeaderboard, &quiz.HasGrouping, &quiz.HasFlags, &quiz.Enabled)
+
+	if quiz.MapName != "" {
+		svgMap, err := GetMap(quiz.MapName)
+		if err != nil {
+			return QuizDto{}, err
+		}
+		quiz.Map = svgMap
+	}
+
 	return quiz, err
 }
 

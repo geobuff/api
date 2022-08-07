@@ -27,9 +27,11 @@ type GetCommunityQuizQuestionDto struct {
 	TypeID             int                         `json:"typeId"`
 	Type               string                      `json:"type"`
 	Question           string                      `json:"question"`
-	Map                string                      `json:"map"`
+	MapName            string                      `json:"mapName"`
+	Map                MapDto                      `json:"map"`
 	Highlighted        string                      `json:"highlighted"`
 	FlagCode           string                      `json:"flagCode"`
+	FlagUrl            sql.NullString              `json:"flagUrl"`
 	ImageUrl           string                      `json:"imageUrl"`
 	ImageAttributeName string                      `json:"imageAttributeName"`
 	ImageAttributeURL  string                      `json:"imageAttributeUrl"`
@@ -106,7 +108,7 @@ func GetCommunityQuizQuestionIds(quizID int) ([]int, error) {
 }
 
 func GetCommunityQuizQuestions(quizID int) ([]GetCommunityQuizQuestionDto, error) {
-	statement := "SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, q.imageurl, q.imageAttributeName, q.imageAttributeUrl, q.imageWidth, q.imageHeight, q.imageAlt, q.explainer FROM communityquizquestions q JOIN triviaQuestionType t ON t.id = q.typeid WHERE communityquizid = $1;"
+	statement := "SELECT q.id, q.typeid, t.name, q.question, q.map, q.highlighted, q.flagcode, f.url, q.imageurl, q.imageAttributeName, q.imageAttributeUrl, q.imageWidth, q.imageHeight, q.imageAlt, q.explainer FROM communityquizquestions q JOIN triviaQuestionType t ON t.id = q.typeid LEFT JOIN flagEntries f ON f.code = q.flagCode WHERE communityquizid = $1;"
 	rows, err := Connection.Query(statement, quizID)
 	if err != nil {
 		return nil, err
@@ -116,8 +118,16 @@ func GetCommunityQuizQuestions(quizID int) ([]GetCommunityQuizQuestionDto, error
 	var questions = []GetCommunityQuizQuestionDto{}
 	for rows.Next() {
 		var question GetCommunityQuizQuestionDto
-		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.Question, &question.Map, &question.Highlighted, &question.FlagCode, &question.ImageUrl, &question.ImageAttributeName, &question.ImageAttributeURL, &question.ImageWidth, &question.ImageHeight, &question.ImageAlt, &question.Explainer); err != nil {
+		if err = rows.Scan(&question.ID, &question.TypeID, &question.Type, &question.Question, &question.MapName, &question.Highlighted, &question.FlagCode, &question.FlagUrl, &question.ImageUrl, &question.ImageAttributeName, &question.ImageAttributeURL, &question.ImageWidth, &question.ImageHeight, &question.ImageAlt, &question.Explainer); err != nil {
 			return nil, err
+		}
+
+		if question.MapName != "" {
+			svgMap, err := GetMap(question.MapName)
+			if err != nil {
+				return nil, err
+			}
+			question.Map = svgMap
 		}
 
 		answers, err := GetCommunityQuizAnswers(question.ID)

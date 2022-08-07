@@ -11,10 +11,11 @@ type CommunityQuizAnswer struct {
 }
 
 type GetCommunityQuizAnswerDto struct {
-	ID        int    `json:"id"`
-	Text      string `json:"text"`
-	IsCorrect bool   `json:"isCorrect"`
-	FlagCode  string `json:"flagCode"`
+	ID        int            `json:"id"`
+	Text      string         `json:"text"`
+	IsCorrect bool           `json:"isCorrect"`
+	FlagCode  string         `json:"flagCode"`
+	FlagUrl   sql.NullString `json:"flagUrl"`
 }
 
 type CreateCommunityQuizAnswerDto struct {
@@ -31,7 +32,7 @@ type UpdateCommunityQuizAnswerDto struct {
 }
 
 func GetCommunityQuizAnswers(questionID int) ([]GetCommunityQuizAnswerDto, error) {
-	statement := "SELECT id, text, iscorrect, flagcode FROM communityquizanswers WHERE communityquizquestionid = $1;"
+	statement := "SELECT a.id, a.text, a.iscorrect, a.flagcode, f.url FROM communityquizanswers a LEFT JOIN flagentries f ON f.code = a.flagcode WHERE communityquizquestionid = $1;"
 	rows, err := Connection.Query(statement, questionID)
 	if err != nil {
 		return nil, err
@@ -41,7 +42,7 @@ func GetCommunityQuizAnswers(questionID int) ([]GetCommunityQuizAnswerDto, error
 	var answers = []GetCommunityQuizAnswerDto{}
 	for rows.Next() {
 		var answer GetCommunityQuizAnswerDto
-		if err = rows.Scan(&answer.ID, &answer.Text, &answer.IsCorrect, &answer.FlagCode); err != nil {
+		if err = rows.Scan(&answer.ID, &answer.Text, &answer.IsCorrect, &answer.FlagCode, &answer.FlagUrl); err != nil {
 			return nil, err
 		}
 		answers = append(answers, answer)

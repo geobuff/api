@@ -69,6 +69,17 @@ func GetQuiz(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(quiz)
 }
 
+func GetQuizByRoute(writer http.ResponseWriter, request *http.Request) {
+	quiz, err := repo.GetQuizByRoute(mux.Vars(request)["route"])
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(quiz)
+}
+
 func CreateQuiz(writer http.ResponseWriter, request *http.Request) {
 	if code, err := auth.IsAdmin(request); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
