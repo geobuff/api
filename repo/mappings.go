@@ -1,6 +1,8 @@
 package repo
 
 import (
+	"database/sql"
+
 	"github.com/lib/pq"
 )
 
@@ -26,7 +28,7 @@ type MappingEntryDto struct {
 	GroupID          int             `json:"groupId"`
 	Name             string          `json:"name"`
 	Code             string          `json:"code"`
-	FlagUrl          string          `json:"flagUrl"`
+	FlagUrl          sql.NullString  `json:"flagUrl"`
 	SVGName          string          `json:"svgName"`
 	AlternativeNames *pq.StringArray `json:"alternativeNames"`
 	Prefixes         *pq.StringArray `json:"prefixes"`
