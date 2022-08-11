@@ -191,6 +191,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/maps", maps.GetMaps).Methods("GET")
 	router.HandleFunc("/api/maps/highlighted/{className}", maps.GetMapHighlightedRegions).Methods("GET")
 	router.HandleFunc("/api/maps/{className}", maps.GetMap).Methods("GET")
+	router.HandleFunc("/api/maps/preview", maps.GetMapPreview).Methods("POST")
 
 	// Flag endpoints.
 	router.HandleFunc("/api/flags", flags.GetFlagGroups).Methods("GET")
