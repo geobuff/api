@@ -18,9 +18,9 @@ type SvgDto struct {
 }
 
 type CreateMapDto struct {
-	SVGMap   repo.MapDto         `json:"svgMap"`
-	Mappings []repo.MappingEntry `json:"mappings"`
-	Quiz     repo.CreateQuizDto  `json:"quiz"`
+	SVGMap   repo.MapDto            `json:"svgMap"`
+	Mappings repo.CreateMappingsDto `json:"mappings"`
+	Quiz     repo.CreateQuizDto     `json:"quiz"`
 }
 
 func GetMaps(writer http.ResponseWriter, request *http.Request) {
@@ -138,7 +138,21 @@ func CreateMap(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	fmt.Println(payload.SVGMap)
-	fmt.Println(payload.Mappings)
-	fmt.Println(payload.Quiz)
+	err = repo.CreateMap(payload.SVGMap)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	err = repo.CreateMappings(payload.Mappings)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = repo.CreateQuiz(payload.Quiz)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
 }

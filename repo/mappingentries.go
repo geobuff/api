@@ -2,15 +2,10 @@ package repo
 
 import (
 	"database/sql"
+	"strings"
 
 	"github.com/lib/pq"
 )
-
-type MappingGroup struct {
-	ID    int    `json:"id"`
-	Key   string `json:"key"`
-	Label string `json:"label"`
-}
 
 type MappingEntry struct {
 	ID               int             `json:"id"`
@@ -35,22 +30,9 @@ type MappingEntryDto struct {
 	Grouping         string          `json:"grouping"`
 }
 
-func GetMappingGroups() ([]MappingGroup, error) {
-	rows, err := Connection.Query("SELECT * from mappingGroups ORDER BY key ASC;")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var groups = []MappingGroup{}
-	for rows.Next() {
-		var group MappingGroup
-		if err = rows.Scan(&group.ID, &group.Key, &group.Label); err != nil {
-			return nil, err
-		}
-		groups = append(groups, group)
-	}
-	return groups, rows.Err()
+type CreateMappingEntryDto struct {
+	Name string `json:"name"`
+	Code string `json:"code"`
 }
 
 func GetMappingEntries(key string) ([]MappingEntryDto, error) {
@@ -69,4 +51,10 @@ func GetMappingEntries(key string) ([]MappingEntryDto, error) {
 		entries = append(entries, entry)
 	}
 	return entries, rows.Err()
+}
+
+func CreateMappingEntry(groupId int, entry CreateMappingEntryDto) error {
+	var id int
+	statement := "INSERT INTO mappingentries (groupid, name, code, svgname, alternativenames, prefixes, grouping) values ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
+	return Connection.QueryRow(statement, groupId, strings.ToLower(entry.Name), entry.Code, entry.Name, pq.Array([]string{}), pq.Array([]string{}), "").Scan(&id)
 }
