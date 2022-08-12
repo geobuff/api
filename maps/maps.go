@@ -17,6 +17,12 @@ type SvgDto struct {
 	SVG string `json:"svg"`
 }
 
+type CreateMapDto struct {
+	SVGMap   repo.MapDto         `json:"svgMap"`
+	Mappings []repo.MappingEntry `json:"mappings"`
+	Quiz     repo.CreateQuizDto  `json:"quiz"`
+}
+
 func GetMaps(writer http.ResponseWriter, request *http.Request) {
 	maps, err := repo.GetMaps()
 	if err != nil {
@@ -116,4 +122,23 @@ func GetMapPreview(writer http.ResponseWriter, request *http.Request) {
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(result)
+}
+
+func CreateMap(writer http.ResponseWriter, request *http.Request) {
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var payload CreateMapDto
+	err = json.Unmarshal(requestBody, &payload)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println(payload.SVGMap)
+	fmt.Println(payload.Mappings)
+	fmt.Println(payload.Quiz)
 }
