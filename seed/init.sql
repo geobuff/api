@@ -159,7 +159,6 @@ INSERT INTO triviaQuestionCategory (name) values
 ('Currency'),
 ('Rivers'),
 ('Borders'),
-('Community Quiz'),
 ('Misc'),
 ('Mountains'),
 ('Exports'),

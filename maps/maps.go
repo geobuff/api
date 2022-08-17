@@ -63,18 +63,29 @@ func GetMapPreview(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var svg SvgDto
-	err = json.Unmarshal(requestBody, &svg)
+	var svgDto SvgDto
+	err = json.Unmarshal(requestBody, &svgDto)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
 
+	preview, err := getMapPreview(svgDto.SVG)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(preview)
+}
+
+func getMapPreview(svg string) (repo.MapDto, error) {
 	result := repo.MapDto{
 		ID:        0,
 		Key:       "preview",
 		ClassName: "Preview",
-		Label:     "map preview",
+		Label:     "Map Preview",
 		ViewBox:   "",
 		Elements:  []repo.MapElementDto{},
 	}
@@ -82,7 +93,7 @@ func GetMapPreview(writer http.ResponseWriter, request *http.Request) {
 	var width string
 	var height string
 	var currentElement repo.MapElementDto
-	scanner := bufio.NewScanner(strings.NewReader(svg.SVG))
+	scanner := bufio.NewScanner(strings.NewReader(svg))
 	for scanner.Scan() {
 		text := scanner.Text()
 
@@ -112,16 +123,14 @@ func GetMapPreview(writer http.ResponseWriter, request *http.Request) {
 	result.ViewBox = fmt.Sprintf("0 0 %s %s", width, height)
 
 	if err := scanner.Err(); err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
+		return repo.MapDto{}, err
 	}
 
 	sort.Slice(result.Elements, func(i, j int) bool {
 		return result.Elements[i].Name < result.Elements[j].Name
 	})
 
-	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(result)
+	return result, nil
 }
 
 func CreateMap(writer http.ResponseWriter, request *http.Request) {
