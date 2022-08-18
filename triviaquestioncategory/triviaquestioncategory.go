@@ -9,7 +9,7 @@ import (
 )
 
 func GetTriviaQuestionCategories(writer http.ResponseWriter, request *http.Request) {
-	categories, err := repo.GetTriviaQuestionCategories()
+	categories, err := repo.GetTriviaQuestionCategories(false)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return

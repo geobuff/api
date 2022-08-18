@@ -122,7 +122,7 @@ func generateQuestions(triviaId, max int) (int, error) {
 
 	count = count + todaysQuestionCount
 	if count < max {
-		categories, err := GetTriviaQuestionCategories()
+		categories, err := GetTriviaQuestionCategories(true)
 		if err != nil {
 			return count, err
 		}
