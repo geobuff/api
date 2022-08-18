@@ -154,12 +154,13 @@ INSERT INTO communityQuizStatus (name) values
 ('Pending'),
 ('Approved');
 
-INSERT INTO triviaQuestionCategory (name) values
-('Landmarks'),
-('Currency'),
-('Rivers'),
-('Borders'),
-('Misc'),
-('Mountains'),
-('Exports'),
-('Sports');
+INSERT INTO triviaQuestionCategory (name, isactive) values
+('Landmarks', TRUE),
+('Currency', TRUE),
+('Rivers', TRUE),
+('Borders', TRUE),
+('Community Quiz', FALSE),
+('Misc', TRUE),
+('Mountains', TRUE),
+('Exports', TRUE),
+('Sports', TRUE);
