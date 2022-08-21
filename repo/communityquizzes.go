@@ -55,6 +55,7 @@ type CreateCommunityQuizDto struct {
 	Description string                           `json:"description"`
 	MaxScore    int                              `json:"maxScore"`
 	IsPublic    bool                             `json:"isPublic"`
+	IsVerified  bool                             `json:"isVerified"`
 	Questions   []CreateCommunityQuizQuestionDto `json:"questions"`
 }
 
@@ -113,9 +114,9 @@ func GetUserCommunityQuizzes(userID int) ([]CommunityQuizDto, error) {
 }
 
 func InsertCommunityQuiz(quiz CreateCommunityQuizDto) error {
-	statement := "INSERT INTO communityquizzes (userid, statusid, name, description, maxscore, ispublic, added) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
+	statement := "INSERT INTO communityquizzes (userid, statusid, name, description, maxscore, ispublic, verified, added) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;"
 	var quizID int
-	if err := Connection.QueryRow(statement, quiz.UserID, COMMUNITY_QUIZ_STATUS_APPROVED, quiz.Name, quiz.Description, quiz.MaxScore, quiz.IsPublic, time.Now()).Scan(&quizID); err != nil {
+	if err := Connection.QueryRow(statement, quiz.UserID, COMMUNITY_QUIZ_STATUS_APPROVED, quiz.Name, quiz.Description, quiz.MaxScore, quiz.IsPublic, quiz.IsVerified, time.Now()).Scan(&quizID); err != nil {
 		return err
 	}
 
