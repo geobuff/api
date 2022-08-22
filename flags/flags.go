@@ -63,5 +63,8 @@ func CreateFlags(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	fmt.Println(newFlags)
+	if err := repo.CreateFlags(newFlags); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
 }

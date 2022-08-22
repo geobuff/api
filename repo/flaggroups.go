@@ -29,3 +29,18 @@ func GetFlagGroups() ([]FlagGroup, error) {
 	}
 	return groups, rows.Err()
 }
+
+func CreateFlags(flags CreateFlagsDto) error {
+	statement := "INSERT INTO flagGroups (key, label) VALUES ($1, $2) RETURNING id;"
+	var groupId int
+	if err := Connection.QueryRow(statement, flags.Key, flags.Label).Scan(&groupId); err != nil {
+		return err
+	}
+
+	for _, entry := range flags.Entries {
+		if err := CreateFlagEntry(groupId, entry); err != nil {
+			return err
+		}
+	}
+	return nil
+}

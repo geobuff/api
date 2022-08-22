@@ -36,3 +36,9 @@ func GetFlagUrl(code string) (string, error) {
 	err := Connection.QueryRow(statement, code).Scan(&url)
 	return url, err
 }
+
+func CreateFlagEntry(groupId int, entry CreateFlagEntryDto) error {
+	statement := "INSERT INTO flagEntries (groupId, code, url) VALUES ($1, $2, $3) RETURNING id;"
+	var id string
+	return Connection.QueryRow(statement, groupId, entry.Code, entry.Url).Scan(&id)
+}
