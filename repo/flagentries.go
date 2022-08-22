@@ -1,11 +1,5 @@
 package repo
 
-type FlagGroup struct {
-	ID    int    `json:"id"`
-	Key   string `json:"key"`
-	Label string `json:"label"`
-}
-
 type FlagEntry struct {
 	ID      int    `json:"id"`
 	GroupID int    `json:"groupId"`
@@ -13,22 +7,9 @@ type FlagEntry struct {
 	Url     string `json:"url"`
 }
 
-func GetFlagGroups() ([]FlagGroup, error) {
-	rows, err := Connection.Query("SELECT * from flagGroups;")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var groups = []FlagGroup{}
-	for rows.Next() {
-		var group FlagGroup
-		if err = rows.Scan(&group.ID, &group.Key, &group.Label); err != nil {
-			return nil, err
-		}
-		groups = append(groups, group)
-	}
-	return groups, rows.Err()
+type CreateFlagEntryDto struct {
+	Code string `json:"code"`
+	Url  string `json:"url"`
 }
 
 func GetFlagEntries(key string) ([]FlagEntry, error) {
@@ -54,4 +35,10 @@ func GetFlagUrl(code string) (string, error) {
 	var url string
 	err := Connection.QueryRow(statement, code).Scan(&url)
 	return url, err
+}
+
+func CreateFlagEntry(groupId int, entry CreateFlagEntryDto) error {
+	statement := "INSERT INTO flagEntries (groupId, code, url) VALUES ($1, $2, $3) RETURNING id;"
+	var id string
+	return Connection.QueryRow(statement, groupId, entry.Code, entry.Url).Scan(&id)
 }

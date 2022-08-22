@@ -186,6 +186,7 @@ func router() http.Handler {
 	// Mapping endpoints.
 	router.HandleFunc("/api/mappings", mappings.GetMappingGroups).Methods("GET")
 	router.HandleFunc("/api/mappings/{key}", mappings.GetMappingEntries).Methods("GET")
+	router.HandleFunc("/api/mappings-no-flags", mappings.GetMappingsWithoutFlags).Methods("GET")
 
 	// Map endpoints.
 	router.HandleFunc("/api/maps", maps.GetMaps).Methods("GET")
@@ -198,6 +199,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/flags", flags.GetFlagGroups).Methods("GET")
 	router.HandleFunc("/api/flags/{key}", flags.GetFlagEntries).Methods("GET")
 	router.HandleFunc("/api/flags/url/{code}", flags.GetFlagUrl).Methods("GET")
+	router.HandleFunc("/api/flags", flags.CreateFlags).Methods("POST")
 
 	// Continent endpoints.
 	router.HandleFunc("/api/continents", continents.GetContinents).Methods("GET")

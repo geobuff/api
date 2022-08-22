@@ -30,3 +30,14 @@ func GetMappingEntries(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(mapping)
 }
+
+func GetMappingsWithoutFlags(writer http.ResponseWriter, request *http.Request) {
+	keys, err := repo.GetMappingsWithoutFlags()
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(keys)
+}
