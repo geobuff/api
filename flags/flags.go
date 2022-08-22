@@ -3,8 +3,10 @@ package flags
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
+	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
 )
@@ -40,4 +42,26 @@ func GetFlagUrl(writer http.ResponseWriter, request *http.Request) {
 
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(url)
+}
+
+func CreateFlags(writer http.ResponseWriter, request *http.Request) {
+	if code, err := auth.IsAdmin(request); err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), code)
+		return
+	}
+
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var newFlags repo.CreateFlagsDto
+	err = json.Unmarshal(requestBody, &newFlags)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println(newFlags)
 }
