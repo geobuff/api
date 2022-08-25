@@ -1,9 +1,10 @@
 package repo
 
 type TriviaQuestionCategory struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	IsActive bool   `json:"isActive"`
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	IsActive  bool   `json:"isActive"`
+	ImageOnly bool   `json:"imageOnly"`
 }
 
 func GetTriviaQuestionCategories(onlyActive bool) ([]TriviaQuestionCategory, error) {
@@ -22,7 +23,7 @@ func GetTriviaQuestionCategories(onlyActive bool) ([]TriviaQuestionCategory, err
 	var categories = []TriviaQuestionCategory{}
 	for rows.Next() {
 		var category TriviaQuestionCategory
-		if err = rows.Scan(&category.ID, &category.Name, &category.IsActive); err != nil {
+		if err = rows.Scan(&category.ID, &category.Name, &category.IsActive, &category.ImageOnly); err != nil {
 			return nil, err
 		}
 		categories = append(categories, category)
