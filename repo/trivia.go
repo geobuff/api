@@ -128,16 +128,24 @@ func generateQuestions(triviaId, max int) (int, error) {
 		}
 
 		remainder := max - count
-		var allowedCategories []int
+		var allowedCategories []TriviaQuestionCategory
 		for i := 0; i < remainder; i++ {
 			index := rand.Intn(len(categories))
-			allowedCategories = append(allowedCategories, categories[index].ID)
+			allowedCategories = append(allowedCategories, categories[index])
 			categories = append(categories[:index], categories[index+1:]...)
 		}
 
 		maxTextCount := remainder / 2
-		textCategories := allowedCategories[:maxTextCount-1]
-		imageCategories := allowedCategories[maxTextCount-1:]
+		var textCategories []int
+		var imageCategories []int
+		for i := 0; i < len(allowedCategories); i++ {
+			curr := allowedCategories[i]
+			if !curr.ImageOnly && len(textCategories) < maxTextCount {
+				textCategories = append(textCategories, curr.ID)
+			} else {
+				imageCategories = append(imageCategories, curr.ID)
+			}
+		}
 
 		textQuestionCount, err := setRandomManualTriviaQuestions(triviaId, QUESTION_TYPE_TEXT, maxTextCount, textCategories)
 		if err != nil && err != sql.ErrNoRows {
