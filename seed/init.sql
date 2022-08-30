@@ -161,6 +161,7 @@ INSERT INTO triviaQuestionCategory (name, isactive, imageonly) values
 ('Borders', TRUE, FALSE),
 ('Community Quiz', FALSE, FALSE),
 ('Misc', FALSE, FALSE),
-('Mountains', TRUE, FALSE),
+('Mountains', TRUE, TRUE),
 ('Exports', TRUE, FALSE),
-('Sports', TRUE, FALSE);
+('Sports', TRUE, FALSE),
+('Business', TRUE, FALSE);
