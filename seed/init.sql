@@ -164,4 +164,5 @@ INSERT INTO triviaQuestionCategory (name, isactive, imageonly) values
 ('Mountains', TRUE, TRUE),
 ('Exports', TRUE, FALSE),
 ('Sports', TRUE, FALSE),
-('Business', TRUE, FALSE);
+('Business', TRUE, FALSE),
+('Film', TRUE, TRUE);
