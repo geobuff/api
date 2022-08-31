@@ -17,7 +17,7 @@ INSERT INTO flagGroups (key, label) values
 ('us-states', '🇺🇸 US, States');
 
 INSERT INTO flagEntries (groupId, code, url) values
-(1, 'buff', 'https://ik.imagekit.io/ucszu5sud3vz/flag-geobuff-sm'),
+(1, 'buff', 'https://geobuff.sgp1.digitaloceanspaces.com/flags/geobuff.png'),
 (1, 'ad', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e6-1f1e9.svg'),
 (1, 'ae', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e6-1f1ea.svg'),
 (1, 'af', 'https://twemoji.maxcdn.com/v/13.0.1/svg/1f1e6-1f1eb.svg'),
