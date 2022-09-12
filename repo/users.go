@@ -80,8 +80,16 @@ type TotalUsersDto struct {
 	Count int    `json:"count"`
 }
 
-var GetUsers = func(limit int, offset int) ([]UserDto, error) {
-	rows, err := Connection.Query("SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, f.url, u.joined, u.isadmin, u.xp FROM users u JOIN avatars a on a.id = u.avatarid JOIN flagentries f ON f.code = u.countrycode ORDER BY joined DESC LIMIT $1 OFFSET $2;", limit, offset)
+type GetUsersFilterParams struct {
+	Page   int    `json:"page"`
+	Limit  int    `json:"limit"`
+	Filter string `json:"filter"`
+}
+
+var GetUsers = func(filter GetUsersFilterParams) ([]UserDto, error) {
+	statement := "SELECT u.id, a.id, a.name, a.description, a.primaryimageurl, a.secondaryimageurl, u.username, u.email, u.countrycode, f.url, u.joined, u.isadmin, u.xp FROM users u JOIN avatars a on a.id = u.avatarid JOIN flagentries f ON f.code = u.countrycode WHERE u.username ILIKE '%' || $1 || '%' OR u.email ILIKE '%' || $1 || '%' ORDER BY u.joined DESC LIMIT $2 OFFSET $3;"
+	rows, err := Connection.Query(statement, filter.Filter, filter.Limit, filter.Limit*filter.Page)
+
 	if err != nil {
 		return nil, err
 	}
@@ -98,10 +106,10 @@ var GetUsers = func(limit int, offset int) ([]UserDto, error) {
 	return users, rows.Err()
 }
 
-var GetFirstUserID = func(offset int) (int, error) {
-	statement := "SELECT id FROM users LIMIT 1 OFFSET $1;"
+var GetFirstUserID = func(filter GetUsersFilterParams) (int, error) {
+	statement := "SELECT id FROM users WHERE username ILIKE '%' || $1 || '%' OR email ILIKE '%' || $1 || '%' ORDER BY joined DESC LIMIT 1 OFFSET $2;"
 	var id int
-	err := Connection.QueryRow(statement, offset).Scan(&id)
+	err := Connection.QueryRow(statement, filter.Filter, filter.Page+1*filter.Limit).Scan(&id)
 	return id, err
 }
 
