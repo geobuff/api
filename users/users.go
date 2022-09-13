@@ -20,25 +20,31 @@ type UserPageDto struct {
 }
 
 func GetUsers(writer http.ResponseWriter, request *http.Request) {
-	pageParam := request.URL.Query().Get("page")
-	page, err := strconv.Atoi(pageParam)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
 	if code, err := auth.IsAdmin(request); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)
 		return
 	}
 
-	users, err := repo.GetUsers(10, page*10)
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	var filterParams repo.GetUsersFilterParams
+	err = json.Unmarshal(requestBody, &filterParams)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
+		return
+	}
+
+	users, err := repo.GetUsers(filterParams)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return
 	}
 
-	switch _, err := repo.GetFirstUserID((page + 1) * 10); err {
+	switch _, err := repo.GetFirstUserID(filterParams); err {
 	case sql.ErrNoRows:
 		entriesDto := UserPageDto{users, false}
 		writer.Header().Set("Content-Type", "application/json")

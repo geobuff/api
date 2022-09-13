@@ -215,7 +215,7 @@ func router() http.Handler {
 	router.HandleFunc("/api/auth/email/{email}", auth.EmailExists).Methods("GET")
 
 	// User endpoints.
-	router.HandleFunc("/api/users", users.GetUsers).Methods("GET")
+	router.HandleFunc("/api/users/all", users.GetUsers).Methods("POST")
 	router.HandleFunc("/api/users/{id}", users.GetUser).Methods("GET")
 	router.HandleFunc("/api/users/email/{email}", users.GetUserByEmail).Methods("GET")
 	router.HandleFunc("/api/users/total/week", users.GetLastWeekTotalUsers).Methods("GET")
