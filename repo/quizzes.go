@@ -57,10 +57,10 @@ type TriviaQuizDto struct {
 }
 
 type QuizzesFilterDto struct {
-	Filter            string `json:"filter"`
 	Page              int    `json:"page"`
 	Limit             int    `json:"limit"`
 	OrderByPopularity bool   `json:"orderByPopularity"`
+	Filter            string `json:"filter"`
 }
 
 type CreateQuizDto struct {
@@ -104,7 +104,7 @@ type UpdateQuizDto struct {
 }
 
 var GetQuizzes = func(filter QuizzesFilterDto) ([]Quiz, error) {
-	statement := "SELECT q.id, q.typeid, q.badgeid, q.continentid, q.country, q.singular, q.name, q.maxscore, q.time, q.mapsvg, q.imageurl, q.plural, q.apipath, q.route, q.hasleaderboard, q.hasgrouping, q.hasflags, q.enabled FROM quizzes q JOIN quizType t ON t.id = q.typeId LEFT JOIN quizPlays p ON q.id = p.quizId WHERE q.name ILIKE '%' || $1 || '%' OR t.name ILIKE '%' || $1 || '%' "
+	statement := "SELECT q.id, q.typeid, q.badgeid, q.continentid, q.country, q.singular, q.name, q.maxscore, q.time, q.mapsvg, q.imageurl, q.plural, q.apipath, q.route, q.hasleaderboard, q.hasgrouping, q.hasflags, q.enabled FROM quizzes q JOIN quizType t ON t.id = q.typeId LEFT JOIN quizPlays p ON q.id = p.quizId WHERE q.name ILIKE '%' || $1 || '%' OR t.name ILIKE '%' || $1 || '%' OR q.country ILIKE '%' || $1 || '%' "
 
 	if filter.OrderByPopularity {
 		statement = statement + "ORDER BY p.plays, q.country NULLS FIRST LIMIT $2 OFFSET $3;"
