@@ -12,6 +12,11 @@ type CreateMappingsDto struct {
 	Entries []CreateMappingEntryDto `json:"entries"`
 }
 
+type UpdateMappingDto struct {
+	Label   string                  `json:"label"`
+	Entries []UpdateMappingEntryDto `json:"entries"`
+}
+
 type MappingsWithoutFlagDto struct {
 	Key     string      `json:"key"`
 	Entries []FlagEntry `json:"entries"`
@@ -84,4 +89,69 @@ func GetMappingsWithoutFlags() ([]MappingsWithoutFlagDto, error) {
 	}
 
 	return results, rows.Err()
+}
+
+func UpdateMapping(key string, update UpdateMappingDto) error {
+	existingMappingEntries, err := GetMappingEntries(key)
+	if err != nil {
+		return err
+	}
+
+	svgMap, err := GetMapUsingKey(key)
+	if err != nil {
+		return err
+	}
+
+	for _, mapEntry := range svgMap.Elements {
+		for _, mappingEntry := range existingMappingEntries {
+			if mappingEntry.SVGName == mapEntry.Name {
+				var updatedEntry UpdateMapElementDto
+				for _, val := range update.Entries {
+					if val.ID == mappingEntry.ID {
+						updatedEntry = UpdateMapElementDto{
+							Name:      val.Name,
+							ElementID: val.Code,
+						}
+					}
+				}
+
+				if err := UpdateMapElement(mapEntry.EntryID, updatedEntry); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	for _, entry := range update.Entries {
+		if err := UpdateMappingEntry(entry); err != nil {
+			return err
+		}
+	}
+
+	var id int
+	return Connection.QueryRow("UPDATE mappingGroups set label = $1 RETURNING id;", update.Label).Scan(&id)
+}
+
+func GetMappingGroupId(key string) (int, error) {
+	var id int
+	err := Connection.QueryRow("SELECT id from mappingGroups WHERE key = $1;", key).Scan(&id)
+	return id, err
+}
+
+func DeleteMappingGroup(groupId int) error {
+	var id int
+	return Connection.QueryRow("DELETE FROM mappingGroups where id = $1 RETURNING id;", groupId).Scan(&id)
+}
+
+func DeleteMapping(key string) error {
+	mappingGroupId, err := GetMappingGroupId(key)
+	if err != nil {
+		return err
+	}
+
+	if err = DeleteMappingEntries(mappingGroupId); err != nil {
+		return err
+	}
+
+	return DeleteMappingGroup(mappingGroupId)
 }

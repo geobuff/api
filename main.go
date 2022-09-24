@@ -187,6 +187,8 @@ func router() http.Handler {
 	router.HandleFunc("/api/mappings", mappings.GetMappingGroups).Methods("GET")
 	router.HandleFunc("/api/mappings/{key}", mappings.GetMappingEntries).Methods("GET")
 	router.HandleFunc("/api/mappings-no-flags", mappings.GetMappingsWithoutFlags).Methods("GET")
+	router.HandleFunc("/api/mappings/{key}", mappings.EditMapping).Methods("PUT")
+	router.HandleFunc("/api/mappings/{key}", mappings.DeleteMapping).Methods("DELETE")
 
 	// Map endpoints.
 	router.HandleFunc("/api/maps", maps.GetMaps).Methods("GET")

@@ -74,6 +74,23 @@ func GetMap(className string) (MapDto, error) {
 	return m, nil
 }
 
+func GetMapUsingKey(key string) (MapDto, error) {
+	statement := "SELECT * from maps WHERE key = $1;"
+	var m MapDto
+	err := Connection.QueryRow(statement, key).Scan(&m.ID, &m.Key, &m.ClassName, &m.Label, &m.ViewBox)
+	if err != nil {
+		return MapDto{}, err
+	}
+
+	elements, err := GetMapElements(m.ID)
+	if err != nil {
+		return MapDto{}, err
+	}
+
+	m.Elements = elements
+	return m, nil
+}
+
 func GetMapHighlightedRegions(className string) ([]HighlightedRegionDto, error) {
 	statement := "SELECT id from maps WHERE classname = $1;"
 	var mapId int
@@ -103,4 +120,16 @@ func CreateMap(svgMap MapDto) error {
 		}
 	}
 	return nil
+}
+
+func GetMapId(key string) (int, error) {
+	statement := "SELECT id from maps WHERE key = $1;"
+	var id int
+	err := Connection.QueryRow(statement, key).Scan(&id)
+	return id, err
+}
+
+func DeleteMap(mapId int) error {
+	var id int
+	return Connection.QueryRow("DELETE FROM maps where id = $1 RETURNING id;", mapId).Scan(&id)
 }

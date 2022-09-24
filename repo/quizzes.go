@@ -188,18 +188,44 @@ func UpdateQuiz(quizID int, quiz UpdateQuizDto) error {
 }
 
 func DeleteQuiz(quizID int) error {
+	// Delete quiz plays.
 	var id int
 	err := Connection.QueryRow("DELETE FROM quizplays where quizid = $1 RETURNING id;", quizID).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
 
+	// Delete leaderboard entries.
 	err = Connection.QueryRow("DELETE FROM leaderboard where quizid = $1 RETURNING id;", quizID).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
 
-	return Connection.QueryRow("DELETE FROM quizzes where id = $1 RETURNING id;", quizID).Scan(&id)
+	// Delete quiz.
+	var key string
+	var typeId int
+	err = Connection.QueryRow("DELETE FROM quizzes where id = $1 RETURNING typeId, apiPath;", quizID).Scan(&typeId, &key)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	if typeId == QUIZ_TYPE_MAP {
+		// Delete svg map.
+		mapId, err := GetMapId(key)
+		if err != nil {
+			return err
+		}
+
+		if err = DeleteMapElements(mapId); err != nil {
+			return err
+		}
+
+		if err = DeleteMap(mapId); err != nil {
+			return err
+		}
+	}
+
+	return err
 }
 
 func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
