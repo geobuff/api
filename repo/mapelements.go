@@ -88,7 +88,7 @@ func GetMapElements(mapId int) ([]MapElementDto, error) {
 	var elements = []MapElementDto{}
 	for rows.Next() {
 		var e MapElementDto
-		if err = rows.Scan(&e.ID, &e.MapID, &e.Type, &e.ID, &e.Name, &e.D, &e.Points, &e.X, &e.Y, &e.Width, &e.Height, &e.Cx, &e.Cy, &e.R, &e.Transform, &e.XlinkHref, &e.ClipPath, &e.ClipPathId, &e.X1, &e.Y1, &e.X2, &e.Y2); err != nil {
+		if err = rows.Scan(&e.EntryID, &e.MapID, &e.Type, &e.ID, &e.Name, &e.D, &e.Points, &e.X, &e.Y, &e.Width, &e.Height, &e.Cx, &e.Cy, &e.R, &e.Transform, &e.XlinkHref, &e.ClipPath, &e.ClipPathId, &e.X1, &e.Y1, &e.X2, &e.Y2); err != nil {
 			return nil, err
 		}
 		elements = append(elements, e)
@@ -134,5 +134,5 @@ func DeleteMapElements(mapId int) error {
 
 func UpdateMapElement(entryID int, entry UpdateMapElementDto) error {
 	var id int
-	return Connection.QueryRow("UPDATE mapelements SET name = $2, elementid = $3 WHERE id = $1;", entryID, entry.Name, entry.ElementID).Scan(&id)
+	return Connection.QueryRow("UPDATE mapelements SET name = $2, elementid = $3 WHERE id = $1 RETURNING id;", entryID, entry.Name, entry.ElementID).Scan(&id)
 }

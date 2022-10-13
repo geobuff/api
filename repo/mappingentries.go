@@ -36,13 +36,13 @@ type CreateMappingEntryDto struct {
 }
 
 type UpdateMappingEntryDto struct {
-	ID               int             `json:"id"`
-	Name             string          `json:"name"`
-	Code             string          `json:"code"`
-	SVGName          string          `json:"svgName"`
-	AlternativeNames *pq.StringArray `json:"alternativeNames"`
-	Prefixes         *pq.StringArray `json:"prefixes"`
-	Grouping         string          `json:"grouping"`
+	ID               int      `json:"id"`
+	Name             string   `json:"name"`
+	Code             string   `json:"code"`
+	SVGName          string   `json:"svgName"`
+	AlternativeNames []string `json:"alternativeNames"`
+	Prefixes         []string `json:"prefixes"`
+	Grouping         string   `json:"grouping"`
 }
 
 func GetMappingEntries(key string) ([]MappingEntryDto, error) {

@@ -105,18 +105,17 @@ func UpdateMapping(key string, update UpdateMappingDto) error {
 	for _, mapEntry := range svgMap.Elements {
 		for _, mappingEntry := range existingMappingEntries {
 			if mappingEntry.SVGName == mapEntry.Name {
-				var updatedEntry UpdateMapElementDto
 				for _, val := range update.Entries {
 					if val.ID == mappingEntry.ID {
-						updatedEntry = UpdateMapElementDto{
-							Name:      val.Name,
+						updatedEntry := UpdateMapElementDto{
+							Name:      val.SVGName,
 							ElementID: val.Code,
 						}
-					}
-				}
 
-				if err := UpdateMapElement(mapEntry.EntryID, updatedEntry); err != nil {
-					return err
+						if err := UpdateMapElement(mapEntry.EntryID, updatedEntry); err != nil {
+							return err
+						}
+					}
 				}
 			}
 		}
@@ -129,7 +128,7 @@ func UpdateMapping(key string, update UpdateMappingDto) error {
 	}
 
 	var id int
-	return Connection.QueryRow("UPDATE mappingGroups set label = $1 RETURNING id;", update.Label).Scan(&id)
+	return Connection.QueryRow("UPDATE mappingGroups set label = $2 WHERE key = $1 RETURNING id;", key, update.Label).Scan(&id)
 }
 
 func GetMappingGroupId(key string) (int, error) {
