@@ -51,7 +51,7 @@ type RegisterDto struct {
 }
 
 type RefreshTokenDto struct {
-	Token string `json:"token"`
+	Email string `json:"email"`
 }
 
 type PasswordResetDto struct {
@@ -188,15 +188,9 @@ func RefreshToken(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	claims, err := getClaims(refreshTokenDto.Token)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
-		return
-	}
-
-	user, err := repo.GetAuthUserUsingEmail(claims.Email)
+	user, err := repo.GetAuthUserUsingEmail(refreshTokenDto.Email)
 	if err == sql.ErrNoRows {
-		http.Error(writer, fmt.Sprintf("User with email %s does not exist.", claims.Email), http.StatusBadRequest)
+		http.Error(writer, fmt.Sprintf("User with email %s does not exist.", refreshTokenDto.Email), http.StatusBadRequest)
 		return
 	} else if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
