@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -11,6 +13,7 @@ import (
 
 	crypto_rand "crypto/rand"
 
+	"cloud.google.com/go/errorreporting"
 	"github.com/didip/tollbooth"
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/avatars"
@@ -49,6 +52,8 @@ import (
 	"github.com/rs/cors"
 )
 
+var errorClient *errorreporting.Client
+
 func main() {
 	var b [8]byte
 	_, err := crypto_rand.Read(b[:])
@@ -62,6 +67,21 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("successfully loaded .env config")
+
+	environment := os.Getenv("ENV")
+	if environment == DEV || environment == PROD {
+		ctx := context.Background()
+		errorClient, err = errorreporting.NewClient(ctx, os.Getenv("GOOGLE_PROJECT_ID"), errorreporting.Config{
+			OnError: func(err error) {
+				log.Printf("Could not log error: %v", err)
+			},
+		})
+
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer errorClient.Close()
+	}
 
 	err = repo.OpenConnection()
 	if err != nil {
