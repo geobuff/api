@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/geobuff/api/auth"
+	"github.com/geobuff/api/helpers"
 	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
 )
@@ -109,6 +110,81 @@ func GetTriviaByDate(writer http.ResponseWriter, request *http.Request) {
 	trivia, err := repo.GetTrivia(mux.Vars(request)["date"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	language := request.Header.Get("Content-Language")
+	if language != "" && language != "en" {
+		name, err := helpers.TranslateText(language, trivia.Name)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+			return
+		}
+
+		translatedTrivia := repo.TriviaDto{
+			ID:        trivia.ID,
+			Name:      name,
+			MaxScore:  trivia.MaxScore,
+			Questions: make([]repo.QuestionDto, len(trivia.Questions)),
+		}
+
+		for index, question := range trivia.Questions {
+			questionValue, err := helpers.TranslateText(language, question.Question)
+			if err != nil {
+				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+				return
+			}
+
+			imageAlt, err := helpers.TranslateText(language, question.ImageAlt)
+			if err != nil {
+				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+				return
+			}
+
+			explainer, err := helpers.TranslateText(language, question.Explainer)
+			if err != nil {
+				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+				return
+			}
+
+			answers := make([]repo.AnswerDto, len(question.Answers))
+			for index, answer := range question.Answers {
+				text, err := helpers.TranslateText(language, answer.Text)
+				if err != nil {
+					http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+					return
+				}
+
+				answers[index] = repo.AnswerDto{
+					Text:      text,
+					IsCorrect: answer.IsCorrect,
+					FlagCode:  answer.FlagCode,
+					FlagUrl:   answer.FlagUrl,
+				}
+			}
+
+			translatedTrivia.Questions[index] = repo.QuestionDto{
+				ID:                 question.ID,
+				Type:               question.Type,
+				Question:           questionValue,
+				MapName:            question.MapName,
+				Map:                question.Map,
+				Highlighted:        question.Highlighted,
+				FlagCode:           question.FlagCode,
+				FlagUrl:            question.FlagUrl,
+				ImageURL:           question.ImageURL,
+				ImageAttributeName: question.ImageAttributeName,
+				ImageAttributeURL:  question.ImageAttributeURL,
+				ImageWidth:         question.ImageWidth,
+				ImageHeight:        question.ImageHeight,
+				ImageAlt:           imageAlt,
+				Explainer:          explainer,
+				Answers:            answers,
+			}
+		}
+
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(translatedTrivia)
 		return
 	}
 
