@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/geobuff/api/auth"
+	"github.com/geobuff/api/helpers"
 	"github.com/geobuff/api/repo"
 	"github.com/gorilla/mux"
 )
@@ -35,6 +36,60 @@ func GetQuizzes(writer http.ResponseWriter, request *http.Request) {
 	quizzes, err := repo.GetQuizzes(filter)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	language := request.Header.Get("Content-Language")
+	if language != "" && language != "en" {
+		translatedQuizzes := make([]repo.Quiz, len(quizzes))
+
+		for index, quiz := range quizzes {
+			name, err := helpers.TranslateText(language, quiz.Name)
+			if err != nil {
+				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+				return
+			}
+
+			plural, err := helpers.TranslateText(language, quiz.Plural)
+			if err != nil {
+				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+				return
+			}
+
+			translatedQuizzes[index] = repo.Quiz{
+				ID:             quiz.ID,
+				TypeID:         quiz.TypeID,
+				BadgeID:        quiz.BadgeID,
+				ContinentID:    quiz.ContinentID,
+				Country:        quiz.Country,
+				Singular:       quiz.Singular,
+				Name:           name,
+				MaxScore:       quiz.MaxScore,
+				Time:           quiz.Time,
+				MapSVG:         quiz.MapSVG,
+				ImageURL:       quiz.ImageURL,
+				Plural:         plural,
+				APIPath:        quiz.APIPath,
+				Route:          quiz.Route,
+				HasLeaderboard: quiz.HasLeaderboard,
+				HasGrouping:    quiz.HasGrouping,
+				HasFlags:       quiz.HasFlags,
+				Enabled:        quiz.Enabled,
+			}
+		}
+
+		switch _, err := repo.GetFirstQuizID((filter.Page + 1) * filter.Limit); err {
+		case sql.ErrNoRows:
+			entriesDto := QuizPageDto{translatedQuizzes, false}
+			writer.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(writer).Encode(entriesDto)
+		case nil:
+			entriesDto := QuizPageDto{translatedQuizzes, true}
+			writer.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(writer).Encode(entriesDto)
+		default:
+			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		}
 		return
 	}
 

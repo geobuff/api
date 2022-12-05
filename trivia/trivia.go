@@ -92,6 +92,39 @@ func GetAllTrivia(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	language := request.Header.Get("Content-Language")
+	if language != "" && language != "en" {
+		translatedTrivia := make([]repo.Trivia, len(trivia))
+		for index, quiz := range trivia {
+			name, err := helpers.TranslateText(language, quiz.Name)
+			if err != nil {
+				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+				return
+			}
+
+			translatedTrivia[index] = repo.Trivia{
+				ID:       quiz.ID,
+				Name:     name,
+				Date:     quiz.Date,
+				MaxScore: quiz.MaxScore,
+			}
+		}
+
+		switch _, err := repo.GetFirstTriviaID(filter); err {
+		case sql.ErrNoRows:
+			entriesDto := GetTriviaDto{translatedTrivia, false}
+			writer.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(writer).Encode(entriesDto)
+		case nil:
+			entriesDto := GetTriviaDto{translatedTrivia, true}
+			writer.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(writer).Encode(entriesDto)
+		default:
+			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+		}
+		return
+	}
+
 	switch _, err := repo.GetFirstTriviaID(filter); err {
 	case sql.ErrNoRows:
 		entriesDto := GetTriviaDto{trivia, false}
