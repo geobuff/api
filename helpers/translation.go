@@ -3,14 +3,28 @@ package helpers
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"cloud.google.com/go/translate"
 	"golang.org/x/text/language"
 )
 
-func TranslateText(targetLanguage, text string) (string, error) {
-	ctx := context.Background()
+type key struct {
+	text     string
+	language string
+}
 
+var (
+	cache      = make(map[key]string)
+	cacheMutex = sync.RWMutex{}
+)
+
+func TranslateText(targetLanguage, text string) (string, error) {
+	if val, ok := cache[key{text, targetLanguage}]; ok {
+		return val, nil
+	}
+
+	ctx := context.Background()
 	lang, err := language.Parse(targetLanguage)
 	if err != nil {
 		return "", fmt.Errorf("language.Parse: %v", err)
@@ -26,8 +40,16 @@ func TranslateText(targetLanguage, text string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Translate: %v", err)
 	}
+
 	if len(resp) == 0 {
 		return "", fmt.Errorf("Translate returned empty response to text: %s", text)
 	}
-	return resp[0].Text, nil
+
+	translatedText := resp[0].Text
+
+	cacheMutex.Lock()
+	cache[key{text, targetLanguage}] = translatedText
+	cacheMutex.Unlock()
+
+	return translatedText, nil
 }
