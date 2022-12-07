@@ -9,8 +9,8 @@ import (
 	"strconv"
 
 	"github.com/geobuff/api/auth"
-	"github.com/geobuff/api/helpers"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/translation"
 	"github.com/gorilla/mux"
 )
 
@@ -96,7 +96,7 @@ func GetAllTrivia(writer http.ResponseWriter, request *http.Request) {
 	if language != "" && language != "en" {
 		translatedTrivia := make([]repo.Trivia, len(trivia))
 		for index, quiz := range trivia {
-			name, err := helpers.TranslateText(language, quiz.Name)
+			name, err := translation.TranslateText(language, quiz.Name)
 			if err != nil {
 				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 				return
@@ -148,7 +148,7 @@ func GetTriviaByDate(writer http.ResponseWriter, request *http.Request) {
 
 	language := request.Header.Get("Content-Language")
 	if language != "" && language != "en" {
-		name, err := helpers.TranslateText(language, trivia.Name)
+		name, err := translation.TranslateText(language, trivia.Name)
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 			return
@@ -162,19 +162,19 @@ func GetTriviaByDate(writer http.ResponseWriter, request *http.Request) {
 		}
 
 		for index, question := range trivia.Questions {
-			questionValue, err := helpers.TranslateText(language, question.Question)
+			questionValue, err := translation.TranslateText(language, question.Question)
 			if err != nil {
 				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 				return
 			}
 
-			imageAlt, err := helpers.TranslateText(language, question.ImageAlt)
+			imageAlt, err := translation.TranslateText(language, question.ImageAlt)
 			if err != nil {
 				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 				return
 			}
 
-			explainer, err := helpers.TranslateText(language, question.Explainer)
+			explainer, err := translation.TranslateText(language, question.Explainer)
 			if err != nil {
 				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 				return
@@ -182,7 +182,7 @@ func GetTriviaByDate(writer http.ResponseWriter, request *http.Request) {
 
 			answers := make([]repo.AnswerDto, len(question.Answers))
 			for index, answer := range question.Answers {
-				text, err := helpers.TranslateText(language, answer.Text)
+				text, err := translation.TranslateText(language, answer.Text)
 				if err != nil {
 					http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 					return

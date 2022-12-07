@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/geobuff/api/helpers"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/translation"
 )
 
 func GetAvatars(writer http.ResponseWriter, request *http.Request) {
@@ -39,12 +39,12 @@ func GetAvatars(writer http.ResponseWriter, request *http.Request) {
 }
 
 func translateAvatar(avatar repo.AvatarDto, language string) (repo.AvatarDto, error) {
-	avatarType, err := helpers.TranslateText(language, avatar.Type)
+	avatarType, err := translation.TranslateText(language, avatar.Type)
 	if err != nil {
 		return repo.AvatarDto{}, err
 	}
 
-	description, err := helpers.TranslateText(language, avatar.Description)
+	description, err := translation.TranslateText(language, avatar.Description)
 	if err != nil {
 		return repo.AvatarDto{}, err
 	}

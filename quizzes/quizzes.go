@@ -9,8 +9,8 @@ import (
 	"strconv"
 
 	"github.com/geobuff/api/auth"
-	"github.com/geobuff/api/helpers"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/translation"
 	"github.com/gorilla/mux"
 )
 
@@ -83,12 +83,12 @@ func GetQuizzes(writer http.ResponseWriter, request *http.Request) {
 }
 
 func translateQuiz(quiz repo.Quiz, language string) (repo.Quiz, error) {
-	name, err := helpers.TranslateText(language, quiz.Name)
+	name, err := translation.TranslateText(language, quiz.Name)
 	if err != nil {
 		return repo.Quiz{}, err
 	}
 
-	plural, err := helpers.TranslateText(language, quiz.Plural)
+	plural, err := translation.TranslateText(language, quiz.Plural)
 	if err != nil {
 		return repo.Quiz{}, err
 	}
@@ -157,12 +157,12 @@ func GetQuizByRoute(writer http.ResponseWriter, request *http.Request) {
 }
 
 func translateQuizDto(quiz repo.QuizDto, language string) (repo.QuizDto, error) {
-	name, err := helpers.TranslateText(language, quiz.Name)
+	name, err := translation.TranslateText(language, quiz.Name)
 	if err != nil {
 		return repo.QuizDto{}, err
 	}
 
-	plural, err := helpers.TranslateText(language, quiz.Plural)
+	plural, err := translation.TranslateText(language, quiz.Plural)
 	if err != nil {
 		return repo.QuizDto{}, err
 	}
@@ -221,7 +221,7 @@ func getTranslatedMap(quiz repo.QuizDto, language string) (repo.MapDto, error) {
 }
 
 func translateMapElementDto(element repo.MapElementDto, language string) (repo.MapElementDto, error) {
-	name, err := helpers.TranslateText(language, element.Name)
+	name, err := translation.TranslateText(language, element.Name)
 	if err != nil {
 		return repo.MapElementDto{}, err
 	}

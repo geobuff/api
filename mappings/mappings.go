@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/geobuff/api/auth"
-	"github.com/geobuff/api/helpers"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/translation"
 	"github.com/gorilla/mux"
 )
 
@@ -52,12 +52,12 @@ func GetMappingEntries(writer http.ResponseWriter, request *http.Request) {
 }
 
 func translateEntry(entry repo.MappingEntryDto, language string) (repo.MappingEntryDto, error) {
-	name, err := helpers.TranslateText(language, entry.Name)
+	name, err := translation.TranslateText(language, entry.Name)
 	if err != nil {
 		return repo.MappingEntryDto{}, err
 	}
 
-	svgName, err := helpers.TranslateText(language, entry.SVGName)
+	svgName, err := translation.TranslateText(language, entry.SVGName)
 	if err != nil {
 		return repo.MappingEntryDto{}, err
 	}
