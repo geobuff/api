@@ -1,27 +1,18 @@
-package helpers
+package translation
 
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"cloud.google.com/go/translate"
+	"github.com/patrickmn/go-cache"
 	"golang.org/x/text/language"
 )
 
-type key struct {
-	text     string
-	language string
-}
-
-var (
-	cache      = make(map[key]string)
-	cacheMutex = sync.RWMutex{}
-)
-
 func TranslateText(targetLanguage, text string) (string, error) {
-	if val, ok := cache[key{text, targetLanguage}]; ok {
-		return val, nil
+	key := fmt.Sprintf("%s-%s", targetLanguage, text)
+	if val, found := c.Get(key); found {
+		return val.(string), nil
 	}
 
 	ctx := context.Background()
@@ -46,10 +37,7 @@ func TranslateText(targetLanguage, text string) (string, error) {
 	}
 
 	translatedText := resp[0].Text
-
-	cacheMutex.Lock()
-	cache[key{text, targetLanguage}] = translatedText
-	cacheMutex.Unlock()
+	c.Set(key, translatedText, cache.NoExpiration)
 
 	return translatedText, nil
 }

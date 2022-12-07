@@ -37,6 +37,7 @@ import (
 	"github.com/geobuff/api/seo"
 	"github.com/geobuff/api/shippingoptions"
 	"github.com/geobuff/api/tempscores"
+	"github.com/geobuff/api/translation"
 	"github.com/geobuff/api/trivia"
 	"github.com/geobuff/api/triviaplays"
 	"github.com/geobuff/api/triviaquestioncategory"
@@ -100,6 +101,9 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("successfully initialized validator")
+
+	translation.InitCache()
+	fmt.Println("successfully initialized translation cache")
 
 	err = serve()
 	if err != nil {

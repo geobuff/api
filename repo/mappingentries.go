@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"database/sql"
 	"strings"
 
 	"github.com/lib/pq"
@@ -23,7 +22,7 @@ type MappingEntryDto struct {
 	GroupID          int             `json:"groupId"`
 	Name             string          `json:"name"`
 	Code             string          `json:"code"`
-	FlagUrl          sql.NullString  `json:"flagUrl"`
+	FlagUrl          string          `json:"flagUrl"`
 	SVGName          string          `json:"svgName"`
 	AlternativeNames *pq.StringArray `json:"alternativeNames"`
 	Prefixes         *pq.StringArray `json:"prefixes"`
@@ -46,7 +45,7 @@ type UpdateMappingEntryDto struct {
 }
 
 func GetMappingEntries(key string) ([]MappingEntryDto, error) {
-	rows, err := Connection.Query("SELECT m.id, m.groupid, m.name, m.code, f.url, m.svgname, m.alternativenames, m.prefixes, m.grouping from mappingEntries m JOIN mappingGroups g ON g.id = m.groupId LEFT JOIN flagEntries f ON f.code = m.code WHERE g.key = $1;", key)
+	rows, err := Connection.Query("SELECT m.id, m.groupid, m.name, m.code, COALESCE(f.url, ''), m.svgname, lower(m.alternativenames::text)::text[], lower(m.prefixes::text)::text[], m.grouping from mappingEntries m JOIN mappingGroups g ON g.id = m.groupId LEFT JOIN flagEntries f ON f.code = m.code WHERE g.key = $1;", key)
 	if err != nil {
 		return nil, err
 	}

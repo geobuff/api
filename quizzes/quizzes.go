@@ -9,8 +9,8 @@ import (
 	"strconv"
 
 	"github.com/geobuff/api/auth"
-	"github.com/geobuff/api/helpers"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/translation"
 	"github.com/gorilla/mux"
 )
 
@@ -44,38 +44,13 @@ func GetQuizzes(writer http.ResponseWriter, request *http.Request) {
 		translatedQuizzes := make([]repo.Quiz, len(quizzes))
 
 		for index, quiz := range quizzes {
-			name, err := helpers.TranslateText(language, quiz.Name)
+			translatedQuiz, err := translateQuiz(quiz, language)
 			if err != nil {
 				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 				return
 			}
 
-			plural, err := helpers.TranslateText(language, quiz.Plural)
-			if err != nil {
-				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-				return
-			}
-
-			translatedQuizzes[index] = repo.Quiz{
-				ID:             quiz.ID,
-				TypeID:         quiz.TypeID,
-				BadgeID:        quiz.BadgeID,
-				ContinentID:    quiz.ContinentID,
-				Country:        quiz.Country,
-				Singular:       quiz.Singular,
-				Name:           name,
-				MaxScore:       quiz.MaxScore,
-				Time:           quiz.Time,
-				MapSVG:         quiz.MapSVG,
-				ImageURL:       quiz.ImageURL,
-				Plural:         plural,
-				APIPath:        quiz.APIPath,
-				Route:          quiz.Route,
-				HasLeaderboard: quiz.HasLeaderboard,
-				HasGrouping:    quiz.HasGrouping,
-				HasFlags:       quiz.HasFlags,
-				Enabled:        quiz.Enabled,
-			}
+			translatedQuizzes[index] = translatedQuiz
 		}
 
 		switch _, err := repo.GetFirstQuizID((filter.Page + 1) * filter.Limit); err {
@@ -107,6 +82,39 @@ func GetQuizzes(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+func translateQuiz(quiz repo.Quiz, language string) (repo.Quiz, error) {
+	name, err := translation.TranslateText(language, quiz.Name)
+	if err != nil {
+		return repo.Quiz{}, err
+	}
+
+	plural, err := translation.TranslateText(language, quiz.Plural)
+	if err != nil {
+		return repo.Quiz{}, err
+	}
+
+	return repo.Quiz{
+		ID:             quiz.ID,
+		TypeID:         quiz.TypeID,
+		BadgeID:        quiz.BadgeID,
+		ContinentID:    quiz.ContinentID,
+		Country:        quiz.Country,
+		Singular:       quiz.Singular,
+		Name:           name,
+		MaxScore:       quiz.MaxScore,
+		Time:           quiz.Time,
+		MapSVG:         quiz.MapSVG,
+		ImageURL:       quiz.ImageURL,
+		Plural:         plural,
+		APIPath:        quiz.APIPath,
+		Route:          quiz.Route,
+		HasLeaderboard: quiz.HasLeaderboard,
+		HasGrouping:    quiz.HasGrouping,
+		HasFlags:       quiz.HasFlags,
+		Enabled:        quiz.Enabled,
+	}, nil
+}
+
 func GetQuiz(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
@@ -131,8 +139,117 @@ func GetQuizByRoute(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	language := request.Header.Get("Content-Language")
+	if language != "" && language != "en" {
+		translatedQuiz, err := translateQuizDto(quiz, language)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+			return
+		}
+
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(translatedQuiz)
+		return
+	}
+
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(quiz)
+}
+
+func translateQuizDto(quiz repo.QuizDto, language string) (repo.QuizDto, error) {
+	name, err := translation.TranslateText(language, quiz.Name)
+	if err != nil {
+		return repo.QuizDto{}, err
+	}
+
+	plural, err := translation.TranslateText(language, quiz.Plural)
+	if err != nil {
+		return repo.QuizDto{}, err
+	}
+
+	quizMap, err := getTranslatedMap(quiz, language)
+	if err != nil {
+		return repo.QuizDto{}, err
+	}
+
+	return repo.QuizDto{
+		ID:             quiz.ID,
+		TypeID:         quiz.TypeID,
+		BadgeID:        quiz.BadgeID,
+		ContinentID:    quiz.ContinentID,
+		Country:        quiz.Country,
+		Singular:       quiz.Singular,
+		Name:           name,
+		MaxScore:       quiz.MaxScore,
+		Time:           quiz.Time,
+		MapName:        quiz.MapName,
+		Map:            quizMap,
+		ImageURL:       quiz.ImageURL,
+		Plural:         plural,
+		APIPath:        quiz.APIPath,
+		Route:          quiz.Route,
+		HasLeaderboard: quiz.HasLeaderboard,
+		HasGrouping:    quiz.HasGrouping,
+		HasFlags:       quiz.HasFlags,
+		Enabled:        quiz.Enabled,
+	}, nil
+}
+
+func getTranslatedMap(quiz repo.QuizDto, language string) (repo.MapDto, error) {
+	if quiz.MapName == "" {
+		return quiz.Map, nil
+	}
+
+	translatedElements := make([]repo.MapElementDto, len(quiz.Map.Elements))
+	for i, element := range quiz.Map.Elements {
+		translatedElement, err := translateMapElementDto(element, language)
+		if err != nil {
+			return repo.MapDto{}, err
+		}
+
+		translatedElements[i] = translatedElement
+	}
+
+	return repo.MapDto{
+		ID:        quiz.Map.ID,
+		Key:       quiz.Map.Key,
+		ClassName: quiz.Map.ClassName,
+		Label:     quiz.Map.Label,
+		ViewBox:   quiz.Map.ViewBox,
+		Elements:  translatedElements,
+	}, nil
+}
+
+func translateMapElementDto(element repo.MapElementDto, language string) (repo.MapElementDto, error) {
+	name, err := translation.TranslateText(language, element.Name)
+	if err != nil {
+		return repo.MapElementDto{}, err
+	}
+
+	return repo.MapElementDto{
+		EntryID:    element.EntryID,
+		MapID:      element.MapID,
+		Type:       element.Type,
+		ID:         element.ID,
+		Name:       name,
+		D:          element.D,
+		Points:     element.Points,
+		X:          element.X,
+		Y:          element.Y,
+		Width:      element.Width,
+		Height:     element.Height,
+		Cx:         element.Cx,
+		Cy:         element.Cy,
+		R:          element.R,
+		Transform:  element.Transform,
+		XlinkHref:  element.XlinkHref,
+		ClipPath:   element.ClipPath,
+		ClipPathId: element.ClipPathId,
+		X1:         element.X1,
+		Y1:         element.Y1,
+		X2:         element.X2,
+		Y2:         element.Y2,
+	}, nil
 }
 
 func CreateQuiz(writer http.ResponseWriter, request *http.Request) {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/geobuff/api/auth"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/translation"
 	"github.com/gorilla/mux"
 )
 
@@ -23,14 +24,55 @@ func GetMappingGroups(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetMappingEntries(writer http.ResponseWriter, request *http.Request) {
-	mapping, err := repo.GetMappingEntries(mux.Vars(request)["key"])
+	entries, err := repo.GetMappingEntries(mux.Vars(request)["key"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
 		return
 	}
+	language := request.Header.Get("Content-Language")
+	if language != "" && language != "en" {
+		translatedEntries := make([]repo.MappingEntryDto, len(entries))
+		for index, entry := range entries {
+			translatedEntry, err := translateEntry(entry, language)
+			if err != nil {
+				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
+				return
+			}
+
+			translatedEntries[index] = translatedEntry
+		}
+
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(translatedEntries)
+		return
+	}
 
 	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(mapping)
+	json.NewEncoder(writer).Encode(entries)
+}
+
+func translateEntry(entry repo.MappingEntryDto, language string) (repo.MappingEntryDto, error) {
+	name, err := translation.TranslateText(language, entry.Name)
+	if err != nil {
+		return repo.MappingEntryDto{}, err
+	}
+
+	svgName, err := translation.TranslateText(language, entry.SVGName)
+	if err != nil {
+		return repo.MappingEntryDto{}, err
+	}
+
+	return repo.MappingEntryDto{
+		ID:               entry.ID,
+		GroupID:          entry.GroupID,
+		Name:             name,
+		Code:             entry.Code,
+		FlagUrl:          entry.FlagUrl,
+		SVGName:          svgName,
+		AlternativeNames: entry.AlternativeNames,
+		Prefixes:         entry.Prefixes,
+		Grouping:         entry.Grouping,
+	}, nil
 }
 
 func GetMappingsWithoutFlags(writer http.ResponseWriter, request *http.Request) {
