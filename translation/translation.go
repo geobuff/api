@@ -37,7 +37,7 @@ func TranslateText(targetLanguage, text string) (string, error) {
 	}
 
 	translatedText := resp[0].Text
-	c.Set(key, translatedText, cache.NoExpiration)
+	c.Set(key, translatedText, cache.DefaultExpiration)
 
 	return translatedText, nil
 }
