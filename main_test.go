@@ -5,21 +5,21 @@ import (
 	"testing"
 
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/api/validation"
+	"github.com/geobuff/api/utils"
 )
 
 func TestMain(t *testing.T) {
 	savedLoadConfig := loadConfig
 	savedOpenConnection := repo.OpenConnection
 	savedRunMigrations := runMigrations
-	savedInit := validation.Init
+	savedInit := utils.Init
 	savedServe := serve
 
 	defer func() {
 		loadConfig = savedLoadConfig
 		repo.OpenConnection = savedOpenConnection
 		runMigrations = savedRunMigrations
-		validation.Init = savedInit
+		utils.Init = savedInit
 		serve = savedServe
 	}()
 
@@ -36,7 +36,7 @@ func TestMain(t *testing.T) {
 			loadConfig:     func() error { return errors.New("test") },
 			openConnection: repo.OpenConnection,
 			runMigrations:  runMigrations,
-			init:           validation.Init,
+			init:           utils.Init,
 			serve:          serve,
 		},
 		{
@@ -44,7 +44,7 @@ func TestMain(t *testing.T) {
 			loadConfig:     func() error { return nil },
 			openConnection: func() error { return errors.New("test") },
 			runMigrations:  runMigrations,
-			init:           validation.Init,
+			init:           utils.Init,
 			serve:          serve,
 		},
 		{
@@ -52,7 +52,7 @@ func TestMain(t *testing.T) {
 			loadConfig:     func() error { return nil },
 			openConnection: func() error { return nil },
 			runMigrations:  func() error { return errors.New("test") },
-			init:           validation.Init,
+			init:           utils.Init,
 			serve:          serve,
 		},
 		{
@@ -78,7 +78,7 @@ func TestMain(t *testing.T) {
 			loadConfig = tc.loadConfig
 			repo.OpenConnection = tc.openConnection
 			runMigrations = tc.runMigrations
-			validation.Init = tc.init
+			utils.Init = tc.init
 			serve = tc.serve
 
 			defer func() {

@@ -1,4 +1,4 @@
-package translation
+package utils
 
 import "github.com/patrickmn/go-cache"
 

@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/geobuff/api/helpers"
+	"github.com/geobuff/api/types"
 )
 
 type Trivia struct {
@@ -164,9 +164,9 @@ func generateQuestions(triviaId, max int) (int, error) {
 }
 
 func whatCountry(triviaId int, countries []MappingEntryDto) error {
-	max := len(helpers.TopLandmass)
+	max := len(types.TopLandmass)
 	index := rand.Intn(max)
-	country := helpers.TopLandmass[index]
+	country := types.TopLandmass[index]
 
 	question := TriviaQuestion{
 		TriviaId:    triviaId,
@@ -222,9 +222,9 @@ func whatCountry(triviaId int, countries []MappingEntryDto) error {
 }
 
 func whatCapital(triviaId int, countries []MappingEntryDto, capitals []MappingEntryDto) error {
-	max := len(helpers.TopLandmass)
+	max := len(types.TopLandmass)
 	index := rand.Intn(max)
-	country := helpers.TopLandmass[index]
+	country := types.TopLandmass[index]
 	var code string
 	for _, val := range countries {
 		if val.SVGName == country {

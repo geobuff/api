@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/geobuff/api/helpers"
+	"github.com/geobuff/api/utils"
 )
 
 type User struct {
@@ -155,7 +155,7 @@ var UpdateUser = func(userID int, user UpdateUserDto) error {
 }
 
 func UpdateUserXP(userID, score, maxScore int) (int, error) {
-	increase := helpers.CalculateXPIncrease(score, maxScore)
+	increase := utils.CalculateXPIncrease(score, maxScore)
 	statement := "UPDATE users set xp = xp + $2 WHERE id = $1 RETURNING id;"
 	var id int
 	err := Connection.QueryRow(statement, userID, increase).Scan(&id)

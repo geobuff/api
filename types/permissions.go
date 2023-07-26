@@ -1,4 +1,4 @@
-package permissions
+package types
 
 const (
 	// ReadUsers gives permission to read user data.

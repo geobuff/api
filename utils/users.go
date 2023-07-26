@@ -1,4 +1,4 @@
-package helpers
+package utils
 
 func CalculateXPIncrease(score, maxScore int) int {
 	percent := (float64(score) / float64(maxScore)) * 100
