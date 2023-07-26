@@ -1,0 +1,105 @@
+name: Go
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["develop"]
+
+env:
+  DEVELOP: "develop"
+  MAIN: "main"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+      - name: Build
+        run: go build -v ./...
+      - name: Test
+        run: go test -v ./...
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+      id-token: "write"
+    steps:
+      - uses: "actions/checkout@v3"
+      - name: Create .env file
+        run: |
+          echo CORS_METHODS=$CORS_METHODS >> .env
+          echo CORS_HEADERS=$CORS_HEADERS >> .env
+          echo SENDGRID_API_KEY=$SENDGRID_API_KEY >> .env
+          echo EMAIL_NAME=$EMAIL_NAME >> .env
+          echo EMAIL_ADDRESS=$EMAIL_ADDRESS >> .env
+          echo RATE_LIMITER_MAX=$RATE_LIMITER_MAX >> .env
+        env:
+          CORS_METHODS: ${{ vars.CORS_METHODS }}
+          CORS_HEADERS: ${{ vars.CORS_HEADERS }}
+          SENDGRID_API_KEY: ${{ vars.SENDGRID_API_KEY }}
+          EMAIL_NAME: ${{ vars.EMAIL_NAME }}
+          EMAIL_ADDRESS: ${{ vars.EMAIL_ADDRESS }}
+          RATE_LIMITER_MAX: ${{ vars.RATE_LIMITER_MAX }}
+      - name: Add DEV config
+        if: ${{ vars.GITHUB_REF_NAME == DEVELOP }}
+        run: |
+          echo ENVIRONMENT=dev >> .env
+          echo SITE_URL=$DEV_SITE_URL >> .env
+          echo CONNECTION_STRING=$DEV_CONNECTION_STRING >> .env
+          echo AUTH_ISSUER=$DEV_AUTH_ISSUER >> .env
+          echo AUTH_SIGNING_KEY=$DEV_AUTH_SIGNING_KEY >> .env
+          echo CORS_ORIGINS=$DEV_CORS_ORIGINS >> .env
+          echo STRIPE_SECRET_KEY=$DEV_STRIPE_SECRET_KEY >> .env
+          echo STRIPE_WEBHOOK_SECRET=$DEV_STRIPE_WEBHOOK_SECRET >> .env
+          echo GOOGLE_PROJECT_ID=$DEV_GOOGLE_PROJECT_ID >> .env
+        env:
+          DEV_SITE_URL: ${{ vars.DEV_SITE_URL }}
+          DEV_CONNECTION_STRING: ${{ vars.DEV_CONNECTION_STRING }}
+          DEV_AUTH_ISSUER: ${{ vars.DEV_AUTH_ISSUER }}
+          DEV_AUTH_SIGNING_KEY: ${{ vars.DEV_AUTH_SIGNING_KEY }}
+          DEV_CORS_ORIGINS: ${{ vars.DEV_CORS_ORIGINS }}
+          DEV_STRIPE_SECRET_KEY: ${{ vars.DEV_STRIPE_SECRET_KEY }}
+          DEV_STRIPE_WEBHOOK_SECRET: ${{ vars.DEV_STRIPE_WEBHOOK_SECRET }}
+          DEV_GOOGLE_PROJECT_ID: ${{ vars.DEV_GOOGLE_PROJECT_ID }}
+      - name: Add PROD config
+        if: ${{ vars.GITHUB_REF_NAME == MAIN }}
+        run: |
+          echo ENVIRONMENT=prod >> .env
+          echo SITE_URL=$PROD_SITE_URL >> .env
+          echo CONNECTION_STRING=$PROD_CONNECTION_STRING >> .env
+          echo AUTH_ISSUER=$PROD_AUTH_ISSUER >> .env
+          echo AUTH_SIGNING_KEY=$PROD_AUTH_SIGNING_KEY >> .env
+          echo CORS_ORIGINS=$PROD_CORS_ORIGINS >> .env
+          echo STRIPE_SECRET_KEY=$PROD_STRIPE_SECRET_KEY >> .env
+          echo STRIPE_WEBHOOK_SECRET=$PROD_STRIPE_WEBHOOK_SECRET >> .env
+          echo GOOGLE_PROJECT_ID=$PROD_GOOGLE_PROJECT_ID >> .env
+        env:
+          PROD_SITE_URL: ${{ vars.PROD_SITE_URL }}
+          PROD_CONNECTION_STRING: ${{ vars.PROD_CONNECTION_STRING }}
+          PROD_AUTH_ISSUER: ${{ vars.PROD_AUTH_ISSUER }}
+          PROD_AUTH_SIGNING_KEY: ${{ vars.PROD_AUTH_SIGNING_KEY }}
+          PROD_CORS_ORIGINS: ${{ vars.PROD_CORS_ORIGINS }}
+          PROD_STRIPE_SECRET_KEY: ${{ vars.PROD_STRIPE_SECRET_KEY }}
+          PROD_STRIPE_WEBHOOK_SECRET: ${{ vars.PROD_STRIPE_WEBHOOK_SECRET }}
+          PROD_GOOGLE_PROJECT_ID: ${{ vars.PROD_GOOGLE_PROJECT_ID }}
+      - name: Apply GCP config to app.yaml if necessary
+        if: ${{ vars.GITHUB_REF_NAME == MAIN }}
+        run: |
+          echo "vpc_access_connector:" >> app.yaml
+        echo "  name: projects/$PROD_GOOGLE_PROJECT_ID/locations/$PROD_REGION/connectors/$PROD_CONNECTOR_NAME" >> app.yaml
+        echo "  egress_setting: all-traffic" >> app.yaml
+        env:
+          PROD_GOOGLE_PROJECT_ID: ${{ vars.PROD_GOOGLE_PROJECT_ID }}
+          PROD_REGION: ${{ vars.PROD_REGION }}
+          PROD_CONNECTOR_NAME: ${{ vars.PROD_CONNECTOR_NAME }}
+      - id: "auth"
+        uses: "google-github-actions/auth@v1"
+        with:
+          credentials_json: "${{ secrets.DEV_GCLOUD_SERVICE_KEY }}"
+      - id: "deploy"
+        uses: "google-github-actions/deploy-appengine@v1"
