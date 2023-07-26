@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: ["develop"]
 
-env:
-  DEVELOP: "develop"
-  MAIN: "main"
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -46,7 +42,7 @@ jobs:
           EMAIL_ADDRESS: ${{ vars.EMAIL_ADDRESS }}
           RATE_LIMITER_MAX: ${{ vars.RATE_LIMITER_MAX }}
       - name: Add DEV config
-        if: ${{ vars.GITHUB_REF_NAME == $DEVELOP }}
+        if: ${{ vars.GITHUB_REF_NAME == "develop" }}
         run: |
           echo ENVIRONMENT=dev >> .env
           echo SITE_URL=$DEV_SITE_URL >> .env
@@ -67,7 +63,7 @@ jobs:
           DEV_STRIPE_WEBHOOK_SECRET: ${{ vars.DEV_STRIPE_WEBHOOK_SECRET }}
           DEV_GOOGLE_PROJECT_ID: ${{ vars.DEV_GOOGLE_PROJECT_ID }}
       - name: Add PROD config
-        if: ${{ vars.GITHUB_REF_NAME == $MAIN }}
+        if: ${{ vars.GITHUB_REF_NAME == "main" }}
         run: |
           echo ENVIRONMENT=prod >> .env
           echo SITE_URL=$PROD_SITE_URL >> .env
@@ -88,7 +84,7 @@ jobs:
           PROD_STRIPE_WEBHOOK_SECRET: ${{ vars.PROD_STRIPE_WEBHOOK_SECRET }}
           PROD_GOOGLE_PROJECT_ID: ${{ vars.PROD_GOOGLE_PROJECT_ID }}
       - name: Apply GCP config to app.yaml if necessary
-        if: ${{ vars.GITHUB_REF_NAME == $MAIN }}
+        if: ${{ vars.GITHUB_REF_NAME == "main" }}
         run: |
           echo "vpc_access_connector:" >> app.yaml
           echo "  name: projects/$PROD_GOOGLE_PROJECT_ID/locations/$PROD_REGION/connectors/$PROD_CONNECTOR_NAME" >> app.yaml
