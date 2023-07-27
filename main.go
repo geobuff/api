@@ -123,6 +123,7 @@ func router() http.Handler {
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("PING SUCCESSFUL"))
 	})
 
 	// Quiz endpoints.
