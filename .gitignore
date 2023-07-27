@@ -16,3 +16,4 @@
 
 .env
 api
+*.DS_STORE
