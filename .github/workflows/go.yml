@@ -94,12 +94,12 @@ jobs:
           PROD_GOOGLE_PROJECT_ID: ${{ vars.PROD_GOOGLE_PROJECT_ID }}
           PROD_GCLOUD_REGION: ${{ vars.PROD_GCLOUD_REGION }}
           PROD_GCLOUD_CONNECTOR_NAME: ${{ vars.PROD_GCLOUD_CONNECTOR_NAME }}
-      - id: "auth"
+      - id: "DEV auth"
         if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v1"
         with:
           credentials_json: "${{ secrets.DEV_GCLOUD_SERVICE_KEY }}"
-      - id: "auth"
+      - id: "PROD auth"
         if: github.ref == 'refs/heads/main'
         uses: "google-github-actions/auth@v1"
         with:
