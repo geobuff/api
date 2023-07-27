@@ -15,8 +15,8 @@ import (
 
 	"cloud.google.com/go/errorreporting"
 	"github.com/didip/tollbooth"
-	"github.com/geobuff/api/api"
 	"github.com/geobuff/api/repo"
+	"github.com/geobuff/api/src"
 	"github.com/geobuff/api/types"
 	"github.com/geobuff/api/utils"
 	"github.com/golang-migrate/migrate/v4"
@@ -122,142 +122,142 @@ func router() http.Handler {
 	router := mux.NewRouter()
 
 	// Quiz endpoints.
-	router.HandleFunc("/api/quizzes/all", api.GetQuizzes).Methods("POST")
-	router.HandleFunc("/api/quizzes/{id}", api.GetQuiz).Methods("GET")
-	router.HandleFunc("/api/quizzes/route/{route}", api.GetQuizByRoute).Methods("GET")
-	router.HandleFunc("/api/quizzes", api.CreateQuiz).Methods("POST")
-	router.HandleFunc("/api/quizzes/{id}", api.UpdateQuiz).Methods("PUT")
-	router.HandleFunc("/api/quizzes/{id}", api.DeleteQuiz).Methods("DELETE")
+	router.HandleFunc("/api/quizzes/all", src.GetQuizzes).Methods("POST")
+	router.HandleFunc("/api/quizzes/{id}", src.GetQuiz).Methods("GET")
+	router.HandleFunc("/api/quizzes/route/{route}", src.GetQuizByRoute).Methods("GET")
+	router.HandleFunc("/api/quizzes", src.CreateQuiz).Methods("POST")
+	router.HandleFunc("/api/quizzes/{id}", src.UpdateQuiz).Methods("PUT")
+	router.HandleFunc("/api/quizzes/{id}", src.DeleteQuiz).Methods("DELETE")
 
 	// Quiz Type endpoints.
-	router.HandleFunc("/api/quiztype", api.GetTypes).Methods("GET")
+	router.HandleFunc("/api/quiztype", src.GetTypes).Methods("GET")
 
 	// Quiz Plays endpoints.
-	router.HandleFunc("/api/quiz-plays", api.GetAllQuizPlays).Methods("GET")
-	router.HandleFunc("/api/quiz-plays/{quizId}", api.GetQuizPlays).Methods("GET")
-	router.HandleFunc("/api/quiz-plays-top-five", api.GetTopFiveQuizPlays).Methods("GET")
-	router.HandleFunc("/api/quiz-plays/{quizId}", api.IncrementQuizPlays).Methods("PUT")
+	router.HandleFunc("/api/quiz-plays", src.GetAllQuizPlays).Methods("GET")
+	router.HandleFunc("/api/quiz-plays/{quizId}", src.GetQuizPlays).Methods("GET")
+	router.HandleFunc("/api/quiz-plays-top-five", src.GetTopFiveQuizPlays).Methods("GET")
+	router.HandleFunc("/api/quiz-plays/{quizId}", src.IncrementQuizPlays).Methods("PUT")
 
 	// Trivia endpoints.
-	router.HandleFunc("/api/trivia/all", api.GetAllTrivia).Methods("POST")
-	router.HandleFunc("/api/trivia/{date}", api.GetTriviaByDate).Methods("GET")
-	router.HandleFunc("/api/trivia", api.GenerateTrivia).Methods("POST")
-	router.HandleFunc("/api/trivia/{date}", api.RegenerateTrivia).Methods("PUT")
-	router.HandleFunc("/api/trivia/{date}", api.DeleteTrivia).Methods("DELETE")
-	router.HandleFunc("/api/trivia/old/{newTriviaCount}", api.DeleteOldTrivia).Methods("DELETE")
+	router.HandleFunc("/api/trivia/all", src.GetAllTrivia).Methods("POST")
+	router.HandleFunc("/api/trivia/{date}", src.GetTriviaByDate).Methods("GET")
+	router.HandleFunc("/api/trivia", src.GenerateTrivia).Methods("POST")
+	router.HandleFunc("/api/trivia/{date}", src.RegenerateTrivia).Methods("PUT")
+	router.HandleFunc("/api/trivia/{date}", src.DeleteTrivia).Methods("DELETE")
+	router.HandleFunc("/api/trivia/old/{newTriviaCount}", src.DeleteOldTrivia).Methods("DELETE")
 
 	// Trivia Plays endpoints.
-	router.HandleFunc("/api/trivia-plays/week", api.GetLastWeekTriviaPlays).Methods("GET")
-	router.HandleFunc("/api/trivia-plays/{id}", api.IncrementTriviaPlays).Methods("PUT")
+	router.HandleFunc("/api/trivia-plays/week", src.GetLastWeekTriviaPlays).Methods("GET")
+	router.HandleFunc("/api/trivia-plays/{id}", src.IncrementTriviaPlays).Methods("PUT")
 
 	// Trivia Question Type endpoints.
-	router.HandleFunc("/api/trivia-question-types", api.GetTriviaQuestionTypes).Methods("GET")
+	router.HandleFunc("/api/trivia-question-types", src.GetTriviaQuestionTypes).Methods("GET")
 
 	// Trivia Question Category endpoints.
-	router.HandleFunc("/api/trivia-question-categories", api.GetTriviaQuestionCategories).Methods("GET")
+	router.HandleFunc("/api/trivia-question-categories", src.GetTriviaQuestionCategories).Methods("GET")
 
 	// Manual Trivia Question endpoints.
-	router.HandleFunc("/api/manual-trivia-questions/all", api.GetManualTriviaQuestions).Methods("POST")
-	router.HandleFunc("/api/manual-trivia-questions", api.CreateManualTriviaQuestion).Methods("POST")
-	router.HandleFunc("/api/manual-trivia-questions/{id}", api.UpdateManualTriviaQuestion).Methods("PUT")
-	router.HandleFunc("/api/manual-trivia-questions/{id}", api.DeleteManualTriviaQuestion).Methods("DELETE")
+	router.HandleFunc("/api/manual-trivia-questions/all", src.GetManualTriviaQuestions).Methods("POST")
+	router.HandleFunc("/api/manual-trivia-questions", src.CreateManualTriviaQuestion).Methods("POST")
+	router.HandleFunc("/api/manual-trivia-questions/{id}", src.UpdateManualTriviaQuestion).Methods("PUT")
+	router.HandleFunc("/api/manual-trivia-questions/{id}", src.DeleteManualTriviaQuestion).Methods("DELETE")
 
 	// Mapping endpoints.
-	router.HandleFunc("/api/mappings", api.GetMappingGroups).Methods("GET")
-	router.HandleFunc("/api/mappings/{key}", api.GetMappingEntries).Methods("GET")
-	router.HandleFunc("/api/mappings-no-flags", api.GetMappingsWithoutFlags).Methods("GET")
-	router.HandleFunc("/api/mappings/{key}", api.EditMapping).Methods("PUT")
-	router.HandleFunc("/api/mappings/{key}", api.DeleteMapping).Methods("DELETE")
+	router.HandleFunc("/api/mappings", src.GetMappingGroups).Methods("GET")
+	router.HandleFunc("/api/mappings/{key}", src.GetMappingEntries).Methods("GET")
+	router.HandleFunc("/api/mappings-no-flags", src.GetMappingsWithoutFlags).Methods("GET")
+	router.HandleFunc("/api/mappings/{key}", src.EditMapping).Methods("PUT")
+	router.HandleFunc("/api/mappings/{key}", src.DeleteMapping).Methods("DELETE")
 
 	// Map endpoints.
-	router.HandleFunc("/api/maps", api.GetMaps).Methods("GET")
-	router.HandleFunc("/api/maps/highlighted/{className}", api.GetMapHighlightedRegions).Methods("GET")
-	router.HandleFunc("/api/maps/{className}", api.GetMap).Methods("GET")
-	router.HandleFunc("/api/maps/preview", api.GetMapPreview).Methods("POST")
-	router.HandleFunc("/api/maps", api.CreateMap).Methods("POST")
+	router.HandleFunc("/api/maps", src.GetMaps).Methods("GET")
+	router.HandleFunc("/api/maps/highlighted/{className}", src.GetMapHighlightedRegions).Methods("GET")
+	router.HandleFunc("/api/maps/{className}", src.GetMap).Methods("GET")
+	router.HandleFunc("/api/maps/preview", src.GetMapPreview).Methods("POST")
+	router.HandleFunc("/api/maps", src.CreateMap).Methods("POST")
 
 	// Flag endpoints.
-	router.HandleFunc("/api/flags", api.GetFlagGroups).Methods("GET")
-	router.HandleFunc("/api/flags/{key}", api.GetFlagEntries).Methods("GET")
-	router.HandleFunc("/api/flags/url/{code}", api.GetFlagUrl).Methods("GET")
-	router.HandleFunc("/api/flags", api.CreateFlags).Methods("POST")
+	router.HandleFunc("/api/flags", src.GetFlagGroups).Methods("GET")
+	router.HandleFunc("/api/flags/{key}", src.GetFlagEntries).Methods("GET")
+	router.HandleFunc("/api/flags/url/{code}", src.GetFlagUrl).Methods("GET")
+	router.HandleFunc("/api/flags", src.CreateFlags).Methods("POST")
 
 	// Continent endpoints.
-	router.HandleFunc("/api/continents", api.GetContinents).Methods("GET")
+	router.HandleFunc("/api/continents", src.GetContinents).Methods("GET")
 
 	// Auth endpoints.
-	router.HandleFunc("/api/auth/login", api.Login).Methods("POST")
-	router.HandleFunc("/api/auth/register", api.Register).Methods("POST")
-	router.HandleFunc("/api/auth/refresh", api.RefreshToken).Methods("POST")
-	router.HandleFunc("/api/auth/send-reset-token", api.SendResetToken).Methods("POST")
-	router.HandleFunc("/api/auth/reset-token-valid/{userId}/{token}", api.ResetTokenValid).Methods("GET")
-	router.HandleFunc("/api/auth", api.UpdatePasswordUsingToken).Methods("PUT")
-	router.HandleFunc("/api/auth/username/{username}", api.UsernameExists).Methods("GET")
-	router.HandleFunc("/api/auth/email/{email}", api.EmailExists).Methods("GET")
+	router.HandleFunc("/api/auth/login", src.Login).Methods("POST")
+	router.HandleFunc("/api/auth/register", src.Register).Methods("POST")
+	router.HandleFunc("/api/auth/refresh", src.RefreshToken).Methods("POST")
+	router.HandleFunc("/api/auth/send-reset-token", src.SendResetToken).Methods("POST")
+	router.HandleFunc("/api/auth/reset-token-valid/{userId}/{token}", src.ResetTokenValid).Methods("GET")
+	router.HandleFunc("/api/auth", src.UpdatePasswordUsingToken).Methods("PUT")
+	router.HandleFunc("/api/auth/username/{username}", src.UsernameExists).Methods("GET")
+	router.HandleFunc("/api/auth/email/{email}", src.EmailExists).Methods("GET")
 
 	// User endpoints.
-	router.HandleFunc("/api/users/all", api.GetUsers).Methods("POST")
-	router.HandleFunc("/api/users/{id}", api.GetUser).Methods("GET")
-	router.HandleFunc("/api/users/email/{email}", api.GetUserByEmail).Methods("GET")
-	router.HandleFunc("/api/users/total/week", api.GetLastWeekTotalUsers).Methods("GET")
-	router.HandleFunc("/api/users/{id}", api.UpdateUser).Methods("PUT")
-	router.HandleFunc("/api/users/xp/{id}", api.UpdateUserXP).Methods("PUT")
-	router.HandleFunc("/api/users/{id}", api.DeleteUser).Methods("DELETE")
+	router.HandleFunc("/api/users/all", src.GetUsers).Methods("POST")
+	router.HandleFunc("/api/users/{id}", src.GetUser).Methods("GET")
+	router.HandleFunc("/api/users/email/{email}", src.GetUserByEmail).Methods("GET")
+	router.HandleFunc("/api/users/total/week", src.GetLastWeekTotalUsers).Methods("GET")
+	router.HandleFunc("/api/users/{id}", src.UpdateUser).Methods("PUT")
+	router.HandleFunc("/api/users/xp/{id}", src.UpdateUserXP).Methods("PUT")
+	router.HandleFunc("/api/users/{id}", src.DeleteUser).Methods("DELETE")
 
 	// Badge endpoints.
-	router.HandleFunc("/api/badges", api.GetBadges).Methods("GET")
-	router.HandleFunc("/api/badges/{userId}", api.GetUserBadges).Methods("GET")
+	router.HandleFunc("/api/badges", src.GetBadges).Methods("GET")
+	router.HandleFunc("/api/badges/{userId}", src.GetUserBadges).Methods("GET")
 
 	// Temp Score endpoints.
-	router.HandleFunc("/api/tempscores/{id}", api.GetTempScore).Methods("GET")
-	router.HandleFunc("/api/tempscores", api.CreateTempScore).Methods("POST")
+	router.HandleFunc("/api/tempscores/{id}", src.GetTempScore).Methods("GET")
+	router.HandleFunc("/api/tempscores", src.CreateTempScore).Methods("POST")
 
 	// Leaderboard endpoints.
-	router.HandleFunc("/api/leaderboard/all/{quizId}", api.GetEntries).Methods("POST")
-	router.HandleFunc("/api/leaderboard/{userId}", api.GetUserEntries).Methods("GET")
-	router.HandleFunc("/api/leaderboard/{quizId}/{userId}", api.GetEntry).Methods("GET")
-	router.HandleFunc("/api/leaderboard", api.CreateEntry).Methods("POST")
-	router.HandleFunc("/api/leaderboard/{id}", api.UpdateEntry).Methods("PUT")
-	router.HandleFunc("/api/leaderboard/{id}", api.DeleteEntry).Methods("DELETE")
+	router.HandleFunc("/api/leaderboard/all/{quizId}", src.GetEntries).Methods("POST")
+	router.HandleFunc("/api/leaderboard/{userId}", src.GetUserEntries).Methods("GET")
+	router.HandleFunc("/api/leaderboard/{quizId}/{userId}", src.GetEntry).Methods("GET")
+	router.HandleFunc("/api/leaderboard", src.CreateEntry).Methods("POST")
+	router.HandleFunc("/api/leaderboard/{id}", src.UpdateEntry).Methods("PUT")
+	router.HandleFunc("/api/leaderboard/{id}", src.DeleteEntry).Methods("DELETE")
 
 	// Shipping option endpoints.
-	router.HandleFunc("/api/shipping-options", api.GetShippingOptions).Methods("GET")
+	router.HandleFunc("/api/shipping-options", src.GetShippingOptions).Methods("GET")
 
 	// Checkout endpoints.
-	router.HandleFunc("/api/checkout/create-checkout-session", api.HandleCreateCheckoutSession).Methods("POST")
-	router.HandleFunc("/api/checkout/webhook", api.HandleWebhook).Methods("POST")
+	router.HandleFunc("/api/checkout/create-checkout-session", src.HandleCreateCheckoutSession).Methods("POST")
+	router.HandleFunc("/api/checkout/webhook", src.HandleWebhook).Methods("POST")
 
 	// Order endpoints.
-	router.HandleFunc("/api/orders", api.GetOrders).Methods("POST")
-	router.HandleFunc("/api/orders/user/{email}", api.GetUserOrders).Methods("GET")
-	router.HandleFunc("/api/orders/status/{id}", api.UpdateOrderStatus).Methods("PUT")
-	router.HandleFunc("/api/orders/{id}", api.DeleteOrder).Methods("DELETE")
-	router.HandleFunc("/api/orders/email/{email}", api.CancelOrder).Methods("DELETE")
+	router.HandleFunc("/api/orders", src.GetOrders).Methods("POST")
+	router.HandleFunc("/api/orders/user/{email}", src.GetUserOrders).Methods("GET")
+	router.HandleFunc("/api/orders/status/{id}", src.UpdateOrderStatus).Methods("PUT")
+	router.HandleFunc("/api/orders/{id}", src.DeleteOrder).Methods("DELETE")
+	router.HandleFunc("/api/orders/email/{email}", src.CancelOrder).Methods("DELETE")
 
 	// Avatar endpoints.
-	router.HandleFunc("/api/avatars", api.GetAvatars).Methods("GET")
+	router.HandleFunc("/api/avatars", src.GetAvatars).Methods("GET")
 
 	// Merch endpoints.
-	router.HandleFunc("/api/merch", api.GetMerch).Methods("GET")
-	router.HandleFunc("/api/merch/exists", api.MerchExists).Methods("POST")
+	router.HandleFunc("/api/merch", src.GetMerch).Methods("GET")
+	router.HandleFunc("/api/merch/exists", src.MerchExists).Methods("POST")
 
 	// Discount endpoints.
-	router.HandleFunc("/api/discounts", api.GetDiscounts).Methods("GET")
-	router.HandleFunc("/api/discounts/{code}", api.GetDiscount).Methods("GET")
+	router.HandleFunc("/api/discounts", src.GetDiscounts).Methods("GET")
+	router.HandleFunc("/api/discounts/{code}", src.GetDiscount).Methods("GET")
 
 	// Community Quiz endpoints.
-	router.HandleFunc("/api/community-quizzes/all", api.GetCommunityQuizzes).Methods("POST")
-	router.HandleFunc("/api/community-quizzes/{id}", api.GetCommunityQuiz).Methods("GET")
-	router.HandleFunc("/api/community-quizzes/user/{userId}", api.GetUserCommunityQuizzes).Methods("GET")
-	router.HandleFunc("/api/community-quizzes", api.CreateCommunityQuiz).Methods("POST")
-	router.HandleFunc("/api/community-quizzes/{id}", api.UpdateCommunityQuiz).Methods("PUT")
-	router.HandleFunc("/api/community-quizzes/{id}", api.DeleteCommunityQuiz).Methods("DELETE")
+	router.HandleFunc("/api/community-quizzes/all", src.GetCommunityQuizzes).Methods("POST")
+	router.HandleFunc("/api/community-quizzes/{id}", src.GetCommunityQuiz).Methods("GET")
+	router.HandleFunc("/api/community-quizzes/user/{userId}", src.GetUserCommunityQuizzes).Methods("GET")
+	router.HandleFunc("/api/community-quizzes", src.CreateCommunityQuiz).Methods("POST")
+	router.HandleFunc("/api/community-quizzes/{id}", src.UpdateCommunityQuiz).Methods("PUT")
+	router.HandleFunc("/api/community-quizzes/{id}", src.DeleteCommunityQuiz).Methods("DELETE")
 
 	// Community Quiz Play endpoints.
-	router.HandleFunc("/api/community-quiz-plays/{id}", api.IncrementCommunityQuizPlays).Methods("PUT")
+	router.HandleFunc("/api/community-quiz-plays/{id}", src.IncrementCommunityQuizPlays).Methods("PUT")
 
 	// SEO endpoints.
-	router.HandleFunc("/api/seo/dynamic-routes", api.GetDynamicRoutes).Methods("GET")
+	router.HandleFunc("/api/seo/dynamic-routes", src.GetDynamicRoutes).Methods("GET")
 
 	return router
 }
