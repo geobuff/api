@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    continue-on-error: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -37,7 +38,7 @@ jobs:
         env:
           CORS_METHODS: ${{ vars.CORS_METHODS }}
           CORS_HEADERS: ${{ vars.CORS_HEADERS }}
-          SENDGRID_API_KEY: ${{ vars.SENDGRID_API_KEY }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
           EMAIL_NAME: ${{ vars.EMAIL_NAME }}
           EMAIL_ADDRESS: ${{ vars.EMAIL_ADDRESS }}
           RATE_LIMITER_MAX: ${{ vars.RATE_LIMITER_MAX }}
@@ -55,12 +56,12 @@ jobs:
           echo GOOGLE_PROJECT_ID=$DEV_GOOGLE_PROJECT_ID >> .env
         env:
           DEV_SITE_URL: ${{ vars.DEV_SITE_URL }}
-          DEV_CONNECTION_STRING: ${{ vars.DEV_CONNECTION_STRING }}
+          DEV_CONNECTION_STRING: ${{ secrets.DEV_CONNECTION_STRING }}
           DEV_AUTH_ISSUER: ${{ vars.DEV_AUTH_ISSUER }}
-          DEV_AUTH_SIGNING_KEY: ${{ vars.DEV_AUTH_SIGNING_KEY }}
+          DEV_AUTH_SIGNING_KEY: ${{ secrets.DEV_AUTH_SIGNING_KEY }}
           DEV_CORS_ORIGINS: ${{ vars.DEV_CORS_ORIGINS }}
-          DEV_STRIPE_SECRET_KEY: ${{ vars.DEV_STRIPE_SECRET_KEY }}
-          DEV_STRIPE_WEBHOOK_SECRET: ${{ vars.DEV_STRIPE_WEBHOOK_SECRET }}
+          DEV_STRIPE_SECRET_KEY: ${{ secrets.DEV_STRIPE_SECRET_KEY }}
+          DEV_STRIPE_WEBHOOK_SECRET: ${{ secrets.DEV_STRIPE_WEBHOOK_SECRET }}
           DEV_GOOGLE_PROJECT_ID: ${{ vars.DEV_GOOGLE_PROJECT_ID }}
       - name: Add PROD config
         if: github.ref == 'refs/heads/main'
@@ -76,26 +77,32 @@ jobs:
           echo GOOGLE_PROJECT_ID=$PROD_GOOGLE_PROJECT_ID >> .env
         env:
           PROD_SITE_URL: ${{ vars.PROD_SITE_URL }}
-          PROD_CONNECTION_STRING: ${{ vars.PROD_CONNECTION_STRING }}
+          PROD_CONNECTION_STRING: ${{ secrets.PROD_CONNECTION_STRING }}
           PROD_AUTH_ISSUER: ${{ vars.PROD_AUTH_ISSUER }}
-          PROD_AUTH_SIGNING_KEY: ${{ vars.PROD_AUTH_SIGNING_KEY }}
+          PROD_AUTH_SIGNING_KEY: ${{ secrets.PROD_AUTH_SIGNING_KEY }}
           PROD_CORS_ORIGINS: ${{ vars.PROD_CORS_ORIGINS }}
-          PROD_STRIPE_SECRET_KEY: ${{ vars.PROD_STRIPE_SECRET_KEY }}
-          PROD_STRIPE_WEBHOOK_SECRET: ${{ vars.PROD_STRIPE_WEBHOOK_SECRET }}
+          PROD_STRIPE_SECRET_KEY: ${{ secrets.PROD_STRIPE_SECRET_KEY }}
+          PROD_STRIPE_WEBHOOK_SECRET: ${{ secrets.PROD_STRIPE_WEBHOOK_SECRET }}
           PROD_GOOGLE_PROJECT_ID: ${{ vars.PROD_GOOGLE_PROJECT_ID }}
       - name: Apply GCP config to app.yaml if necessary
         if: github.ref == 'refs/heads/main'
         run: |
           echo "vpc_access_connector:" >> app.yaml
-          echo "  name: projects/$PROD_GOOGLE_PROJECT_ID/locations/$PROD_REGION/connectors/$PROD_CONNECTOR_NAME" >> app.yaml
+          echo "  name: projects/$PROD_GOOGLE_PROJECT_ID/locations/$PROD_GCLOUD_REGION/connectors/$PROD_GCLOUD_CONNECTOR_NAME" >> app.yaml
           echo "  egress_setting: all-traffic" >> app.yaml
         env:
           PROD_GOOGLE_PROJECT_ID: ${{ vars.PROD_GOOGLE_PROJECT_ID }}
-          PROD_REGION: ${{ vars.PROD_REGION }}
-          PROD_CONNECTOR_NAME: ${{ vars.PROD_CONNECTOR_NAME }}
+          PROD_GCLOUD_REGION: ${{ vars.PROD_GCLOUD_REGION }}
+          PROD_GCLOUD_CONNECTOR_NAME: ${{ vars.PROD_GCLOUD_CONNECTOR_NAME }}
       - id: "auth"
+        if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v1"
         with:
           credentials_json: "${{ secrets.DEV_GCLOUD_SERVICE_KEY }}"
+      - id: "auth"
+        if: github.ref == 'refs/heads/main'
+        uses: "google-github-actions/auth@v1"
+        with:
+          credentials_json: "${{ secrets.PROD_GCLOUD_SERVICE_KEY }}"
       - id: "deploy"
         uses: "google-github-actions/deploy-appengine@v1"
