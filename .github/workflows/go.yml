@@ -89,6 +89,8 @@ jobs:
           PROD_STRIPE_SECRET_KEY: ${{ secrets.PROD_STRIPE_SECRET_KEY }}
           PROD_STRIPE_WEBHOOK_SECRET: ${{ secrets.PROD_STRIPE_WEBHOOK_SECRET }}
           PROD_GOOGLE_PROJECT_ID: ${{ vars.PROD_GOOGLE_PROJECT_ID }}
+          PROD_GCLOUD_REGION: ${{ vars.PROD_GCLOUD_REGION }}
+          PROD_GCLOUD_CONNECTOR_NAME: ${{ vars.PROD_GCLOUD_CONNECTOR_NAME }}
       - id: "dev-auth"
         if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v1"
