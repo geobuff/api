@@ -23,7 +23,6 @@ import (
 )
 
 var errorClient *errorreporting.Client
-var server *src.Server
 
 func main() {
 	var b [8]byte
@@ -69,7 +68,7 @@ func main() {
 	ts := utils.NewTranslationService()
 	es := utils.NewEmailService()
 	vs := utils.NewValidationService()
-	server = src.NewServer(ts, es, vs)
+	server := src.NewServer(ts, es, vs)
 	fmt.Println("successfully initialized server")
 
 	log.Fatal(server.Start())
