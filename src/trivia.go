@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/api/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -71,7 +70,7 @@ func DeleteOldTrivia(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func GetAllTrivia(writer http.ResponseWriter, request *http.Request) {
+func (s *Server) getAllTrivia(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -95,7 +94,7 @@ func GetAllTrivia(writer http.ResponseWriter, request *http.Request) {
 	if language != "" && language != "en" {
 		translatedTrivia := make([]repo.Trivia, len(trivia))
 		for index, quiz := range trivia {
-			name, err := utils.TranslateText(language, quiz.Name)
+			name, err := s.ts.TranslateText(language, quiz.Name)
 			if err != nil {
 				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 				return
@@ -138,7 +137,7 @@ func GetAllTrivia(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func GetTriviaByDate(writer http.ResponseWriter, request *http.Request) {
+func (s *Server) getTriviaByDate(writer http.ResponseWriter, request *http.Request) {
 	trivia, err := repo.GetTrivia(mux.Vars(request)["date"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
@@ -147,7 +146,7 @@ func GetTriviaByDate(writer http.ResponseWriter, request *http.Request) {
 
 	language := request.Header.Get("Content-Language")
 	if language != "" && language != "en" {
-		name, err := utils.TranslateText(language, trivia.Name)
+		name, err := s.ts.TranslateText(language, trivia.Name)
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 			return
@@ -161,19 +160,19 @@ func GetTriviaByDate(writer http.ResponseWriter, request *http.Request) {
 		}
 
 		for index, question := range trivia.Questions {
-			questionValue, err := utils.TranslateText(language, question.Question)
+			questionValue, err := s.ts.TranslateText(language, question.Question)
 			if err != nil {
 				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 				return
 			}
 
-			imageAlt, err := utils.TranslateText(language, question.ImageAlt)
+			imageAlt, err := s.ts.TranslateText(language, question.ImageAlt)
 			if err != nil {
 				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 				return
 			}
 
-			explainer, err := utils.TranslateText(language, question.Explainer)
+			explainer, err := s.ts.TranslateText(language, question.Explainer)
 			if err != nil {
 				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 				return
@@ -181,7 +180,7 @@ func GetTriviaByDate(writer http.ResponseWriter, request *http.Request) {
 
 			answers := make([]repo.AnswerDto, len(question.Answers))
 			for index, answer := range question.Answers {
-				text, err := utils.TranslateText(language, answer.Text)
+				text, err := s.ts.TranslateText(language, answer.Text)
 				if err != nil {
 					http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 					return

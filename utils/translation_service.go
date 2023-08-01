@@ -9,9 +9,23 @@ import (
 	"golang.org/x/text/language"
 )
 
-func TranslateText(targetLanguage, text string) (string, error) {
+type ITranslationService interface {
+	TranslateText(targetLanguage, text string) (string, error)
+}
+
+type TranslationService struct {
+	cache *cache.Cache
+}
+
+func NewTranslationService() *TranslationService {
+	return &TranslationService{
+		cache: cache.New(cache.DefaultExpiration, cache.DefaultExpiration),
+	}
+}
+
+func (t *TranslationService) TranslateText(targetLanguage, text string) (string, error) {
 	key := fmt.Sprintf("%s-%s", targetLanguage, text)
-	if val, found := c.Get(key); found {
+	if val, found := t.cache.Get(key); found {
 		return val.(string), nil
 	}
 
@@ -37,7 +51,7 @@ func TranslateText(targetLanguage, text string) (string, error) {
 	}
 
 	translatedText := resp[0].Text
-	c.Set(key, translatedText, cache.DefaultExpiration)
+	t.cache.Set(key, translatedText, cache.DefaultExpiration)
 
 	return translatedText, nil
 }

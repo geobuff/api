@@ -6,10 +6,9 @@ import (
 	"net/http"
 
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/api/utils"
 )
 
-func GetAvatars(writer http.ResponseWriter, request *http.Request) {
+func (s *Server) getAvatars(writer http.ResponseWriter, request *http.Request) {
 	avatars, err := repo.GetAvatars()
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
@@ -20,7 +19,7 @@ func GetAvatars(writer http.ResponseWriter, request *http.Request) {
 	if language != "" && language != "en" {
 		translatedAvatars := make([]repo.AvatarDto, len(avatars))
 		for index, avatar := range avatars {
-			translatedAvatar, err := translateAvatar(avatar, language)
+			translatedAvatar, err := s.translateAvatar(avatar, language)
 			if err != nil {
 				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 				return
@@ -38,13 +37,13 @@ func GetAvatars(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(avatars)
 }
 
-func translateAvatar(avatar repo.AvatarDto, language string) (repo.AvatarDto, error) {
-	avatarType, err := utils.TranslateText(language, avatar.Type)
+func (s *Server) translateAvatar(avatar repo.AvatarDto, language string) (repo.AvatarDto, error) {
+	avatarType, err := s.ts.TranslateText(language, avatar.Type)
 	if err != nil {
 		return repo.AvatarDto{}, err
 	}
 
-	description, err := utils.TranslateText(language, avatar.Description)
+	description, err := s.ts.TranslateText(language, avatar.Description)
 	if err != nil {
 		return repo.AvatarDto{}, err
 	}

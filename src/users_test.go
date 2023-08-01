@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/api/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -216,7 +215,6 @@ func TestUpdateUser(t *testing.T) {
 	savedAnotherUserWithEmail := repo.AnotherUserWithEmail
 	savedUpdateUser := repo.UpdateUser
 	savedGetAvatar := repo.GetAvatar
-	savedValidator := utils.Validator
 
 	defer func() {
 		ValidUser = savedValidUser
@@ -224,10 +222,7 @@ func TestUpdateUser(t *testing.T) {
 		repo.AnotherUserWithUsername = savedAnotherUserWithUsername
 		repo.AnotherUserWithEmail = savedAnotherUserWithEmail
 		repo.GetAvatar = savedGetAvatar
-		utils.Validator = savedValidator
 	}()
-
-	utils.Init()
 
 	tt := []struct {
 		name                    string
@@ -370,7 +365,8 @@ func TestUpdateUser(t *testing.T) {
 			})
 
 			writer := httptest.NewRecorder()
-			UpdateUser(writer, request)
+			s := getMockServer()
+			s.updateUser(writer, request)
 			result := writer.Result()
 			defer result.Body.Close()
 

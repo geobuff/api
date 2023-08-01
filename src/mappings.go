@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/api/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -22,7 +21,7 @@ func GetMappingGroups(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(mapping)
 }
 
-func GetMappingEntries(writer http.ResponseWriter, request *http.Request) {
+func (s *Server) getMappingEntries(writer http.ResponseWriter, request *http.Request) {
 	entries, err := repo.GetMappingEntries(mux.Vars(request)["key"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -32,7 +31,7 @@ func GetMappingEntries(writer http.ResponseWriter, request *http.Request) {
 	if language != "" && language != "en" {
 		translatedEntries := make([]repo.MappingEntryDto, len(entries))
 		for index, entry := range entries {
-			translatedEntry, err := translateEntry(entry, language)
+			translatedEntry, err := s.translateEntry(entry, language)
 			if err != nil {
 				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 				return
@@ -50,13 +49,13 @@ func GetMappingEntries(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(entries)
 }
 
-func translateEntry(entry repo.MappingEntryDto, language string) (repo.MappingEntryDto, error) {
-	name, err := utils.TranslateText(language, entry.Name)
+func (s *Server) translateEntry(entry repo.MappingEntryDto, language string) (repo.MappingEntryDto, error) {
+	name, err := s.ts.TranslateText(language, entry.Name)
 	if err != nil {
 		return repo.MappingEntryDto{}, err
 	}
 
-	svgName, err := utils.TranslateText(language, entry.SVGName)
+	svgName, err := s.ts.TranslateText(language, entry.SVGName)
 	if err != nil {
 		return repo.MappingEntryDto{}, err
 	}

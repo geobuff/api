@@ -70,7 +70,8 @@ func TestGetQuizzes(t *testing.T) {
 			}
 
 			writer := httptest.NewRecorder()
-			GetQuizzes(writer, request)
+			s := getMockServer()
+			s.getQuizzes(writer, request)
 			result := writer.Result()
 			defer result.Body.Close()
 

@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/api/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -103,7 +102,7 @@ func GetLastWeekTotalUsers(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(data)
 }
 
-func UpdateUser(writer http.ResponseWriter, request *http.Request) {
+func (s *Server) updateUser(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -128,7 +127,7 @@ func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = utils.Validator.Struct(updatedUser)
+	err = s.vs.GetValidator().Struct(updatedUser)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
@@ -176,7 +175,7 @@ func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(updatedUser)
 }
 
-func UpdateUserXP(writer http.ResponseWriter, request *http.Request) {
+func (s Server) updateUserXP(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(request)["id"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -201,7 +200,7 @@ func UpdateUserXP(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = utils.Validator.Struct(dto)
+	err = s.vs.GetValidator().Struct(dto)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return

@@ -45,7 +45,8 @@ func TestGetAvatars(t *testing.T) {
 			}
 
 			writer := httptest.NewRecorder()
-			GetAvatars(writer, request)
+			s := getMockServer()
+			s.getAvatars(writer, request)
 			result := writer.Result()
 			defer result.Body.Close()
 

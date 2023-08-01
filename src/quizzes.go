@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/api/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -18,7 +17,7 @@ type QuizPageDto struct {
 	HasMore bool        `json:"hasMore"`
 }
 
-func GetQuizzes(writer http.ResponseWriter, request *http.Request) {
+func (s *Server) getQuizzes(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -43,7 +42,7 @@ func GetQuizzes(writer http.ResponseWriter, request *http.Request) {
 		translatedQuizzes := make([]repo.Quiz, len(quizzes))
 
 		for index, quiz := range quizzes {
-			translatedQuiz, err := translateQuiz(quiz, language)
+			translatedQuiz, err := s.translateQuiz(quiz, language)
 			if err != nil {
 				http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 				return
@@ -81,13 +80,13 @@ func GetQuizzes(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func translateQuiz(quiz repo.Quiz, language string) (repo.Quiz, error) {
-	name, err := utils.TranslateText(language, quiz.Name)
+func (s *Server) translateQuiz(quiz repo.Quiz, language string) (repo.Quiz, error) {
+	name, err := s.ts.TranslateText(language, quiz.Name)
 	if err != nil {
 		return repo.Quiz{}, err
 	}
 
-	plural, err := utils.TranslateText(language, quiz.Plural)
+	plural, err := s.ts.TranslateText(language, quiz.Plural)
 	if err != nil {
 		return repo.Quiz{}, err
 	}
@@ -131,7 +130,7 @@ func GetQuiz(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(quiz)
 }
 
-func GetQuizByRoute(writer http.ResponseWriter, request *http.Request) {
+func (s *Server) getQuizByRoute(writer http.ResponseWriter, request *http.Request) {
 	quiz, err := repo.GetQuizByRoute(mux.Vars(request)["route"])
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
@@ -140,7 +139,7 @@ func GetQuizByRoute(writer http.ResponseWriter, request *http.Request) {
 
 	language := request.Header.Get("Content-Language")
 	if language != "" && language != "en" {
-		translatedQuiz, err := translateQuizDto(quiz, language)
+		translatedQuiz, err := s.translateQuizDto(quiz, language)
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 			return
@@ -155,18 +154,18 @@ func GetQuizByRoute(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(quiz)
 }
 
-func translateQuizDto(quiz repo.QuizDto, language string) (repo.QuizDto, error) {
-	name, err := utils.TranslateText(language, quiz.Name)
+func (s *Server) translateQuizDto(quiz repo.QuizDto, language string) (repo.QuizDto, error) {
+	name, err := s.ts.TranslateText(language, quiz.Name)
 	if err != nil {
 		return repo.QuizDto{}, err
 	}
 
-	plural, err := utils.TranslateText(language, quiz.Plural)
+	plural, err := s.ts.TranslateText(language, quiz.Plural)
 	if err != nil {
 		return repo.QuizDto{}, err
 	}
 
-	quizMap, err := getTranslatedMap(quiz, language)
+	quizMap, err := s.getTranslatedMap(quiz, language)
 	if err != nil {
 		return repo.QuizDto{}, err
 	}
@@ -194,14 +193,14 @@ func translateQuizDto(quiz repo.QuizDto, language string) (repo.QuizDto, error) 
 	}, nil
 }
 
-func getTranslatedMap(quiz repo.QuizDto, language string) (repo.MapDto, error) {
+func (s *Server) getTranslatedMap(quiz repo.QuizDto, language string) (repo.MapDto, error) {
 	if quiz.MapName == "" {
 		return quiz.Map, nil
 	}
 
 	translatedElements := make([]repo.MapElementDto, len(quiz.Map.Elements))
 	for i, element := range quiz.Map.Elements {
-		translatedElement, err := translateMapElementDto(element, language)
+		translatedElement, err := s.translateMapElementDto(element, language)
 		if err != nil {
 			return repo.MapDto{}, err
 		}
@@ -219,8 +218,8 @@ func getTranslatedMap(quiz repo.QuizDto, language string) (repo.MapDto, error) {
 	}, nil
 }
 
-func translateMapElementDto(element repo.MapElementDto, language string) (repo.MapElementDto, error) {
-	name, err := utils.TranslateText(language, element.Name)
+func (s *Server) translateMapElementDto(element repo.MapElementDto, language string) (repo.MapElementDto, error) {
+	name, err := s.ts.TranslateText(language, element.Name)
 	if err != nil {
 		return repo.MapElementDto{}, err
 	}

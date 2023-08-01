@@ -30,9 +30,10 @@ func TestUsernameValid(t *testing.T) {
 		},
 	}
 
+	vs := NewValidationService()
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := UsernameValid(tc.input)
+			result := vs.UsernameValid(tc.input)
 			if result != tc.expected {
 				t.Errorf("expected %v; got %v", tc.expected, result)
 			}
@@ -78,9 +79,10 @@ func TestPasswordValid(t *testing.T) {
 		},
 	}
 
+	vs := NewValidationService()
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := PasswordValid(tc.input)
+			result := vs.PasswordValid(tc.input)
 			if result != tc.expected {
 				t.Errorf("expected %v; got %v", result, tc.expected)
 			}

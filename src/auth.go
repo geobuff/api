@@ -13,7 +13,6 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/geobuff/api/repo"
-	"github.com/geobuff/api/utils"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
@@ -101,7 +100,7 @@ func Login(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(token)
 }
 
-func Register(writer http.ResponseWriter, request *http.Request) {
+func (s *Server) register(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -115,7 +114,7 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = utils.Validator.Struct(registerDto)
+	err = s.vs.GetValidator().Struct(registerDto)
 	if err != nil {
 		http.Error(writer, "There was a validation error on sign up. Please ensure all fields are filled in correctly and try again.", http.StatusBadRequest)
 		return
@@ -228,7 +227,7 @@ func UsernameExists(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(exists)
 }
 
-func SendResetToken(writer http.ResponseWriter, request *http.Request) {
+func (s *Server) sendResetToken(writer http.ResponseWriter, request *http.Request) {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusBadRequest)
@@ -262,7 +261,7 @@ func SendResetToken(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	resetLink := fmt.Sprintf("%s/reset-password/%d/%s", os.Getenv("SITE_URL"), user.ID, guid)
-	_, err = utils.SendResetToken(passwordResetDto.Email, resetLink)
+	_, err = s.es.SendResetToken(passwordResetDto.Email, resetLink)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
 		return

@@ -9,7 +9,17 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-var SendResetToken = func(email, resetLink string) (*rest.Response, error) {
+type IEmailService interface {
+	SendResetToken(email, resetLink string) (*rest.Response, error)
+}
+
+type EmailService struct{}
+
+func NewEmailService() *EmailService {
+	return &EmailService{}
+}
+
+func (e *EmailService) SendResetToken(email, resetLink string) (*rest.Response, error) {
 	from := mail.NewEmail(os.Getenv("EMAIL_NAME"), os.Getenv("EMAIL_ADDRESS"))
 	subject := "Password Reset Request"
 	to := mail.NewEmail("User", email)
