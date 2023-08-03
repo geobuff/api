@@ -80,6 +80,10 @@ var loadConfig = func() error {
 
 var runMigrations = func() error {
 	driver, err := postgres.WithInstance(repo.Connection, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+
 	m, err := migrate.NewWithDatabaseInstance("file://db/migrations", "postgres", driver)
 	if err != nil {
 		return err

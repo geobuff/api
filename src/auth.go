@@ -340,7 +340,7 @@ func UpdatePasswordUsingToken(writer http.ResponseWriter, request *http.Request)
 }
 
 var isResetTokenValid = func(userToken sql.NullString, requestToken string, expiry sql.NullTime) bool {
-	return userToken.Valid && expiry.Valid && userToken.String == requestToken && expiry.Time.Sub(time.Now()) > 0
+	return userToken.Valid && expiry.Valid && userToken.String == requestToken && time.Until(expiry.Time) > 0
 }
 
 var ValidUser = func(request *http.Request, id int) (int, error) {

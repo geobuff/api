@@ -2,7 +2,6 @@ package repo
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -170,14 +169,14 @@ func ValidateCreateQuestion(question CreateManualTriviaQuestionDto) error {
 	}
 
 	if err == nil {
-		return errors.New(fmt.Sprintf("Error! Question with text %s already exists.", question.Question))
+		return fmt.Errorf("question with text %s already exists", question.Question)
 	}
 
 	visited := make(map[string]bool)
 	for _, answer := range question.Answers {
 		lower := strings.ToLower(answer.Text)
 		if visited[lower] {
-			return errors.New(fmt.Sprintf("Error! Duplicate answers with text %s.", answer.Text))
+			return fmt.Errorf("duplicate answers with text %s", answer.Text)
 		}
 		visited[lower] = true
 	}
@@ -205,7 +204,7 @@ func ValidateUpdateQuestion(question UpdateManualTriviaQuestionDto) error {
 	for _, answer := range question.Answers {
 		lower := strings.ToLower(answer.Text)
 		if visited[lower] {
-			return errors.New(fmt.Sprintf("Error! Duplicate answers with text %s.", answer.Text))
+			return fmt.Errorf("duplicate answers with text %s", answer.Text)
 		}
 		visited[lower] = true
 	}
