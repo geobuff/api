@@ -228,44 +228,6 @@ func DeleteQuiz(quizID int) error {
 	return err
 }
 
-func getCountryRegionQuizzes() ([]TriviaQuizDto, error) {
-	statement := "SELECT country, singular, name, mapsvg, apipath FROM quizzes WHERE typeid = $1 AND name NOT LIKE '%World%' AND name NOT LIKE '%Countries%' AND name NOT LIKE '%US States%';"
-	rows, err := Connection.Query(statement, QUIZ_TYPE_MAP)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var quizzes = []TriviaQuizDto{}
-	for rows.Next() {
-		var quiz TriviaQuizDto
-		if err = rows.Scan(&quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MapSVG, &quiz.APIPath); err != nil {
-			return nil, err
-		}
-		quizzes = append(quizzes, quiz)
-	}
-	return quizzes, rows.Err()
-}
-
-func getFlagRegionQuizzes() ([]TriviaQuizDto, error) {
-	statement := "SELECT country, singular, name, mapsvg, apipath FROM quizzes WHERE typeId = $1 AND name NOT LIKE '%World%';"
-	rows, err := Connection.Query(statement, QUIZ_TYPE_FLAG)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var quizzes = []TriviaQuizDto{}
-	for rows.Next() {
-		var quiz TriviaQuizDto
-		if err = rows.Scan(&quiz.Country, &quiz.Singular, &quiz.Name, &quiz.MapSVG, &quiz.APIPath); err != nil {
-			return nil, err
-		}
-		quizzes = append(quizzes, quiz)
-	}
-	return quizzes, rows.Err()
-}
-
 func getWorldQuizCount(badgeID int) (int, error) {
 	statement := "SELECT COUNT(id) FROM quizzes WHERE badgeid = $1;"
 	var count int

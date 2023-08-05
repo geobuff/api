@@ -73,8 +73,6 @@ func (s *Server) router() http.Handler {
 	// Trivia endpoints.
 	router.HandleFunc("/api/trivia/all", s.getAllTrivia).Methods("POST")
 	router.HandleFunc("/api/trivia/{date}", s.getTriviaByDate).Methods("GET")
-	router.HandleFunc("/api/trivia", GenerateTrivia).Methods("POST")
-	router.HandleFunc("/api/trivia/{date}", RegenerateTrivia).Methods("PUT")
 	router.HandleFunc("/api/trivia/{date}", DeleteTrivia).Methods("DELETE")
 	router.HandleFunc("/api/trivia/old/{newTriviaCount}", DeleteOldTrivia).Methods("DELETE")
 

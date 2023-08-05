@@ -17,27 +17,6 @@ type GetTriviaDto struct {
 	HasMore bool          `json:"hasMore"`
 }
 
-func GenerateTrivia(writer http.ResponseWriter, request *http.Request) {
-	err := repo.CreateTrivia()
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-}
-
-func RegenerateTrivia(writer http.ResponseWriter, request *http.Request) {
-	if code, err := IsAdmin(request); err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), code)
-		return
-	}
-
-	err := repo.RegenerateTrivia(mux.Vars(request)["date"])
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
-		return
-	}
-}
-
 func DeleteTrivia(writer http.ResponseWriter, request *http.Request) {
 	if code, err := IsAdmin(request); err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), code)

@@ -181,7 +181,7 @@ func UpdateEntry(writer http.ResponseWriter, request *http.Request) {
 
 	_, err = repo.GetLeaderboardEntry(updatedEntry.QuizID, updatedEntry.UserID)
 	if err == sql.ErrNoRows {
-		http.Error(writer, fmt.Sprintf("leaderboard entry for this quiz and user does not exist"), http.StatusBadRequest)
+		http.Error(writer, "leaderboard entry for this quiz and user does not exist", http.StatusBadRequest)
 		return
 	} else if err != nil {
 		http.Error(writer, fmt.Sprintf("%v\n", err), http.StatusInternalServerError)
